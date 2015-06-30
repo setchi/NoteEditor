@@ -38,6 +38,12 @@ public class NotesEditorPresenter : MonoBehaviour
         audioSource.clip = SelectedMusicDataStore.Instance.audioClip;
         titleText.text = SelectedMusicDataStore.Instance.fileName ?? "Test";
 
+        {   // ScaleX initialize
+            var scale = transform.localScale;
+            scale.x = audioSource.clip.samples / audioSource.clip.frequency;
+            transform.localScale = scale;
+        }
+
 
         // Resized canvas stream
         var canvasResizedStream = transform.ObserveEveryValueChanged(t => t.localScale);
