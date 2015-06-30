@@ -405,6 +405,45 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1138884993}
+--- !u!1 &1179737611
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 4
+  m_Component:
+  - 4: {fileID: 1179737613}
+  - 114: {fileID: 1179737612}
+  m_Layer: 0
+  m_Name: DrawLineTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1179737612
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1179737611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 178ed649ba93676489e7f436a50a6ade, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1179737613
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1179737611}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1930939880}
+  m_RootOrder: 0
 --- !u!1 &1237447638
 GameObject:
   m_ObjectHideFlags: 0
@@ -590,6 +629,7 @@ MonoBehaviour:
   audioSource: {fileID: 1930939878}
   playButton: {fileID: 1956531575}
   titleText: {fileID: 1882975966}
+  drawLineTest: {fileID: 1179737612}
 --- !u!82 &1930939878
 AudioSource:
   m_ObjectHideFlags: 0
@@ -668,7 +708,8 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 7, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 1179737613}
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_AnchorMin: {x: .5, y: .5}

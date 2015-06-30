@@ -1,4 +1,5 @@
-﻿using UniRx;
+﻿using System.Linq;
+using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,8 +13,10 @@ public class NotesEditorPresenter : MonoBehaviour
     Button playButton;
     [SerializeField]
     Text titleText;
+    [SerializeField]
+    DrawLineTest drawLineTest;
 
-    void Start()
+    void Awake()
     {
         if (SelectedMusicDataStore.Instance.audioClip == null)
         {
@@ -60,7 +63,7 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(x => transform.position = Vector3.left * transform.localScale.x * x);
 
 
-        // Binds samples from position
+        // Binds samples from dragging canvas
         var canvasDragStream = this.UpdateAsObservable()
             .SkipUntil(this.OnMouseDownAsObservable())
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
@@ -86,7 +89,8 @@ public class NotesEditorPresenter : MonoBehaviour
         var playToggleStream = playButton.OnClickAsObservable()
             .Select(_ => false)
             .Scan((p, c) => !p)
-            .Subscribe(playing => {
+            .Subscribe(playing =>
+            {
                 var playButtonText = playButton.GetComponentInChildren<Text>();
 
                 if (playing)
@@ -101,6 +105,16 @@ public class NotesEditorPresenter : MonoBehaviour
                     playButtonText.text = "Pause";
                 }
             });
-    }
 
+
+        // Draw lines
+        this.UpdateAsObservable()
+            .Select(_ => Enumerable.Range(1, audioSource.clip.samples / audioSource.clip.frequency))
+            .Select(x => x.Select(i => i * audioSource.clip.frequency / (float)audioSource.clip.samples))
+            .Select(x => x.Select(i => new Line(
+                new Vector3(canvasScreenWidth.Value * i, 100, 0),
+                new Vector3(canvasScreenWidth.Value * i, -100, 0),
+                Color.white)))
+            .Subscribe(x => drawLineTest.DrawLines(x.ToArray()));
+    }
 }
