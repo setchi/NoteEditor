@@ -48,7 +48,7 @@ public class NotesEditorPresenter : MonoBehaviour
         // Resized canvas stream
         var canvasResizedStream = transform.ObserveEveryValueChanged(t => t.localScale);
         var canvasScreenWidth = canvasResizedStream
-            .Select(scale => Camera.main.WorldToScreenPoint(Vector3.zero).x - Camera.main.WorldToScreenPoint(Vector3.left * scale.x).x)
+            .Select(scale => Camera.main.WorldToScreenPoint(Vector3.right * scale.x).x - Camera.main.WorldToScreenPoint(Vector3.zero).x)
             .ToReactiveProperty();
 
 
