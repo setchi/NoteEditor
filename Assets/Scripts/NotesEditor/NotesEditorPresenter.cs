@@ -18,6 +18,8 @@ public class NotesEditorPresenter : MonoBehaviour
     [SerializeField]
     Slider _scaleSliderTest;
 
+    Subject<Vector3> OnMouseDownStream = new Subject<Vector3>();
+
     void Awake()
     {
         if (SelectedMusicDataStore.Instance.audioClip == null)
@@ -44,27 +46,28 @@ public class NotesEditorPresenter : MonoBehaviour
         titleText.text = SelectedMusicDataStore.Instance.fileName ?? "Test";
 
 
-        {   // ScaleX initialize
-            var scale = transform.localScale;
-            scale.x = audioSource.clip.samples / (float)audioSource.clip.frequency;
-            transform.localScale = scale;
+        var rectTransform = GetComponent<RectTransform>();
+
+        {   // Initialize canvas width
+            var sizeDelta = rectTransform.sizeDelta;
+            sizeDelta.x = audioSource.clip.samples / 1000f;
+            rectTransform.sizeDelta = sizeDelta;
         }
 
 
         _scaleSliderTest.OnValueChangedAsObservable()
             .DistinctUntilChanged()
-            .Select(x => audioSource.clip.samples / (float)audioSource.clip.frequency * x)
+            .Select(x => audioSource.clip.samples / 1000f * x)
             .Subscribe(x => {
-                var scale = transform.localScale;
-                scale.x = x;
-                transform.localScale = scale;
+                var delta = rectTransform.sizeDelta;
+                delta.x = x;
+                rectTransform.sizeDelta = delta;
             });
 
 
         // Resized canvas stream
-        var canvasResizedStream = transform.ObserveEveryValueChanged(t => t.localScale);
+        var canvasResizedStream = rectTransform.ObserveEveryValueChanged(t => t.sizeDelta.x);
         var canvasScreenWidth = canvasResizedStream
-            .Select(scale => Camera.main.WorldToScreenPoint(Vector3.right * scale.x).x - Camera.main.WorldToScreenPoint(Vector3.zero).x)
             .ToReactiveProperty();
 
 
@@ -74,13 +77,13 @@ public class NotesEditorPresenter : MonoBehaviour
             .DistinctUntilChanged()
             .Merge(canvasResizedStream.Select(_ => audioSource.timeSamples))
             .Select(timeSamples => timeSamples / (float)audioSource.clip.samples)
-            .Select(per => Vector3.left * transform.localScale.x * per - Vector3.left * transform.localScale.x / 2)
-            .Subscribe(pos => transform.position = pos);
+            .Select(per => rectTransform.sizeDelta.x * per)
+            .Subscribe(x => rectTransform.localPosition = Vector3.left * x);
 
 
         // Binds samples from dragging canvas
         var canvasDragStream = this.UpdateAsObservable()
-            .SkipUntil(this.OnMouseDownAsObservable())
+            .SkipUntil(OnMouseDownStream)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Mathf.FloorToInt(Input.mousePosition.x));
 
@@ -93,8 +96,7 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(x => audioSource.timeSamples = x);
 
         var isPlaying = false;
-        this.OnMouseDownAsObservable()
-            .Where(_ => model.IsPlaying.Value)
+        OnMouseDownStream.Where(_ => model.IsPlaying.Value)
             .Do(_ => model.IsPlaying.Value = false)
             .Subscribe(_ => isPlaying = true);
 
@@ -129,9 +131,17 @@ public class NotesEditorPresenter : MonoBehaviour
         this.UpdateAsObservable()
             .Select(_ => Enumerable.Range(0, audioSource.clip.samples / audioSource.clip.frequency)
                 .Select(i => i * audioSource.clip.frequency / (float)audioSource.clip.samples)
-                .Select(i => i * canvasScreenWidth.Value)
-                .Select(i => i - canvasScreenWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
-                .Select(i => new Line(new Vector3(i, 200, 0), new Vector3(i, -200, 0), Color.white)))
-            .Subscribe(x => drawLineTest.DrawLines(x.ToArray()));
+                .Select(per => per * canvasScreenWidth.Value)
+                .Select(x => x - canvasScreenWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
+                .Select(x => new Line(new Vector3(x, 200, 0), new Vector3(x, -200, 0), Color.white)))
+            .Subscribe(lines => drawLineTest.DrawLines(lines.ToArray()));
+
+        OnMouseDownStream
+            .Subscribe(_ => Debug.Log(_));
+    }
+
+    public void OnMouseDown()
+    {
+        OnMouseDownStream.OnNext(Input.mousePosition);
     }
 }
