@@ -82,14 +82,18 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Canvas width scaler Test
-        var canvasWidth = _scaleSliderTest.OnValueChangedAsObservable()
+        model.CanvasWidth = _scaleSliderTest.OnValueChangedAsObservable()
             .DistinctUntilChanged()
             .Select(x => audioSource.clip.samples / 100f * x)
-            .Do(x => {
+            .ToReactiveProperty();
+
+        model.CanvasWidth.DistinctUntilChanged()
+            .Do(x => _scaleSliderTest.value = x * 100f / audioSource.clip.samples)
+            .Subscribe(x => {
                 var delta = canvasRect.sizeDelta;
                 delta.x = x;
                 canvasRect.sizeDelta = delta;
-            }).ToReactiveProperty();
+            });
 
 
         // Binds BPM
@@ -121,7 +125,7 @@ public class NotesEditorPresenter : MonoBehaviour
         this.UpdateAsObservable()
             .Select(_ => audioSource.timeSamples)
             .DistinctUntilChanged()
-            .Merge(canvasWidth.Select(_ => audioSource.timeSamples)) // Merge resized timing
+            .Merge(model.CanvasWidth.Select(_ => audioSource.timeSamples)) // Merge resized timing
             .Select(timeSamples => timeSamples / (float)audioSource.clip.samples)
             .Select(per => canvasRect.sizeDelta.x * per)
             .Select(x => x + model.CanvasOffsetX.Value)
@@ -136,7 +140,7 @@ public class NotesEditorPresenter : MonoBehaviour
 
         canvasDragStream.Zip(canvasDragStream.Skip(1), (p, c) => new { p, c })
             .RepeatSafe()
-            .Select(b => (b.p - b.c) / canvasWidth.Value)
+            .Select(b => (b.p - b.c) / model.CanvasWidth.Value)
             .Select(p => p * model.CanvasScaleFactor.Value)
             .Select(p => Mathf.FloorToInt(audioSource.clip.samples * p))
             .Select(deltaSamples => audioSource.timeSamples + deltaSamples)
@@ -201,8 +205,8 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(max => Enumerable.Range(0, max)
                 .Select(i => i * unitBeatSamples.Value / (float)audioSource.clip.samples / model.DivisionNumOfOneMeasure.Value)
                 .Select(i => i + model.BeatOffsetSamples.Value / (float)audioSource.clip.samples)
-                .Select(per => per * canvasWidth.Value)
-                .Select(x => x - canvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
+                .Select(per => per * model.CanvasWidth.Value)
+                .Select(x => x - model.CanvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
                 .Select(x => x + model.CanvasOffsetX.Value)
                 .Select((x, i) => new Line(new Vector3(x, 250, 0), new Vector3(x, -250, 0), i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2)))
             .Subscribe(lines => drawLineTest.DrawLines("measures", lines.ToArray()));
@@ -221,7 +225,7 @@ public class NotesEditorPresenter : MonoBehaviour
                 .Subscribe(_ =>
                 {
                     audioSource.clip.GetData(waveData, audioSource.timeSamples);
-                    var x = (canvasWidth.Value / audioSource.clip.samples) / 2f;
+                    var x = (model.CanvasWidth.Value / audioSource.clip.samples) / 2f;
                     var offsetX = model.CanvasOffsetX.Value;
 
                     for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
