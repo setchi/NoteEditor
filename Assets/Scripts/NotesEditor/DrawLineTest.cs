@@ -1,10 +1,11 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 
 public class DrawLineTest : MonoBehaviour
 {
-    Line[] lines;
+    Dictionary<string, Line[]> drawLines = new Dictionary<string, Line[]>();
 
     IEnumerator Start()
     {
@@ -19,19 +20,29 @@ public class DrawLineTest : MonoBehaviour
             lineMaterial.SetPass(0);
             GL.Begin(GL.LINES);
 
-            foreach (var l in lines)
+            foreach (var lines in drawLines.Values)
             {
-                GL.Color(l.color);
-                GL.Vertex3(l.start.x, l.start.y, l.start.z);
-                GL.Vertex3(l.end.x, l.end.y, l.end.z);
+                foreach (var l in lines)
+                {
+                    GL.Color(l.color);
+                    GL.Vertex3(l.start.x, l.start.y, l.start.z);
+                    GL.Vertex3(l.end.x, l.end.y, l.end.z);
+                }
             }
 
             GL.End();
         }
     }
 
-    public void DrawLines(Line[] lines)
+    public void DrawLines(string key, Line[] lines)
     {
-        this.lines = lines;
+        if (drawLines.ContainsKey(key))
+        {
+            drawLines[key] = lines;
+        }
+        else
+        {
+            drawLines.Add(key, lines);
+        }
     }
 }

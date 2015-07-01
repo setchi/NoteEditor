@@ -25,7 +25,7 @@ public class NotesEditorPresenter : MonoBehaviour
     InputField BPMInputField;
     [SerializeField]
     InputField beatOffsetInputField;
-    
+
     Subject<Vector3> OnMouseDownStream = new Subject<Vector3>();
 
     void Awake()
@@ -166,7 +166,31 @@ public class NotesEditorPresenter : MonoBehaviour
                 .Select(x => x - canvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
                 .Select(x => x + model.BeatOffset.Value)
                 .Select((x, i) => new Line(new Vector3(x, 250, 0), new Vector3(x, -250, 0), i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2)))
-            .Subscribe(lines => drawLineTest.DrawLines(lines.ToArray()));
+            .Subscribe(lines => drawLineTest.DrawLines("measures", lines.ToArray()));
+
+
+        {   // Draw wave
+            var waveData = new float[500000];
+            var skipSamples = 50;
+            var lineColor = Color.green * 0.5f;
+            var lines = Enumerable.Range(0, waveData.Length / skipSamples)
+                .Select(_ => new Line(Vector3.zero, Vector3.zero, lineColor))
+                .ToArray();
+
+            this.UpdateAsObservable()
+                .Subscribe(_ =>
+                {
+                    audioSource.clip.GetData(waveData, audioSource.timeSamples);
+                    var x = (canvasWidth.Value / audioSource.clip.samples) / 2f;
+
+                    for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
+                    {
+                        lines[li].start.x = lines[li].end.x = wi * x;
+                        lines[li].end.y = -(lines[li].start.y = waveData[wi] * 200);
+                    }
+                    drawLineTest.DrawLines("wave", lines);
+                });
+        }
     }
 
     public void OnMouseDown()
