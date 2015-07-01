@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
-public class Line {
+public class Line
+{
 
     public Color color;
     public Vector3 start;
