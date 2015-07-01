@@ -13,10 +13,12 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<float> BPM = new ReactiveProperty<float>(0);
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
     public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
-    public ReactiveProperty<float> PlayPosition = new ReactiveProperty<float>(0);
     public ReactiveProperty<int> DivisionNumOfOneMeasure = new ReactiveProperty<int>();
+    public ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
+    public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
+
     public ReactiveProperty<bool> WaveGraphEnabled = new ReactiveProperty<bool>(true);
-    public ReactiveProperty<int> BeatOffset = new ReactiveProperty<int>(0);
+    public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<EditTypeEnum> EditType = new ReactiveProperty<EditTypeEnum>(EditTypeEnum.NormalNotes);
     public Subject<Block> ConfirmLongNoteStream = new Subject<Block>();
     public Subject<Block> ConfirmNormalNoteStream = new Subject<Block>();
