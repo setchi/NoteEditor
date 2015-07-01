@@ -139,9 +139,9 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(b => (b.p - b.c) / canvasWidth.Value)
             .Select(p => p * model.CanvasScaleFactor.Value)
             .Select(p => Mathf.FloorToInt(audioSource.clip.samples * p))
-            .Select(deltaSample => audioSource.timeSamples + deltaSample)
-            .Select(x => Mathf.Clamp(x, 0, audioSource.clip.samples - 1))
-            .Subscribe(x => audioSource.timeSamples = x);
+            .Select(deltaSamples => audioSource.timeSamples + deltaSamples)
+            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, audioSource.clip.samples - 1))
+            .Subscribe(timeSamples => audioSource.timeSamples = timeSamples);
 
         var isDraggingDuringPlay = false;
         ScrollPadOnMouseDownStream.Where(_ => model.IsPlaying.Value)
