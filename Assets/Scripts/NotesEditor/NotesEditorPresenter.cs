@@ -15,6 +15,8 @@ public class NotesEditorPresenter : MonoBehaviour
     Text titleText;
     [SerializeField]
     DrawLineTest drawLineTest;
+    [SerializeField]
+    Slider _scaleSliderTest;
 
     void Awake()
     {
@@ -41,11 +43,22 @@ public class NotesEditorPresenter : MonoBehaviour
         audioSource.clip = SelectedMusicDataStore.Instance.audioClip;
         titleText.text = SelectedMusicDataStore.Instance.fileName ?? "Test";
 
+
         {   // ScaleX initialize
             var scale = transform.localScale;
-            scale.x = audioSource.clip.samples / audioSource.clip.frequency;
+            scale.x = audioSource.clip.samples / (float)audioSource.clip.frequency;
             transform.localScale = scale;
         }
+
+
+        _scaleSliderTest.OnValueChangedAsObservable()
+            .DistinctUntilChanged()
+            .Select(x => audioSource.clip.samples / (float)audioSource.clip.frequency * x)
+            .Subscribe(x => {
+                var scale = transform.localScale;
+                scale.x = x;
+                transform.localScale = scale;
+            });
 
 
         // Resized canvas stream
@@ -58,9 +71,11 @@ public class NotesEditorPresenter : MonoBehaviour
         // Binds canvas position from samples
         this.UpdateAsObservable()
             .Select(_ => audioSource.timeSamples)
-            .DistinctUntilChanged() // Add merge resizing?
-            .Select(x => x / (float)audioSource.clip.samples)
-            .Subscribe(x => transform.position = Vector3.left * transform.localScale.x * x);
+            .DistinctUntilChanged()
+            .Merge(canvasResizedStream.Select(_ => audioSource.timeSamples))
+            .Select(timeSamples => timeSamples / (float)audioSource.clip.samples)
+            .Select(per => Vector3.left * transform.localScale.x * per - Vector3.left * transform.localScale.x / 2)
+            .Subscribe(pos => transform.position = pos);
 
 
         // Binds samples from dragging canvas
@@ -77,44 +92,46 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(x => Mathf.Clamp(x, 0, audioSource.clip.samples - 1))
             .Subscribe(x => audioSource.timeSamples = x);
 
-        this.UpdateAsObservable()
-            .CombineLatest(this.OnMouseDownAsObservable().Select(_ => model.IsPlaying.Value), (_, p) => p)
-            .Where(p => p)
+        var isPlaying = false;
+        this.OnMouseDownAsObservable()
+            .Where(_ => model.IsPlaying.Value)
             .Do(_ => model.IsPlaying.Value = false)
+            .Subscribe(_ => isPlaying = true);
+
+        this.UpdateAsObservable()
+            .Where(_ => isPlaying)
             .Where(_ => Input.GetMouseButtonUp(0))
-            .Subscribe(_ => model.IsPlaying.Value = true);
+            .Do(_ => model.IsPlaying.Value = true)
+            .Subscribe(_ => isPlaying = false);
 
 
         // Binds play pause toggle
-        var playToggleStream = playButton.OnClickAsObservable()
-            .Select(_ => false)
-            .Scan((p, c) => !p)
-            .Subscribe(playing =>
+        playButton.OnClickAsObservable()
+            .Subscribe(_ => model.IsPlaying.Value = !model.IsPlaying.Value);
+
+        model.IsPlaying.DistinctUntilChanged().Subscribe(playing => {
+            var playButtonText = playButton.GetComponentInChildren<Text>();
+
+            if (playing)
             {
-                var playButtonText = playButton.GetComponentInChildren<Text>();
-
-                if (playing)
-                {
-                    audioSource.Pause();
-                    playButtonText.text = "Play";
-
-                }
-                else
-                {
-                    audioSource.Play();
-                    playButtonText.text = "Pause";
-                }
-            });
+                audioSource.Play();
+                playButtonText.text = "Pause";
+            }
+            else
+            {
+                audioSource.Pause();
+                playButtonText.text = "Play";
+            }
+        });
 
 
         // Draw lines
         this.UpdateAsObservable()
-            .Select(_ => Enumerable.Range(1, audioSource.clip.samples / audioSource.clip.frequency))
-            .Select(x => x.Select(i => i * audioSource.clip.frequency / (float)audioSource.clip.samples))
-            .Select(x => x.Select(i => new Line(
-                new Vector3(canvasScreenWidth.Value * i, 100, 0),
-                new Vector3(canvasScreenWidth.Value * i, -100, 0),
-                Color.white)))
+            .Select(_ => Enumerable.Range(0, audioSource.clip.samples / audioSource.clip.frequency)
+                .Select(i => i * audioSource.clip.frequency / (float)audioSource.clip.samples)
+                .Select(i => i * canvasScreenWidth.Value)
+                .Select(i => i - canvasScreenWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
+                .Select(i => new Line(new Vector3(i, 200, 0), new Vector3(i, -200, 0), Color.white)))
             .Subscribe(x => drawLineTest.DrawLines(x.ToArray()));
     }
 }
