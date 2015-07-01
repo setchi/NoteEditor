@@ -8,6 +8,8 @@ using UnityEngine.UI;
 public class NotesEditorPresenter : MonoBehaviour
 {
     [SerializeField]
+    RectTransform canvasRect;
+    [SerializeField]
     AudioSource audioSource;
     [SerializeField]
     Button playButton;
@@ -23,8 +25,7 @@ public class NotesEditorPresenter : MonoBehaviour
     InputField BPMInputField;
     [SerializeField]
     InputField beatOffsetInputField;
-
-
+    
     Subject<Vector3> OnMouseDownStream = new Subject<Vector3>();
 
     void Awake()
@@ -46,7 +47,6 @@ public class NotesEditorPresenter : MonoBehaviour
     void Init()
     {
         var model = NotesEditorModel.Instance;
-        var rectTransform = GetComponent<RectTransform>();
         var unitBeatSamples = new ReactiveProperty<int>();
 
 
@@ -61,9 +61,9 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         {   // Initialize canvas width
-            var sizeDelta = rectTransform.sizeDelta;
+            var sizeDelta = canvasRect.sizeDelta;
             sizeDelta.x = audioSource.clip.samples / 100f;
-            rectTransform.sizeDelta = sizeDelta;
+            canvasRect.sizeDelta = sizeDelta;
         }
 
 
@@ -72,9 +72,9 @@ public class NotesEditorPresenter : MonoBehaviour
             .DistinctUntilChanged()
             .Select(x => audioSource.clip.samples / 100f * x)
             .Do(x => {
-                var delta = rectTransform.sizeDelta;
+                var delta = canvasRect.sizeDelta;
                 delta.x = x;
-                rectTransform.sizeDelta = delta;
+                canvasRect.sizeDelta = delta;
             }).ToReactiveProperty();
 
 
@@ -109,8 +109,8 @@ public class NotesEditorPresenter : MonoBehaviour
             .DistinctUntilChanged()
             .Merge(canvasWidth.Select(_ => audioSource.timeSamples)) // Merge resized timing
             .Select(timeSamples => timeSamples / (float)audioSource.clip.samples)
-            .Select(per => rectTransform.sizeDelta.x * per)
-            .Subscribe(x => rectTransform.localPosition = Vector3.left * x);
+            .Select(per => canvasRect.sizeDelta.x * per)
+            .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
 
 
         // Binds samples from dragging canvas
