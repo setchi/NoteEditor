@@ -17,6 +17,9 @@ public class NotesEditorPresenter : MonoBehaviour
     DrawLineTest drawLineTest;
     [SerializeField]
     Slider _scaleSliderTest;
+    [SerializeField]
+    Slider divisionNumOfOneMeasureSlider;
+
 
     Subject<Vector3> OnMouseDownStream = new Subject<Vector3>();
 
@@ -42,6 +45,11 @@ public class NotesEditorPresenter : MonoBehaviour
         var rectTransform = GetComponent<RectTransform>();
 
 
+        divisionNumOfOneMeasureSlider.OnValueChangedAsObservable()
+            .Select(x => Mathf.FloorToInt(x))
+            .Subscribe(x => model.DivisionNumOfOneMeasure.Value = x);
+
+
         // Apply music data
         audioSource.clip = SelectedMusicDataStore.Instance.audioClip;
         titleText.text = SelectedMusicDataStore.Instance.fileName ?? "Test";
@@ -49,7 +57,7 @@ public class NotesEditorPresenter : MonoBehaviour
 
         {   // Initialize canvas width
             var sizeDelta = rectTransform.sizeDelta;
-            sizeDelta.x = audioSource.clip.samples / 1000f;
+            sizeDelta.x = audioSource.clip.samples / 100f;
             rectTransform.sizeDelta = sizeDelta;
         }
 
@@ -57,7 +65,7 @@ public class NotesEditorPresenter : MonoBehaviour
         // Canvas width scaler Test
         var canvasWidth = _scaleSliderTest.OnValueChangedAsObservable()
             .DistinctUntilChanged()
-            .Select(x => audioSource.clip.samples / 1000f * x)
+            .Select(x => audioSource.clip.samples / 100f * x)
             .Do(x => {
                 var delta = rectTransform.sizeDelta;
                 delta.x = x;
@@ -122,11 +130,11 @@ public class NotesEditorPresenter : MonoBehaviour
 
         // Draw lines
         this.UpdateAsObservable()
-            .Select(_ => Enumerable.Range(0, Mathf.CeilToInt(audioSource.clip.samples / (float)audioSource.clip.frequency))
-                .Select(i => i * audioSource.clip.frequency / (float)audioSource.clip.samples)
+            .Select(_ => Enumerable.Range(0, Mathf.CeilToInt(audioSource.clip.samples / (float)audioSource.clip.frequency) * model.DivisionNumOfOneMeasure.Value)
+                .Select(i => i * audioSource.clip.frequency / (float)audioSource.clip.samples / model.DivisionNumOfOneMeasure.Value)
                 .Select(per => per * canvasWidth.Value)
                 .Select(x => x - canvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
-                .Select(x => new Line(new Vector3(x, 200, 0), new Vector3(x, -200, 0), Color.white)))
+                .Select((x, i) => new Line(new Vector3(x, 250, 0), new Vector3(x, -250, 0), i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2)))
             .Subscribe(lines => drawLineTest.DrawLines(lines.ToArray()));
     }
 

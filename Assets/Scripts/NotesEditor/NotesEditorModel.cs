@@ -14,6 +14,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
     public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
     public ReactiveProperty<float> PlayPosition = new ReactiveProperty<float>(0);
+    public ReactiveProperty<int> DivisionNumOfOneMeasure = new ReactiveProperty<int>();
     public ReactiveProperty<bool> WaveGraphEnabled = new ReactiveProperty<bool>(true);
     public ReactiveProperty<int> BeatOffset = new ReactiveProperty<int>(0);
     public ReactiveProperty<EditTypeEnum> EditType = new ReactiveProperty<EditTypeEnum>(EditTypeEnum.NormalNotes);
