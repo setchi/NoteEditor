@@ -164,7 +164,8 @@ public class NotesEditorPresenter : MonoBehaviour
             .RepeatSafe()
             .Select(b => (b.c - b.p) * model.CanvasScaleFactor.Value)
             .Select(x => x + model.CanvasOffsetX.Value)
-            .Select(x => Mathf.Clamp(x, -Screen.width * 0.5f * 0.95f, Screen.width * 0.5f * 0.95f))
+            .Select(x => new { x, max = Screen.width * 0.5f * 0.95f * model.CanvasScaleFactor.Value })
+            .Select(v => Mathf.Clamp(v.x, -v.max, v.max))
             .Subscribe(x => model.CanvasOffsetX.Value = x);
 
         model.CanvasOffsetX.DistinctUntilChanged().Subscribe(x => {
