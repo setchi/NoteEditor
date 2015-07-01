@@ -21,6 +21,8 @@ public class NotesEditorPresenter : MonoBehaviour
     Slider divisionNumOfOneMeasureSlider;
     [SerializeField]
     InputField BPMInputField;
+    [SerializeField]
+    InputField beatOffsetInputField;
 
 
     Subject<Vector3> OnMouseDownStream = new Subject<Vector3>();
@@ -91,6 +93,16 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(x => BPMInputField.text = x.ToString());
 
 
+        // Binds beat offset samples
+        beatOffsetInputField.OnValueChangeAsObservable()
+            .Select(x => string.IsNullOrEmpty(x) ? "0" : x)
+            .Select(x => int.Parse(x))
+            .Subscribe(x => model.BeatOffset.Value = x);
+
+        model.BeatOffset.DistinctUntilChanged()
+            .Subscribe(x => beatOffsetInputField.text = x.ToString());
+
+
         // Binds canvas position from samples
         this.UpdateAsObservable()
             .Select(_ => audioSource.timeSamples)
@@ -152,6 +164,7 @@ public class NotesEditorPresenter : MonoBehaviour
                 .Select(i => i * unitBeatSamples.Value / (float)audioSource.clip.samples / model.DivisionNumOfOneMeasure.Value)
                 .Select(per => per * canvasWidth.Value)
                 .Select(x => x - canvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
+                .Select(x => x + model.BeatOffset.Value)
                 .Select((x, i) => new Line(new Vector3(x, 250, 0), new Vector3(x, -250, 0), i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2)))
             .Subscribe(lines => drawLineTest.DrawLines(lines.ToArray()));
     }
