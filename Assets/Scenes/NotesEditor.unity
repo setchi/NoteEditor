@@ -354,7 +354,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 20
+  m_Text: 980
 --- !u!222 &180205644
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -872,7 +872,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.InputField+OnChangeEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_SelectionColor: {r: .65882355, g: .807843149, b: 1, a: .752941191}
-  m_Text: 20
+  m_Text: 980
   m_CaretBlinkRate: .850000024
 --- !u!114 &665551239
 MonoBehaviour:

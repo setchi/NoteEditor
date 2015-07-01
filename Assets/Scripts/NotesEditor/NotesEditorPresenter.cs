@@ -172,7 +172,7 @@ public class NotesEditorPresenter : MonoBehaviour
             pos.x = x;
             verticalLineRect.localPosition = pos;
         });
-        
+
 
         // Binds play pause toggle
         playButton.OnClickAsObservable()
@@ -194,13 +194,15 @@ public class NotesEditorPresenter : MonoBehaviour
         });
 
 
-        // Draw measures
+        // Draw measure lines
         this.UpdateAsObservable()
-            .Select(_ => Enumerable.Range(0, Mathf.CeilToInt(audioSource.clip.samples / (float)unitBeatSamples.Value) * model.DivisionNumOfOneMeasure.Value)
+            .Select(_ => model.DivisionNumOfOneMeasure.Value * Mathf.CeilToInt(audioSource.clip.samples / (float)unitBeatSamples.Value))
+            .Select(max => Enumerable.Range(0, max)
                 .Select(i => i * unitBeatSamples.Value / (float)audioSource.clip.samples / model.DivisionNumOfOneMeasure.Value)
+                .Select(i => i + model.BeatOffsetSamples.Value / (float)audioSource.clip.samples)
                 .Select(per => per * canvasWidth.Value)
                 .Select(x => x - canvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
-                .Select(x => x + model.BeatOffsetSamples.Value + model.CanvasOffsetX.Value)
+                .Select(x => x + model.CanvasOffsetX.Value)
                 .Select((x, i) => new Line(new Vector3(x, 250, 0), new Vector3(x, -250, 0), i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2)))
             .Subscribe(lines => drawLineTest.DrawLines("measures", lines.ToArray()));
 
@@ -213,7 +215,7 @@ public class NotesEditorPresenter : MonoBehaviour
             var lines = Enumerable.Range(0, waveData.Length / skipSamples)
                 .Select(_ => new Line(Vector3.zero, Vector3.zero, lineColor))
                 .ToArray();
-            
+
             this.UpdateAsObservable()
                 .Subscribe(_ =>
                 {
