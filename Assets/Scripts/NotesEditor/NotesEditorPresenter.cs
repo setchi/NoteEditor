@@ -78,8 +78,9 @@ public class NotesEditorPresenter : MonoBehaviour
         model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value;
 
 
-        // Canvas width scaler Test
+        // Binds canvas width with mouse scroll wheel and slider
         model.CanvasWidth = this.UpdateAsObservable()
+            .Where(_ => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
             .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
             .Where(delta => delta != 0)
             .Select(delta => model.CanvasWidth.Value * (1 + delta))
@@ -115,7 +116,7 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(x => BPMInputField.text = x.ToString());
 
 
-        // Binds beat offset samples
+        // Binds beat offset samples with input
         beatOffsetInputField.OnValueChangeAsObservable()
             .Select(x => string.IsNullOrEmpty(x) ? "0" : x)
             .Select(x => int.Parse(x))
@@ -125,7 +126,7 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(x => beatOffsetInputField.text = x.ToString());
 
 
-        // Binds canvas position from samples
+        // Binds canvas position with samples
         this.UpdateAsObservable()
             .Select(_ => model.Audio.timeSamples)
             .DistinctUntilChanged()
@@ -136,17 +137,22 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
 
 
-        // Binds samples from dragging canvas
+        // Binds samples with dragging canvas and mouse scroll wheel
         var canvasDragObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Mathf.FloorToInt(Input.mousePosition.x));
 
-        canvasDragObservable.Zip(canvasDragObservable.Skip(1), (p, c) => new { p, c })
+        canvasDragObservable
+            .Zip(canvasDragObservable.Skip(1), (p, c) => new { p, c })
             .RepeatSafe()
             .Select(b => (b.p - b.c) / model.CanvasWidth.Value)
             .Select(p => p * model.CanvasScaleFactor.Value)
             .Select(p => Mathf.FloorToInt(model.Audio.clip.samples * p))
+            .Merge(this.UpdateAsObservable() // Merge mouse scroll wheel
+                .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
+                .Select(delta => model.Audio.clip.samples / 100 * -delta)
+                .Select(deltaSamples => Mathf.RoundToInt(deltaSamples)))
             .Select(deltaSamples => model.Audio.timeSamples + deltaSamples)
             .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
             .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
