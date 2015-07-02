@@ -76,7 +76,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
     Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
     {
-        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * NotesEditorModel.Instance.CanvasScaleFactor.Value;
+        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * model.CanvasScaleFactor.Value;
     }
 
 }

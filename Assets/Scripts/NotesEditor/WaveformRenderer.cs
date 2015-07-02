@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class WaveformRenderer : MonoBehaviour
 {
-
     void Awake()
     {
         var model = NotesEditorModel.Instance;
