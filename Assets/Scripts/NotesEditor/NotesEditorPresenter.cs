@@ -79,10 +79,8 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds canvas width with mouse scroll wheel and slider
-        model.CanvasWidth = this.UpdateAsObservable()
+        model.CanvasWidth = canvasEvents.MouseScrollWheelObservable
             .Where(_ => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-            .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
-            .Where(delta => delta != 0)
             .Select(delta => model.CanvasWidth.Value * (1 + delta))
             .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
@@ -149,8 +147,8 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(b => (b.p - b.c) / model.CanvasWidth.Value)
             .Select(p => p * model.CanvasScaleFactor.Value)
             .Select(p => Mathf.FloorToInt(model.Audio.clip.samples * p))
-            .Merge(this.UpdateAsObservable() // Merge mouse scroll wheel
-                .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
+            .Merge(canvasEvents.MouseScrollWheelObservable // Merge mouse scroll wheel
+                .Where(_ => !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
                 .Select(delta => model.Audio.clip.samples / 100 * -delta)
                 .Select(deltaSamples => Mathf.RoundToInt(deltaSamples)))
             .Select(deltaSamples => model.Audio.timeSamples + deltaSamples)

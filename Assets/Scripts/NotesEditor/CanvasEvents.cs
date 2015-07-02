@@ -1,4 +1,5 @@
 ﻿using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 
 public class CanvasEvents : MonoBehaviour
@@ -7,6 +8,14 @@ public class CanvasEvents : MonoBehaviour
     public Subject<Vector3> ScrollPadOnMouseEnterObservable = new Subject<Vector3>();
     public Subject<Vector3> ScrollPadOnMouseDownObservable = new Subject<Vector3>();
     public Subject<Vector3> ScrollPadOnMouseExitObservable = new Subject<Vector3>();
+    public IObservable<float> MouseScrollWheelObservable;
+
+    void Awake()
+    {
+        MouseScrollWheelObservable = this.UpdateAsObservable()
+            .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
+            .Where(delta => delta != 0);
+    }
 
     public void ScrollPadOnMouseDown()
     {
