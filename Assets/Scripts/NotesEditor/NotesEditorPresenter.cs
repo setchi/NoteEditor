@@ -1,4 +1,7 @@
 ﻿using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
+using System;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -20,7 +23,7 @@ public class NotesEditorPresenter : MonoBehaviour
     [SerializeField]
     Text titleText;
     [SerializeField]
-    DrawLineTest drawLineTest;
+    GLLineRenderer glLineRenderer;
     [SerializeField]
     Slider _scaleSliderTest;
     [SerializeField]
@@ -199,20 +202,7 @@ public class NotesEditorPresenter : MonoBehaviour
         });
 
 
-        // Draw measure lines
-        this.UpdateAsObservable()
-            .Select(_ => model.DivisionNumOfOneMeasure.Value * Mathf.CeilToInt(audioSource.clip.samples / (float)unitBeatSamples.Value))
-            .Select(max => Enumerable.Range(0, max)
-                .Select(i => i * unitBeatSamples.Value / (float)audioSource.clip.samples / model.DivisionNumOfOneMeasure.Value)
-                .Select(i => i + model.BeatOffsetSamples.Value / (float)audioSource.clip.samples)
-                .Select(per => per * model.CanvasWidth.Value)
-                .Select(x => x - model.CanvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
-                .Select(x => x + model.CanvasOffsetX.Value)
-                .Select((x, i) => new Line(new Vector3(x, 250, 0), new Vector3(x, -250, 0), i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2)))
-            .Subscribe(lines => drawLineTest.DrawLines("measures", lines.ToArray()));
-
-
-        // Draw wave
+        // Render wave
         {
             var waveData = new float[500000];
             var skipSamples = 50;
@@ -234,9 +224,62 @@ public class NotesEditorPresenter : MonoBehaviour
                         lines[li].end.y = -(lines[li].start.y = waveData[wi] * 200);
                     }
 
-                    drawLineTest.DrawLines("wave", lines);
+                    glLineRenderer.RenderLines("wave", lines);
                 });
         }
+
+
+        // Render beat lines
+        this.UpdateAsObservable()
+            .Select(_ => model.DivisionNumOfOneMeasure.Value * Mathf.CeilToInt(audioSource.clip.samples / (float)unitBeatSamples.Value))
+            .Subscribe(max =>
+            {
+                var beatSamples = Enumerable.Range(0, max)
+                    .Select(i => i * unitBeatSamples.Value / model.DivisionNumOfOneMeasure.Value)
+                    .Select(i => i + model.BeatOffsetSamples.Value)
+                    .ToArray();
+
+                var beatLines = beatSamples
+                    .Select(i => i / (float)audioSource.clip.samples)
+                    .Select(per => per * model.CanvasWidth.Value)
+                    .Select(x => x - model.CanvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
+                    .Select(x => x + model.CanvasOffsetX.Value)
+                    .Select((x, i) => new Line(
+                        new Vector3(x, 200, 0),
+                        new Vector3(x, -200, 0),
+                        i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2))
+                    .ToArray();
+
+
+                var highlightColor = Color.yellow * 0.8f;
+
+                // Highlight closest line to mouse pointer
+                var mouoseX = ScreenToCanvasPosition(Input.mousePosition).x;
+                var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouoseX));
+                var closestLine = beatLines[closestLineIndex];
+                closestLine.color = highlightColor;
+
+                glLineRenderer.RenderLines("measures", beatLines);
+
+
+                var blockLines = Enumerable.Range(0, 5)
+                    .Select(i => i * 70 - 140)
+                    .Select(i => i + Screen.height * 0.5f)
+                    .Select((y, i) => new Line(
+                        ScreenToCanvasPosition(new Vector3(0, y, 0)),
+                        ScreenToCanvasPosition(new Vector3(Screen.width, y, 0)),
+                        Color.white / 2f))
+                    .ToArray();
+
+                var mouseY = ScreenToCanvasPosition(Input.mousePosition).y;
+                var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
+                closestLine = blockLines[closestBlockLindex];
+                closestLine.color = highlightColor;
+
+                glLineRenderer.RenderLines("blocks", blockLines);
+
+                // Debug.Log("Closest measure samples: " + beatSamples[closestLineIndex] + " - " + blockLines[closestBlockLindex]);
+            });
     }
 
     public void ScrollPadOnMouseDown()
@@ -249,4 +292,14 @@ public class NotesEditorPresenter : MonoBehaviour
         VerticalLineOnMouseDownStream.OnNext(Input.mousePosition);
     }
 
+    int GetClosestLineIndex(Line[] lines, Func<Line, float> calcDistance)
+    {
+        var minValue = lines.Min(calcDistance);
+        return Array.FindIndex(lines, c => calcDistance(c) == minValue);
+    }
+
+    Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
+    {
+        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * NotesEditorModel.Instance.CanvasScaleFactor.Value;
+    }
 }

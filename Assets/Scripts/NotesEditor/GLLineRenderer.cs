@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class DrawLineTest : MonoBehaviour
+public class GLLineRenderer : MonoBehaviour
 {
     Dictionary<string, Line[]> drawLines = new Dictionary<string, Line[]>();
 
@@ -34,7 +34,7 @@ public class DrawLineTest : MonoBehaviour
         }
     }
 
-    public void DrawLines(string key, Line[] lines)
+    public void RenderLines(string key, Line[] lines)
     {
         if (drawLines.ContainsKey(key))
         {
