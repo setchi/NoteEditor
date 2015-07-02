@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Linq;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -59,6 +57,7 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds canvas scale factor
+        model.CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / Screen.width;
         this.UpdateAsObservable()
             .Select(_ => Screen.width)
             .DistinctUntilChanged()
@@ -76,22 +75,24 @@ public class NotesEditorPresenter : MonoBehaviour
         titleText.text = SelectedMusicDataStore.Instance.fileName ?? "Test";
 
 
-        // Initialize canvas width
-        {
-            var sizeDelta = canvasRect.sizeDelta;
-            sizeDelta.x = audioSource.clip.samples / 100f;
-            canvasRect.sizeDelta = sizeDelta;
-        }
+        // Initialize canvas offset x
+        model.CanvasOffsetX.Value = ScreenToCanvasPosition(Vector3.right * Screen.width * 0.05f).x;
 
 
         // Canvas width scaler Test
-        model.CanvasWidth = _scaleSliderTest.OnValueChangedAsObservable()
-            .DistinctUntilChanged()
+        model.CanvasWidth = this.UpdateAsObservable()
+            .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
+            .Where(delta => delta != 0)
+            .Select(delta => model.CanvasWidth.Value * (1 - delta))
+            .Select(x => x / (audioSource.clip.samples / 100f))
+            .Select(x => Mathf.Clamp(x, 0.1f, 2f))
+            .Merge(_scaleSliderTest.OnValueChangedAsObservable()
+            .DistinctUntilChanged())
             .Select(x => audioSource.clip.samples / 100f * x)
             .ToReactiveProperty();
 
         model.CanvasWidth.DistinctUntilChanged()
-            .Do(x => _scaleSliderTest.value = x * 100f / audioSource.clip.samples)
+            .Do(x => _scaleSliderTest.value = x / (audioSource.clip.samples / 100f))
             .Subscribe(x => {
                 var delta = canvasRect.sizeDelta;
                 delta.x = x;
