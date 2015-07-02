@@ -31,8 +31,10 @@ public class NotesEditorPresenter : MonoBehaviour
     [SerializeField]
     InputField beatOffsetInputField;
 
-    Subject<Vector3> ScrollPadOnMouseDownStream = new Subject<Vector3>();
     Subject<Vector3> VerticalLineOnMouseDownStream = new Subject<Vector3>();
+    Subject<Vector3> ScrollPadOnMouseEnterStream = new Subject<Vector3>();
+    Subject<Vector3> ScrollPadOnMouseDownStream = new Subject<Vector3>();
+    Subject<Vector3> ScrollPadOnMouseExitStream = new Subject<Vector3>();
 
     void Awake()
     {
@@ -64,6 +66,12 @@ public class NotesEditorPresenter : MonoBehaviour
             .Subscribe(w => model.CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
 
 
+        // Binds mouseover on canvas
+        model.IsMouseOverOnCanvas = ScrollPadOnMouseExitStream.Select(_ => false)
+            .Merge(ScrollPadOnMouseEnterStream.Select(_ => true))
+            .ToReactiveProperty();
+
+
         // Binds division number of measure
         divisionNumOfOneMeasureSlider.OnValueChangedAsObservable()
             .Select(x => Mathf.FloorToInt(x))
@@ -87,7 +95,7 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(x => x / (audioSource.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
             .Merge(_scaleSliderTest.OnValueChangedAsObservable()
-            .DistinctUntilChanged())
+                .DistinctUntilChanged())
             .Select(x => audioSource.clip.samples / 100f * x)
             .ToReactiveProperty();
 
@@ -203,7 +211,7 @@ public class NotesEditorPresenter : MonoBehaviour
         });
 
 
-        // Render wave
+        // Render waveform
         {
             var waveData = new float[500000];
             var skipSamples = 50;
@@ -237,10 +245,11 @@ public class NotesEditorPresenter : MonoBehaviour
             {
                 var beatSamples = Enumerable.Range(0, max)
                     .Select(i => i * unitBeatSamples.Value / model.DivisionNumOfOneMeasure.Value)
-                    .Select(i => i + model.BeatOffsetSamples.Value)
                     .ToArray();
 
+
                 var beatLines = beatSamples
+                    .Select(i => i + model.BeatOffsetSamples.Value)
                     .Select(i => i / (float)audioSource.clip.samples)
                     .Select(per => per * model.CanvasWidth.Value)
                     .Select(x => x - model.CanvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
@@ -252,17 +261,6 @@ public class NotesEditorPresenter : MonoBehaviour
                     .ToArray();
 
 
-                var highlightColor = Color.yellow * 0.8f;
-
-                // Highlight closest line to mouse pointer
-                var mouoseX = ScreenToCanvasPosition(Input.mousePosition).x;
-                var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouoseX));
-                var closestLine = beatLines[closestLineIndex];
-                closestLine.color = highlightColor;
-
-                glLineRenderer.RenderLines("measures", beatLines);
-
-
                 var blockLines = Enumerable.Range(0, 5)
                     .Select(i => i * 70 - 140)
                     .Select(i => i + Screen.height * 0.5f)
@@ -272,20 +270,47 @@ public class NotesEditorPresenter : MonoBehaviour
                         Color.white / 2f))
                     .ToArray();
 
-                var mouseY = ScreenToCanvasPosition(Input.mousePosition).y;
-                var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
-                closestLine = blockLines[closestBlockLindex];
-                closestLine.color = highlightColor;
 
+                // Highlight closest line to mouse pointer
+                if (model.IsMouseOverOnCanvas.Value)
+                {
+                    var highlightColor = Color.yellow * 0.8f;
+                    var mouoseX = ScreenToCanvasPosition(Input.mousePosition).x;
+                    var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouoseX));
+                    var closestBeatLine = beatLines[closestLineIndex];
+                    closestBeatLine.color = highlightColor;
+
+                    var mouseY = ScreenToCanvasPosition(Input.mousePosition).y;
+                    var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
+                    var closestBlockLine = blockLines[closestBlockLindex];
+                    closestBlockLine.color = highlightColor;
+                }
+
+                glLineRenderer.RenderLines("beats", beatLines);
                 glLineRenderer.RenderLines("blocks", blockLines);
 
-                // Debug.Log("Closest measure samples: " + beatSamples[closestLineIndex] + " - " + blockLines[closestBlockLindex]);
+                /*
+                Debug.Log("Closest measure samples: "
+                    + (beatSamples[closestLineIndex] + model.BeatOffsetSamples.Value)
+                    + " - "
+                    + blockLines[closestBlockLindex]);
+                //*/
             });
     }
 
     public void ScrollPadOnMouseDown()
     {
         ScrollPadOnMouseDownStream.OnNext(Input.mousePosition);
+    }
+
+    public void ScrollPadOnMouseEnter()
+    {
+        ScrollPadOnMouseEnterStream.OnNext(Input.mousePosition);
+    }
+
+    public void ScrollPadOnMouseExit()
+    {
+        ScrollPadOnMouseExitStream.OnNext(Input.mousePosition);
     }
 
     public void VerticalLineOnMouseDown()

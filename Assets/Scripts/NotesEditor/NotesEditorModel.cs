@@ -17,6 +17,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
+    public ReactiveProperty<bool> IsMouseOverOnCanvas = new ReactiveProperty<bool>();
 
     public ReactiveProperty<bool> WaveGraphEnabled = new ReactiveProperty<bool>(true);
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
