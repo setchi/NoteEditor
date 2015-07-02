@@ -82,7 +82,7 @@ public class NotesEditorPresenter : MonoBehaviour
         model.CanvasWidth = this.UpdateAsObservable()
             .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
             .Where(delta => delta != 0)
-            .Select(delta => model.CanvasWidth.Value * (1 - delta))
+            .Select(delta => model.CanvasWidth.Value * (1 + delta))
             .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
             .Merge(canvasWidthScaleSlider.OnValueChangedAsObservable()
