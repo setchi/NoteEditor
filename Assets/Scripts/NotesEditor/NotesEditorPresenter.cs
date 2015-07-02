@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class NotesEditorPresenter : MonoBehaviour
 {
+    [SerializeField]
+    CanvasEvents canvasEvents;
     [SerializeField]
     CanvasScaler canvasScaler;
     [SerializeField]
@@ -15,26 +15,17 @@ public class NotesEditorPresenter : MonoBehaviour
     [SerializeField]
     RectTransform verticalLineRect;
     [SerializeField]
-    AudioSource audioSource;
-    [SerializeField]
     Button playButton;
     [SerializeField]
     Text titleText;
     [SerializeField]
-    GLLineRenderer glLineRenderer;
-    [SerializeField]
-    Slider _scaleSliderTest;
+    Slider canvasWidthScaleSlider;
     [SerializeField]
     Slider divisionNumOfOneMeasureSlider;
     [SerializeField]
     InputField BPMInputField;
     [SerializeField]
     InputField beatOffsetInputField;
-
-    Subject<Vector3> VerticalLineOnMouseDownStream = new Subject<Vector3>();
-    Subject<Vector3> ScrollPadOnMouseEnterStream = new Subject<Vector3>();
-    Subject<Vector3> ScrollPadOnMouseDownStream = new Subject<Vector3>();
-    Subject<Vector3> ScrollPadOnMouseExitStream = new Subject<Vector3>();
 
     void Awake()
     {
@@ -55,7 +46,7 @@ public class NotesEditorPresenter : MonoBehaviour
     void Init()
     {
         var model = NotesEditorModel.Instance;
-        var unitBeatSamples = new ReactiveProperty<int>();
+        model.Audio = gameObject.AddComponent<AudioSource>();
 
 
         // Binds canvas scale factor
@@ -67,8 +58,8 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds mouseover on canvas
-        model.IsMouseOverOnCanvas = ScrollPadOnMouseExitStream.Select(_ => false)
-            .Merge(ScrollPadOnMouseEnterStream.Select(_ => true))
+        model.IsMouseOverOnCanvas = canvasEvents.ScrollPadOnMouseExitObservable.Select(_ => false)
+            .Merge(canvasEvents.ScrollPadOnMouseEnterObservable.Select(_ => true))
             .ToReactiveProperty();
 
 
@@ -79,12 +70,12 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Apply music data
-        audioSource.clip = SelectedMusicDataStore.Instance.audioClip;
+        model.Audio.clip = SelectedMusicDataStore.Instance.audioClip;
         titleText.text = SelectedMusicDataStore.Instance.fileName ?? "Test";
 
 
         // Initialize canvas offset x
-        model.CanvasOffsetX.Value = ScreenToCanvasPosition(Vector3.right * Screen.width * 0.05f).x;
+        model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value;
 
 
         // Canvas width scaler Test
@@ -92,15 +83,15 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
             .Where(delta => delta != 0)
             .Select(delta => model.CanvasWidth.Value * (1 - delta))
-            .Select(x => x / (audioSource.clip.samples / 100f))
+            .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
-            .Merge(_scaleSliderTest.OnValueChangedAsObservable()
+            .Merge(canvasWidthScaleSlider.OnValueChangedAsObservable()
                 .DistinctUntilChanged())
-            .Select(x => audioSource.clip.samples / 100f * x)
+            .Select(x => model.Audio.clip.samples / 100f * x)
             .ToReactiveProperty();
 
         model.CanvasWidth.DistinctUntilChanged()
-            .Do(x => _scaleSliderTest.value = x / (audioSource.clip.samples / 100f))
+            .Do(x => canvasWidthScaleSlider.value = x / (model.Audio.clip.samples / 100f))
             .Subscribe(x => {
                 var delta = canvasRect.sizeDelta;
                 delta.x = x;
@@ -109,8 +100,8 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds BPM
-        unitBeatSamples = model.BPM.DistinctUntilChanged()
-            .Select(x => Mathf.FloorToInt(audioSource.clip.frequency * 60 / x))
+        model.UnitBeatSamples = model.BPM.DistinctUntilChanged()
+            .Select(x => Mathf.FloorToInt(model.Audio.clip.frequency * 60 / x))
             .ToReactiveProperty();
 
         BPMInputField.OnValueChangeAsObservable()
@@ -135,32 +126,32 @@ public class NotesEditorPresenter : MonoBehaviour
 
         // Binds canvas position from samples
         this.UpdateAsObservable()
-            .Select(_ => audioSource.timeSamples)
+            .Select(_ => model.Audio.timeSamples)
             .DistinctUntilChanged()
-            .Merge(model.CanvasWidth.Select(_ => audioSource.timeSamples)) // Merge resized timing
-            .Select(timeSamples => timeSamples / (float)audioSource.clip.samples)
+            .Merge(model.CanvasWidth.Select(_ => model.Audio.timeSamples)) // Merge resized timing
+            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
             .Select(per => canvasRect.sizeDelta.x * per)
             .Select(x => x + model.CanvasOffsetX.Value)
             .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
 
 
         // Binds samples from dragging canvas
-        var canvasDragStream = this.UpdateAsObservable()
-            .SkipUntil(ScrollPadOnMouseDownStream)
+        var canvasDragObservable = this.UpdateAsObservable()
+            .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Mathf.FloorToInt(Input.mousePosition.x));
 
-        canvasDragStream.Zip(canvasDragStream.Skip(1), (p, c) => new { p, c })
+        canvasDragObservable.Zip(canvasDragObservable.Skip(1), (p, c) => new { p, c })
             .RepeatSafe()
             .Select(b => (b.p - b.c) / model.CanvasWidth.Value)
             .Select(p => p * model.CanvasScaleFactor.Value)
-            .Select(p => Mathf.FloorToInt(audioSource.clip.samples * p))
-            .Select(deltaSamples => audioSource.timeSamples + deltaSamples)
-            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, audioSource.clip.samples - 1))
-            .Subscribe(timeSamples => audioSource.timeSamples = timeSamples);
+            .Select(p => Mathf.FloorToInt(model.Audio.clip.samples * p))
+            .Select(deltaSamples => model.Audio.timeSamples + deltaSamples)
+            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
+            .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
 
         var isDraggingDuringPlay = false;
-        ScrollPadOnMouseDownStream.Where(_ => model.IsPlaying.Value)
+        canvasEvents.ScrollPadOnMouseDownObservable.Where(_ => model.IsPlaying.Value)
             .Select(_ => model.IsPlaying.Value = false)
             .Subscribe(_ => isDraggingDuringPlay = true);
 
@@ -171,12 +162,12 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds offset x of canvas
-        var verticalLineDragStream = this.UpdateAsObservable()
-            .SkipUntil(VerticalLineOnMouseDownStream)
+        var verticalLineDragObservable = this.UpdateAsObservable()
+            .SkipUntil(canvasEvents.VerticalLineOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Mathf.FloorToInt(Input.mousePosition.x));
 
-        verticalLineDragStream.Zip(verticalLineDragStream.Skip(1), (p, c) => new { p, c })
+        verticalLineDragObservable.Zip(verticalLineDragObservable.Skip(1), (p, c) => new { p, c })
             .RepeatSafe()
             .Select(b => (b.c - b.p) * model.CanvasScaleFactor.Value)
             .Select(x => x + model.CanvasOffsetX.Value)
@@ -200,132 +191,14 @@ public class NotesEditorPresenter : MonoBehaviour
 
             if (playing)
             {
-                audioSource.Play();
+                model.Audio.Play();
                 playButtonText.text = "Pause";
             }
             else
             {
-                audioSource.Pause();
+                model.Audio.Pause();
                 playButtonText.text = "Play";
             }
         });
-
-
-        // Render waveform
-        {
-            var waveData = new float[500000];
-            var skipSamples = 50;
-            var lineColor = Color.green * 0.5f;
-            var lines = Enumerable.Range(0, waveData.Length / skipSamples)
-                .Select(_ => new Line(Vector3.zero, Vector3.zero, lineColor))
-                .ToArray();
-
-            this.UpdateAsObservable()
-                .Subscribe(_ =>
-                {
-                    audioSource.clip.GetData(waveData, audioSource.timeSamples);
-                    var x = (model.CanvasWidth.Value / audioSource.clip.samples) / 2f;
-                    var offsetX = model.CanvasOffsetX.Value;
-
-                    for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
-                    {
-                        lines[li].start.x = lines[li].end.x = wi * x + offsetX;
-                        lines[li].end.y = -(lines[li].start.y = waveData[wi] * 200);
-                    }
-
-                    glLineRenderer.RenderLines("wave", lines);
-                });
-        }
-
-
-        // Render beat lines
-        this.UpdateAsObservable()
-            .Select(_ => model.DivisionNumOfOneMeasure.Value * Mathf.CeilToInt(audioSource.clip.samples / (float)unitBeatSamples.Value))
-            .Subscribe(max =>
-            {
-                var beatSamples = Enumerable.Range(0, max)
-                    .Select(i => i * unitBeatSamples.Value / model.DivisionNumOfOneMeasure.Value)
-                    .ToArray();
-
-
-                var beatLines = beatSamples
-                    .Select(i => i + model.BeatOffsetSamples.Value)
-                    .Select(i => i / (float)audioSource.clip.samples)
-                    .Select(per => per * model.CanvasWidth.Value)
-                    .Select(x => x - model.CanvasWidth.Value * (audioSource.timeSamples / (float)audioSource.clip.samples))
-                    .Select(x => x + model.CanvasOffsetX.Value)
-                    .Select((x, i) => new Line(
-                        new Vector3(x, 200, 0),
-                        new Vector3(x, -200, 0),
-                        i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2))
-                    .ToArray();
-
-
-                var blockLines = Enumerable.Range(0, 5)
-                    .Select(i => i * 70 - 140)
-                    .Select(i => i + Screen.height * 0.5f)
-                    .Select((y, i) => new Line(
-                        ScreenToCanvasPosition(new Vector3(0, y, 0)),
-                        ScreenToCanvasPosition(new Vector3(Screen.width, y, 0)),
-                        Color.white / 2f))
-                    .ToArray();
-
-
-                // Highlight closest line to mouse pointer
-                if (model.IsMouseOverOnCanvas.Value)
-                {
-                    var highlightColor = Color.yellow * 0.8f;
-                    var mouoseX = ScreenToCanvasPosition(Input.mousePosition).x;
-                    var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouoseX));
-                    var closestBeatLine = beatLines[closestLineIndex];
-                    closestBeatLine.color = highlightColor;
-
-                    var mouseY = ScreenToCanvasPosition(Input.mousePosition).y;
-                    var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
-                    var closestBlockLine = blockLines[closestBlockLindex];
-                    closestBlockLine.color = highlightColor;
-                }
-
-                glLineRenderer.RenderLines("beats", beatLines);
-                glLineRenderer.RenderLines("blocks", blockLines);
-
-                /*
-                Debug.Log("Closest measure samples: "
-                    + (beatSamples[closestLineIndex] + model.BeatOffsetSamples.Value)
-                    + " - "
-                    + blockLines[closestBlockLindex]);
-                //*/
-            });
-    }
-
-    public void ScrollPadOnMouseDown()
-    {
-        ScrollPadOnMouseDownStream.OnNext(Input.mousePosition);
-    }
-
-    public void ScrollPadOnMouseEnter()
-    {
-        ScrollPadOnMouseEnterStream.OnNext(Input.mousePosition);
-    }
-
-    public void ScrollPadOnMouseExit()
-    {
-        ScrollPadOnMouseExitStream.OnNext(Input.mousePosition);
-    }
-
-    public void VerticalLineOnMouseDown()
-    {
-        VerticalLineOnMouseDownStream.OnNext(Input.mousePosition);
-    }
-
-    int GetClosestLineIndex(Line[] lines, Func<Line, float> calcDistance)
-    {
-        var minValue = lines.Min(calcDistance);
-        return Array.FindIndex(lines, c => calcDistance(c) == minValue);
-    }
-
-    Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
-    {
-        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * NotesEditorModel.Instance.CanvasScaleFactor.Value;
     }
 }

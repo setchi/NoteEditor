@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
-public class GLLineRenderer : MonoBehaviour
+public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
 {
     Dictionary<string, Line[]> drawLines = new Dictionary<string, Line[]>();
 
@@ -34,15 +33,15 @@ public class GLLineRenderer : MonoBehaviour
         }
     }
 
-    public void RenderLines(string key, Line[] lines)
+    public static void RenderLines(string key, Line[] lines)
     {
-        if (drawLines.ContainsKey(key))
+        if (Instance.drawLines.ContainsKey(key))
         {
-            drawLines[key] = lines;
+            Instance.drawLines[key] = lines;
         }
         else
         {
-            drawLines.Add(key, lines);
+            Instance.drawLines.Add(key, lines);
         }
     }
 }
