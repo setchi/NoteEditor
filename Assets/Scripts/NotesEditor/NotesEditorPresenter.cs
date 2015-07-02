@@ -58,7 +58,7 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds mouseover on canvas
-        model.IsMouseOverOnCanvas = canvasEvents.ScrollPadOnMouseExitObservable.Select(_ => false)
+        model.IsMouseOverCanvas = canvasEvents.ScrollPadOnMouseExitObservable.Select(_ => false)
             .Merge(canvasEvents.ScrollPadOnMouseEnterObservable.Select(_ => true))
             .ToReactiveProperty();
 
