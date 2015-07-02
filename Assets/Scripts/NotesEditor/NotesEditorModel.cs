@@ -20,6 +20,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
     public ReactiveProperty<bool> IsMouseOverCanvas = new ReactiveProperty<bool>();
     public ReactiveProperty<int> UnitBeatSamples = new ReactiveProperty<int>();
+    public ReactiveProperty<bool> IsDraggingDuringPlay = new ReactiveProperty<bool>();
     public AudioSource Audio;
 
     public ReactiveProperty<bool> WaveGraphEnabled = new ReactiveProperty<bool>(true);

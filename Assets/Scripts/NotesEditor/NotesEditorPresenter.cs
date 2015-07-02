@@ -92,7 +92,8 @@ public class NotesEditorPresenter : MonoBehaviour
 
         model.CanvasWidth.DistinctUntilChanged()
             .Do(x => canvasWidthScaleSlider.value = x / (model.Audio.clip.samples / 100f))
-            .Subscribe(x => {
+            .Subscribe(x =>
+            {
                 var delta = canvasRect.sizeDelta;
                 delta.x = x;
                 canvasRect.sizeDelta = delta;
@@ -150,15 +151,14 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
             .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
 
-        var isDraggingDuringPlay = false;
-        canvasEvents.ScrollPadOnMouseDownObservable.Where(_ => model.IsPlaying.Value)
-            .Select(_ => model.IsPlaying.Value = false)
-            .Subscribe(_ => isDraggingDuringPlay = true);
-
-        this.UpdateAsObservable().Where(_ => isDraggingDuringPlay)
-            .Where(_ => Input.GetMouseButtonUp(0))
-            .Select(_ => model.IsPlaying.Value = true)
-            .Subscribe(_ => isDraggingDuringPlay = false);
+        model.IsDraggingDuringPlay = canvasEvents.ScrollPadOnMouseDownObservable
+            .Where(_ => model.IsPlaying.Value)
+            .Select(_ => !(model.IsPlaying.Value = false))
+            .Merge(this.UpdateAsObservable()
+                .Where(_ => model.IsDraggingDuringPlay.Value)
+                .Where(_ => Input.GetMouseButtonUp(0))
+                .Select(_ => !(model.IsPlaying.Value = true)))
+            .ToReactiveProperty();
 
 
         // Binds offset x of canvas
@@ -175,7 +175,8 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(v => Mathf.Clamp(v.x, -v.max, v.max))
             .Subscribe(x => model.CanvasOffsetX.Value = x);
 
-        model.CanvasOffsetX.DistinctUntilChanged().Subscribe(x => {
+        model.CanvasOffsetX.DistinctUntilChanged().Subscribe(x =>
+        {
             var pos = verticalLineRect.localPosition;
             pos.x = x;
             verticalLineRect.localPosition = pos;
@@ -186,7 +187,8 @@ public class NotesEditorPresenter : MonoBehaviour
         playButton.OnClickAsObservable()
             .Subscribe(_ => model.IsPlaying.Value = !model.IsPlaying.Value);
 
-        model.IsPlaying.DistinctUntilChanged().Subscribe(playing => {
+        model.IsPlaying.DistinctUntilChanged().Subscribe(playing =>
+        {
             var playButtonText = playButton.GetComponentInChildren<Text>();
 
             if (playing)
