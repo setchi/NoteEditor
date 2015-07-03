@@ -34,6 +34,9 @@ public class NoteObject : MonoBehaviour
 
     public void OnMouseDown()
     {
-        model.NormalNoteObservable.OnNext(notePosition);
+        if (model.ClosestNotePosition.Value.Equals(notePosition))
+        {
+            model.NormalNoteObservable.OnNext(notePosition);
+        }
     }
 }
