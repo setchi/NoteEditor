@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
 {
+    public Material lineMaterial;
     Dictionary<string, Line[]> drawLines = new Dictionary<string, Line[]>();
 
     IEnumerator Start()
     {
-        var lineMaterial = new Material("Shader \"Lines/Colored Blended\" {SubShader { Pass { BindChannels { Bind \"Color\",color } Blend SrcAlpha OneMinusSrcAlpha ZWrite Off Cull Off Fog { Mode Off } } } }");
         lineMaterial.hideFlags = HideFlags.HideAndDontSave;
         lineMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
 
