@@ -56,7 +56,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
 
     public AudioSource Audio;
-    public ReactiveProperty<bool> WaveGraphEnabled = new ReactiveProperty<bool>(true);
+    public ReactiveProperty<bool> WaveformEnabled = new ReactiveProperty<bool>(true);
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<EditTypeEnum> EditType = new ReactiveProperty<EditTypeEnum>(EditTypeEnum.NormalNotes);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
@@ -68,24 +68,13 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public float SamplesToScreenPositionX(int samples)
     {
-        return new int[] { samples }
-            .Select(i => i + BeatOffsetSamples.Value)
-            .Select(i => i / (float)Audio.clip.samples)
-            .Select(p => p * CanvasWidth.Value)
-            .Select(x => x - CanvasWidth.Value * (Audio.timeSamples / (float)Audio.clip.samples))
-            .Select(x => x + CanvasOffsetX.Value)
-            .First();
+        return (samples - Audio.timeSamples + BeatOffsetSamples.Value)
+            * CanvasWidth.Value / Audio.clip.samples
+            + CanvasOffsetX.Value;
     }
 
     public float BlockNumToScreenPositionY(int blockNum)
     {
-        return new int[] { blockNum }
-            .Select(i => i * 70 - 140)
-            .First();
-    }
-
-    public Vector3 NotePositionToScreenPosition(NotePosition notePosition)
-    {
-        return new Vector3(SamplesToScreenPositionX(notePosition.samples), BlockNumToScreenPositionY(notePosition.blockNum) * CanvasScaleFactor.Value, 0);
+        return blockNum * 70 - 140;
     }
 }

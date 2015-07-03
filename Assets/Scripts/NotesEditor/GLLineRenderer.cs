@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
 {
-    public Material lineMaterial;
+    [SerializeField]
+    Material lineMaterial;
     Dictionary<string, Line[]> drawLines = new Dictionary<string, Line[]>();
 
     IEnumerator Start()

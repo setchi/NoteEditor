@@ -52,10 +52,12 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
             var distance = Vector2.Distance(
                 new Vector2(closestBeatLine.start.x, closestBlockLine.start.y),
-                new Vector2(mouseX, mouseY)
-            );
+                new Vector2(mouseX, mouseY));
 
-            var threshold = Mathf.Abs(model.SamplesToScreenPositionX(beatSamples[0]) - model.SamplesToScreenPositionX(beatSamples[1])) / 3f;
+            var threshold = Mathf.Min(
+                Mathf.Abs(model.BlockNumToScreenPositionY(0) - model.BlockNumToScreenPositionY(1)),
+                Mathf.Abs(model.SamplesToScreenPositionX(beatSamples[0]) - model.SamplesToScreenPositionX(beatSamples[1]))) / 3f;
+
             if (distance < threshold)
             {
                 closestBlockLine.color = highlightColor;

@@ -21,7 +21,10 @@ public class NoteObject : MonoBehaviour
 
     Vector3 CalcPosition(NotePosition notePosition)
     {
-        return model.NotePositionToScreenPosition(notePosition);
+        return new Vector3(
+            model.SamplesToScreenPositionX(notePosition.samples),
+            model.BlockNumToScreenPositionY(notePosition.blockNum) * model.CanvasScaleFactor.Value,
+            0);
     }
 
     public void OnMouseEnter()
