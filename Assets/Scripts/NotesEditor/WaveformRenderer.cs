@@ -16,7 +16,7 @@ public class WaveformRenderer : MonoBehaviour
             .ToArray();
 
 
-        this.UpdateAsObservable().Subscribe(_ =>
+        this.LateUpdateAsObservable().Subscribe(_ =>
         {
             model.Audio.clip.GetData(waveData, model.Audio.timeSamples);
             var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;

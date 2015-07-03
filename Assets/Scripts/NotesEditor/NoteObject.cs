@@ -12,11 +12,11 @@ public class NoteObject : MonoBehaviour {
         rectTransform.localPosition = CalcPosition(notePosition);
     }
 	
-	void Update () {
+	void LateUpdate () {
         rectTransform.localPosition = CalcPosition(notePosition);
     }
 
     Vector3 CalcPosition(NotePosition notePosition) {
-        return (model.NotePositionToScreenPosition(notePosition));
+        return model.NotePositionToScreenPosition(notePosition);
     }
 }

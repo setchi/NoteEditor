@@ -11,7 +11,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         model = NotesEditorModel.Instance;
     }
 
-    void Update()
+    void LateUpdate()
     {
         var beatNum = model.DivisionNumOfOneMeasure.Value * Mathf.CeilToInt(model.Audio.clip.samples / (float)model.UnitBeatSamples.Value);
         var beatSamples = Enumerable.Range(0, beatNum)
