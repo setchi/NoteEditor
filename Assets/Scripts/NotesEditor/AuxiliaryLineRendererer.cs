@@ -42,21 +42,30 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         if (model.IsMouseOverCanvas.Value)
         {
             var highlightColor = Color.yellow * 0.8f;
-            var mouoseX = ScreenToCanvasPosition(Input.mousePosition).x;
-            var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouoseX));
+            var mouseX = ScreenToCanvasPosition(Input.mousePosition).x;
+            var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouseX));
             var closestBeatLine = beatLines[closestLineIndex];
-            closestBeatLine.color = highlightColor;
 
             var mouseY = ScreenToCanvasPosition(Input.mousePosition).y;
             var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
             var closestBlockLine = blockLines[closestBlockLindex];
-            closestBlockLine.color = highlightColor;
 
-            model.ClosestNotePosition.Value = new NotePosition(beatSamples[closestLineIndex], closestBlockLindex);
-        }
-        else
-        {
-            model.ClosestNotePosition.Value = new NotePosition(-1, -1);
+            var distance = Vector2.Distance(
+                new Vector2(closestBeatLine.start.x, closestBlockLine.start.y),
+                new Vector2(mouseX, mouseY)
+            );
+
+            var threshold = Mathf.Abs(model.SamplesToScreenPositionX(beatSamples[0]) - model.SamplesToScreenPositionX(beatSamples[1])) / 3f;
+            if (distance < threshold)
+            {
+                closestBlockLine.color = highlightColor;
+                closestBeatLine.color = highlightColor;
+                model.ClosestNotePosition.Value = new NotePosition(beatSamples[closestLineIndex], closestBlockLindex);
+            }
+            else
+            {
+                model.ClosestNotePosition.Value = new NotePosition(-1, -1);
+            }
         }
 
         GLLineRenderer.RenderLines("beats", beatLines);

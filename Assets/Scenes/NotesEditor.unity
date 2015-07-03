@@ -725,9 +725,9 @@ GameObject:
   - 114: {fileID: 798471442}
   - 114: {fileID: 798471441}
   - 114: {fileID: 798471446}
+  - 114: {fileID: 798471448}
   - 114: {fileID: 798471447}
   - 114: {fileID: 798471445}
-  - 114: {fileID: 798471448}
   m_Layer: 5
   m_Name: GUICanvas
   m_TagString: Untagged
@@ -817,7 +817,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 798471440}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02348d465351f9a42a0c65780473414d, type: 3}
+  m_Script: {fileID: 11500000, guid: c5b0e5db208537641bcb91540d65516c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &798471446
@@ -851,7 +851,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 798471440}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c5b0e5db208537641bcb91540d65516c, type: 3}
+  m_Script: {fileID: 11500000, guid: 02348d465351f9a42a0c65780473414d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &798471448
@@ -1814,7 +1814,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Melldythm Notes Editor
+  m_Text: Notes Editor
 --- !u!222 &1882975967
 CanvasRenderer:
   m_ObjectHideFlags: 0

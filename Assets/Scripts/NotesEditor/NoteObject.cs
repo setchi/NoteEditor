@@ -23,4 +23,14 @@ public class NoteObject : MonoBehaviour
     {
         return model.NotePositionToScreenPosition(notePosition);
     }
+
+    public void OnMouseEnter()
+    {
+        model.IsMouseOverCanvas.Value = true;
+    }
+
+    public void OnMouseDown()
+    {
+        model.NormalNoteObservable.OnNext(notePosition);
+    }
 }
