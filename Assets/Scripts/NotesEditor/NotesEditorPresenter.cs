@@ -23,6 +23,8 @@ public class NotesEditorPresenter : MonoBehaviour
     [SerializeField]
     Slider divisionNumOfOneMeasureSlider;
     [SerializeField]
+    Slider volumeController;
+    [SerializeField]
     InputField BPMInputField;
     [SerializeField]
     InputField beatOffsetInputField;
@@ -84,8 +86,13 @@ public class NotesEditorPresenter : MonoBehaviour
         model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value;
 
 
-        // Binds waveform enabled
+        // Binds waveform display enabled
         model.WaveformDisplayEnabled = waveformDisplayEnabled.OnValueChangedAsObservable().ToReactiveProperty();
+
+
+        // Binds audio volume
+        model.Volume = volumeController.OnValueChangedAsObservable().ToReactiveProperty();
+        model.Volume.DistinctUntilChanged().Subscribe(x => model.Audio.volume = x);
 
 
         // Binds canvas width with mouse scroll wheel and slider
