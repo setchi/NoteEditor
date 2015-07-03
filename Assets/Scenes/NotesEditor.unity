@@ -136,7 +136,7 @@ GameObject:
   - 224: {fileID: 32780994}
   - 114: {fileID: 32780995}
   m_Layer: 5
-  m_Name: DivisionNumOfOneMeasureSlider
+  m_Name: DivisionNumOfOneMeasureController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1039,8 +1039,8 @@ MonoBehaviour:
   verticalLineRect: {fileID: 629520007}
   playButton: {fileID: 1956531575}
   titleText: {fileID: 1882975966}
-  canvasWidthScaleSlider: {fileID: 1213569132}
-  divisionNumOfOneMeasureSlider: {fileID: 32780995}
+  canvasWidthScaleController: {fileID: 1213569132}
+  divisionNumOfOneMeasureController: {fileID: 32780995}
   volumeController: {fileID: 1286275368}
   BPMInputField: {fileID: 2111547991}
   beatOffsetInputField: {fileID: 665551238}
@@ -1560,7 +1560,7 @@ GameObject:
   - 224: {fileID: 1213569131}
   - 114: {fileID: 1213569132}
   m_Layer: 5
-  m_Name: CanvasWidthScaleSlider
+  m_Name: CanvasWidthScaleController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

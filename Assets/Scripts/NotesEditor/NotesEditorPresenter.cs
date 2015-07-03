@@ -19,9 +19,9 @@ public class NotesEditorPresenter : MonoBehaviour
     [SerializeField]
     Text titleText;
     [SerializeField]
-    Slider canvasWidthScaleSlider;
+    Slider canvasWidthScaleController;
     [SerializeField]
-    Slider divisionNumOfOneMeasureSlider;
+    Slider divisionNumOfOneMeasureController;
     [SerializeField]
     Slider volumeController;
     [SerializeField]
@@ -72,7 +72,7 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds division number of measure
-        divisionNumOfOneMeasureSlider.OnValueChangedAsObservable()
+        divisionNumOfOneMeasureController.OnValueChangedAsObservable()
             .Select(x => Mathf.FloorToInt(x))
             .Subscribe(x => model.DivisionNumOfOneMeasure.Value = x);
 
@@ -101,13 +101,13 @@ public class NotesEditorPresenter : MonoBehaviour
             .Select(delta => model.CanvasWidth.Value * (1 + delta))
             .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
-            .Merge(canvasWidthScaleSlider.OnValueChangedAsObservable()
+            .Merge(canvasWidthScaleController.OnValueChangedAsObservable()
                 .DistinctUntilChanged())
             .Select(x => model.Audio.clip.samples / 100f * x)
             .ToReactiveProperty();
 
         model.CanvasWidth.DistinctUntilChanged()
-            .Do(x => canvasWidthScaleSlider.value = x / (model.Audio.clip.samples / 100f))
+            .Do(x => canvasWidthScaleController.value = x / (model.Audio.clip.samples / 100f))
             .Subscribe(x =>
             {
                 var delta = canvasRect.sizeDelta;
