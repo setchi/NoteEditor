@@ -841,6 +841,8 @@ MonoBehaviour:
   divisionNumOfOneMeasureSlider: {fileID: 32780995}
   BPMInputField: {fileID: 2111547991}
   beatOffsetInputField: {fileID: 665551238}
+  notePrefab: {fileID: 145270, guid: 117a02bd3aa02974286fd278ec0611d1, type: 2}
+  notesRegion: {fileID: 1253846481}
 --- !u!114 &798471447
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -20,11 +20,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
 
         var beatLines = beatSamples
-            .Select(i => i + model.BeatOffsetSamples.Value)
-            .Select(i => i / (float)model.Audio.clip.samples)
-            .Select(per => per * model.CanvasWidth.Value)
-            .Select(x => x - model.CanvasWidth.Value * (model.Audio.timeSamples / (float)model.Audio.clip.samples))
-            .Select(x => x + model.CanvasOffsetX.Value)
+            .Select(x => model.SamplesToScreenPositionX(x))
             .Select((x, i) => new Line(
                 new Vector3(x, 200, 0),
                 new Vector3(x, -200, 0),
@@ -33,7 +29,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
 
         var blockLines = Enumerable.Range(0, 5)
-            .Select(i => i * 70 - 140)
+            .Select(i => model.BlockNumToScreenPositionY(i))
             .Select(i => i + Screen.height * 0.5f)
             .Select((y, i) => new Line(
                 ScreenToCanvasPosition(new Vector3(0, y, 0)),
@@ -56,12 +52,11 @@ public class AuxiliaryLineRendererer : MonoBehaviour
             var closestBlockLine = blockLines[closestBlockLindex];
             closestBlockLine.color = highlightColor;
 
-            /*
-            Debug.Log("Closest measure samples: "
-                + (beatSamples[closestLineIndex] + model.BeatOffsetSamples.Value)
-                + " - "
-                + blockLines[closestBlockLindex]);
-            //*/
+            model.ClosestNotePosition.Value = new NotePosition(beatSamples[closestLineIndex], closestBlockLindex);
+        }
+        else
+        {
+            model.ClosestNotePosition.Value = new NotePosition(-1, -1);
         }
 
         GLLineRenderer.RenderLines("beats", beatLines);
@@ -78,5 +73,4 @@ public class AuxiliaryLineRendererer : MonoBehaviour
     {
         return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * model.CanvasScaleFactor.Value;
     }
-
 }

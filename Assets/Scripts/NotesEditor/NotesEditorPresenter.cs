@@ -26,6 +26,10 @@ public class NotesEditorPresenter : MonoBehaviour
     InputField BPMInputField;
     [SerializeField]
     InputField beatOffsetInputField;
+    [SerializeField]
+    GameObject notePrefab;
+    [SerializeField]
+    GameObject notesRegion;
 
     void Awake()
     {
@@ -204,6 +208,33 @@ public class NotesEditorPresenter : MonoBehaviour
             {
                 model.Audio.Pause();
                 playButtonText.text = "Play";
+            }
+        });
+
+
+        canvasEvents.ScrollPadOnMouseDownObservable
+            .Where(_ => 0 <= model.ClosestNotePosition.Value.samples)
+            .Subscribe(_ => model.NormalNoteObservable.OnNext(model.ClosestNotePosition.Value));
+
+
+        model.NormalNoteObservable.Subscribe(notePosition =>
+        {
+            var exists = model.NoteObjects.ContainsKey(notePosition);
+
+            if (exists)
+            {
+                var noteObject = model.NoteObjects[notePosition];
+                model.NoteObjects.Remove(notePosition);
+                DestroyObject(noteObject.gameObject);
+            }
+            else
+            {
+                var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
+                noteObject.notePosition = notePosition;
+                noteObject.noteType = 1;
+                noteObject.transform.SetParent(notesRegion.transform);
+
+                model.NoteObjects.Add(notePosition, noteObject);
             }
         });
     }
