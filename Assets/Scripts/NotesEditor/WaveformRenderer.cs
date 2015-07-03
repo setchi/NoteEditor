@@ -16,19 +16,21 @@ public class WaveformRenderer : MonoBehaviour
             .ToArray();
 
 
-        this.LateUpdateAsObservable().Subscribe(_ =>
-        {
-            model.Audio.clip.GetData(waveData, model.Audio.timeSamples);
-            var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
-            var offsetX = model.CanvasOffsetX.Value;
-
-            for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
+        this.LateUpdateAsObservable()
+            .Where(_ => model.WaveformDisplayEnabled.Value)
+            .Subscribe(_ =>
             {
-                lines[li].start.x = lines[li].end.x = wi * x + offsetX;
-                lines[li].end.y = -(lines[li].start.y = waveData[wi] * 200);
-            }
+                model.Audio.clip.GetData(waveData, model.Audio.timeSamples);
+                var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
+                var offsetX = model.CanvasOffsetX.Value;
 
-            GLLineRenderer.RenderLines("wave", lines);
-        });
+                for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
+                {
+                    lines[li].start.x = lines[li].end.x = wi * x + offsetX;
+                    lines[li].end.y = -(lines[li].start.y = waveData[wi] * 200);
+                }
+
+                GLLineRenderer.RenderLines("waveform", lines);
+            });
     }
 }

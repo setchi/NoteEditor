@@ -42,6 +42,7 @@ public struct NotePosition
 public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 {
     public ReactiveProperty<float> BPM = new ReactiveProperty<float>(0);
+    public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
     public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
     public ReactiveProperty<int> DivisionNumOfOneMeasure = new ReactiveProperty<int>();
@@ -52,12 +53,10 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<int> UnitBeatSamples = new ReactiveProperty<int>();
     public ReactiveProperty<bool> IsDraggingDuringPlay = new ReactiveProperty<bool>();
     public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
-
+    public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
     public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
 
     public AudioSource Audio;
-    public ReactiveProperty<bool> WaveformEnabled = new ReactiveProperty<bool>(true);
-    public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<EditTypeEnum> EditType = new ReactiveProperty<EditTypeEnum>(EditTypeEnum.NormalNotes);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
 

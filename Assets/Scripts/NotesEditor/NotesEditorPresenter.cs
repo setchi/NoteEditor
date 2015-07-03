@@ -30,6 +30,8 @@ public class NotesEditorPresenter : MonoBehaviour
     GameObject notePrefab;
     [SerializeField]
     GameObject notesRegion;
+    [SerializeField]
+    Toggle waveformDisplayEnabled;
 
     void Awake()
     {
@@ -80,6 +82,10 @@ public class NotesEditorPresenter : MonoBehaviour
 
         // Initialize canvas offset x
         model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value;
+
+
+        // Binds waveform enabled
+        model.WaveformDisplayEnabled = waveformDisplayEnabled.OnValueChangedAsObservable().ToReactiveProperty();
 
 
         // Binds canvas width with mouse scroll wheel and slider

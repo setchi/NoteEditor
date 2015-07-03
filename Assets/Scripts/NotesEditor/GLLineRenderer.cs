@@ -31,6 +31,7 @@ public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
             }
 
             GL.End();
+            drawLines.Clear();
         }
     }
 
