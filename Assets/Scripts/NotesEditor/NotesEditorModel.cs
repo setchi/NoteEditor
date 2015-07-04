@@ -75,7 +75,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public float BlockNumToScreenPositionY(int blockNum)
     {
-        return blockNum * 70 - 140;
+        return (blockNum * 70 - 140) / CanvasScaleFactor.Value;
     }
 
     public Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
