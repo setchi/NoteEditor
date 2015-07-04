@@ -59,7 +59,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public AudioSource Audio;
     public ReactiveProperty<NoteTypeEnum> EditType = new ReactiveProperty<NoteTypeEnum>(NoteTypeEnum.NormalNotes);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
-    public Subject<NoteObject> AddLongNoteObjectObservable = new Subject<NoteObject>();
+    public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
 
     void Awake()
     {

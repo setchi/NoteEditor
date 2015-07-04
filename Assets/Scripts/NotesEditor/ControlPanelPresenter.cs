@@ -4,7 +4,7 @@ using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class NotesEditorPresenter : MonoBehaviour
+public class ControlPanelPresenter : MonoBehaviour
 {
     [SerializeField]
     CanvasEvents canvasEvents;
@@ -28,10 +28,6 @@ public class NotesEditorPresenter : MonoBehaviour
     InputField BPMInputField;
     [SerializeField]
     InputField beatOffsetInputField;
-    [SerializeField]
-    GameObject notePrefab;
-    [SerializeField]
-    GameObject notesRegion;
     [SerializeField]
     Toggle waveformDisplayEnabled;
 
@@ -153,23 +149,21 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds samples with dragging canvas and mouse scroll wheel
-        var canvasDragObservable = this.UpdateAsObservable()
+        this.UpdateAsObservable()
             .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable
                 .Where(_ => 0 > model.ClosestNotePosition.Value.samples))
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
-            .Select(_ => Mathf.FloorToInt(Input.mousePosition.x));
-
-        canvasDragObservable
-            .Zip(canvasDragObservable.Skip(1), (p, c) => new { p, c })
+            .Select(_ => Input.mousePosition.x)
+            .Buffer(2, 1).Where(b => 2 <= b.Count)
             .RepeatSafe()
-            .Select(b => (b.p - b.c) / model.CanvasWidth.Value)
-            .Select(p => p * model.CanvasScaleFactor.Value)
-            .Select(p => Mathf.FloorToInt(model.Audio.clip.samples * p))
+            .Select(b => (b[0] - b[1])
+                / model.CanvasWidth.Value
+                * model.CanvasScaleFactor.Value
+                * model.Audio.clip.samples)
             .Merge(canvasEvents.MouseScrollWheelObservable // Merge mouse scroll wheel
                 .Where(_ => !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
-                .Select(delta => model.Audio.clip.samples / 100 * -delta)
-                .Select(deltaSamples => Mathf.RoundToInt(deltaSamples)))
-            .Select(deltaSamples => model.Audio.timeSamples + deltaSamples)
+                .Select(delta => model.Audio.clip.samples / 100 * -delta))
+            .Select(deltaSamples => model.Audio.timeSamples + Mathf.RoundToInt(deltaSamples))
             .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
             .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
 
@@ -184,14 +178,13 @@ public class NotesEditorPresenter : MonoBehaviour
 
 
         // Binds offset x of canvas
-        var verticalLineDragObservable = this.UpdateAsObservable()
+        this.UpdateAsObservable()
             .SkipUntil(canvasEvents.VerticalLineOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
-            .Select(_ => Mathf.FloorToInt(Input.mousePosition.x));
-
-        verticalLineDragObservable.Zip(verticalLineDragObservable.Skip(1), (p, c) => new { p, c })
+            .Select(_ => Input.mousePosition.x)
+            .Buffer(2, 1).Where(b => 2 <= b.Count)
             .RepeatSafe()
-            .Select(b => (b.c - b.p) * model.CanvasScaleFactor.Value)
+            .Select(b => (b[1] - b[0]) * model.CanvasScaleFactor.Value)
             .Select(x => x + model.CanvasOffsetX.Value)
             .Select(x => new { x, max = Screen.width * 0.5f * 0.95f * model.CanvasScaleFactor.Value })
             .Select(v => Mathf.Clamp(v.x, -v.max, v.max))
@@ -225,124 +218,6 @@ public class NotesEditorPresenter : MonoBehaviour
             }
         });
 
-
-        var closestNoteAreaOnMouseDownObservable = canvasEvents
-            .ScrollPadOnMouseDownObservable
-            .Where(_ => 0 <= model.ClosestNotePosition.Value.samples);
-
-        var closestNoteAreaOnMouseDownPosition = closestNoteAreaOnMouseDownObservable
-            .Select(_ => Input.mousePosition)
-            .ToReactiveProperty();
-
-        var longNoteStartPosition = model.NormalNoteObservable
-            .ToReactiveProperty();
-
-        var startLongNoteObservable = this.UpdateAsObservable()
-            .SkipUntil(closestNoteAreaOnMouseDownObservable)
-            .TakeWhile(_ => !Input.GetMouseButtonUp(0))
-            .RepeatSafe()
-            .Select(_ => Input.mousePosition)
-            .Select(pos => (closestNoteAreaOnMouseDownPosition.Value - pos).magnitude)
-            .Where(magnitude => 50 <= magnitude)
-            .Select(_ => longNoteStartPosition.Value)
-            .DistinctUntilChanged();
-
-        startLongNoteObservable
-            .Do(_ => model.EditType.Value = NoteTypeEnum.LongNotes)
-            .Subscribe(notePosition => model.LongNoteObservable.OnNext(notePosition));
-
-
-        // Return to the normal notes edit mode
-        this.UpdateAsObservable()
-            .Where(_ => model.EditType.Value == NoteTypeEnum.LongNotes)
-            .Where(_ => Input.GetKeyDown(KeyCode.Escape))
-            .Subscribe(_ => model.EditType.Value = NoteTypeEnum.NormalNotes);
-
-        var endLongNoteObservable = model.EditType.DistinctUntilChanged()
-            .Where(editType => editType == NoteTypeEnum.NormalNotes)
-            .Skip(1);
-
-        model.AddLongNoteObjectObservable.TakeUntil(endLongNoteObservable)
-            .Buffer(2, 1).Where(b => 2 <= b.Count)
-            .RepeatSafe()
-            .Subscribe(b => {
-                b[0].next = b[1];
-                b[1].prev = b[0];
-            });
-
-
-        closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypeEnum.NormalNotes)
-            .Subscribe(_ => model.NormalNoteObservable.OnNext(model.ClosestNotePosition.Value));
-
-        closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypeEnum.LongNotes)
-            .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
-
-
-        model.NormalNoteObservable.Subscribe(notePosition =>
-        {
-            if (model.NoteObjects.ContainsKey(notePosition))
-            {
-                RemoveNote(notePosition);
-            }
-            else
-            {
-                var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
-                noteObject.notePosition = notePosition;
-                noteObject.noteType.Value = NoteTypeEnum.NormalNotes;
-                noteObject.transform.SetParent(notesRegion.transform);
-
-                model.NoteObjects.Add(notePosition, noteObject);
-            }
-        });
-
-
-        model.LongNoteObservable.Subscribe(notePosition => {
-            if (model.NoteObjects.ContainsKey(notePosition))
-            {
-                var noteObject = model.NoteObjects[notePosition];
-
-                if (noteObject.noteType.Value == NoteTypeEnum.LongNotes)
-                {
-
-                    if (noteObject.prev != null)
-                        noteObject.prev.next = noteObject.next;
-
-                    if (noteObject.next != null)
-                        noteObject.next.prev = noteObject.prev;
-
-                    RemoveNote(notePosition);
-                }
-                else
-                {
-                    // update note type
-                    noteObject.noteType.Value = NoteTypeEnum.LongNotes;
-                    model.AddLongNoteObjectObservable.OnNext(noteObject);
-                }
-            }
-            else
-            {
-                // prev, next.......
-                var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
-                noteObject.notePosition = notePosition;
-                noteObject.noteType.Value = NoteTypeEnum.LongNotes;
-                noteObject.transform.SetParent(notesRegion.transform);
-
-                model.NoteObjects.Add(notePosition, noteObject);
-                model.AddLongNoteObjectObservable.OnNext(noteObject);
-            }
-        });
     }
 
-    public void RemoveNote(NotePosition notePosition)
-    {
-        var model = NotesEditorModel.Instance;
-        if (model.NoteObjects.ContainsKey(notePosition))
-        {
-            var noteObject = model.NoteObjects[notePosition];
-            model.NoteObjects.Remove(notePosition);
-            DestroyObject(noteObject.gameObject);
-        }
-    }
 }

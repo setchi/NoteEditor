@@ -52,11 +52,11 @@ public class NoteObject : MonoBehaviour
             .Where(_ => noteType.Value == NoteTypeEnum.LongNotes);
 
 
-        var lastAddLongNote = model.AddLongNoteObjectObservable.ToReactiveProperty();
+        var lastAddedLongNoteObject = model.AddedLongNoteObjectObservable.ToReactiveProperty();
         drawLineObservable
             .Where(_ => next == null)
             .Where(_ => model.EditType.Value == NoteTypeEnum.LongNotes)
-            .Where(_ => lastAddLongNote.Value.notePosition.Equals(notePosition))
+            .Where(_ => lastAddedLongNoteObject.Value.notePosition.Equals(notePosition))
             .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
             .Where(nextPosition => 0 < nextPosition.x - CalcPosition(notePosition).x)
             .Merge(drawLineObservable

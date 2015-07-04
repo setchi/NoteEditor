@@ -930,6 +930,7 @@ GameObject:
   - 114: {fileID: 798471448}
   - 114: {fileID: 798471447}
   - 114: {fileID: 798471445}
+  - 114: {fileID: 798471449}
   m_Layer: 5
   m_Name: GUICanvas
   m_TagString: Untagged
@@ -1044,8 +1045,6 @@ MonoBehaviour:
   volumeController: {fileID: 1286275368}
   BPMInputField: {fileID: 2111547991}
   beatOffsetInputField: {fileID: 665551238}
-  notePrefab: {fileID: 145270, guid: 117a02bd3aa02974286fd278ec0611d1, type: 2}
-  notesRegion: {fileID: 1253846481}
   waveformDisplayEnabled: {fileID: 657980408}
 --- !u!114 &798471447
 MonoBehaviour:
@@ -1069,6 +1068,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9b078660d7e5884cae9f1d5d089cd81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &798471449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e228c89314cf0c4d881a4842386cef3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  notesRegion: {fileID: 1253846481}
+  canvasEvents: {fileID: 798471448}
+  notePrefab: {fileID: 145270, guid: 117a02bd3aa02974286fd278ec0611d1, type: 2}
 --- !u!1 &833008781
 GameObject:
   m_ObjectHideFlags: 0
