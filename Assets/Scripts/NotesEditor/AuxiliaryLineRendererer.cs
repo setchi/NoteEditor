@@ -32,8 +32,8 @@ public class AuxiliaryLineRendererer : MonoBehaviour
             .Select(i => model.BlockNumToScreenPositionY(i))
             .Select(i => i + Screen.height * 0.5f)
             .Select((y, i) => new Line(
-                ScreenToCanvasPosition(new Vector3(0, y, 0)),
-                ScreenToCanvasPosition(new Vector3(Screen.width, y, 0)),
+                model.ScreenToCanvasPosition(new Vector3(0, y, 0)),
+                model.ScreenToCanvasPosition(new Vector3(Screen.width, y, 0)),
                 Color.white / 2f))
             .ToArray();
 
@@ -42,11 +42,11 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         if (model.IsMouseOverCanvas.Value)
         {
             var highlightColor = Color.yellow * 0.8f;
-            var mouseX = ScreenToCanvasPosition(Input.mousePosition).x;
+            var mouseX = model.ScreenToCanvasPosition(Input.mousePosition).x;
             var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouseX));
             var closestBeatLine = beatLines[closestLineIndex];
 
-            var mouseY = ScreenToCanvasPosition(Input.mousePosition).y;
+            var mouseY = model.ScreenToCanvasPosition(Input.mousePosition).y;
             var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
             var closestBlockLine = blockLines[closestBlockLindex];
 
@@ -78,10 +78,5 @@ public class AuxiliaryLineRendererer : MonoBehaviour
     {
         var minValue = lines.Min(calcDistance);
         return Array.FindIndex(lines, c => calcDistance(c) == minValue);
-    }
-
-    Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
-    {
-        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * model.CanvasScaleFactor.Value;
     }
 }

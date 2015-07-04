@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UniRx;
 using UnityEngine;
 
 
-public enum EditTypeEnum
+public enum NoteTypeEnum
 {
     NormalNotes,
     LongNotes
@@ -55,10 +54,12 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
     public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
     public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
+    public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
 
     public AudioSource Audio;
-    public ReactiveProperty<EditTypeEnum> EditType = new ReactiveProperty<EditTypeEnum>(EditTypeEnum.NormalNotes);
+    public ReactiveProperty<NoteTypeEnum> EditType = new ReactiveProperty<NoteTypeEnum>(NoteTypeEnum.NormalNotes);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
+    public Subject<NoteObject> AddLongNoteObjectObservable = new Subject<NoteObject>();
 
     void Awake()
     {
@@ -75,5 +76,10 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public float BlockNumToScreenPositionY(int blockNum)
     {
         return blockNum * 70 - 140;
+    }
+
+    public Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
+    {
+        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * CanvasScaleFactor.Value;
     }
 }
