@@ -26,11 +26,6 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public AudioSource Audio;
 
-    void Awake()
-    {
-
-    }
-
     public float SamplesToScreenPositionX(int samples)
     {
         return (samples - Audio.timeSamples + BeatOffsetSamples.Value)

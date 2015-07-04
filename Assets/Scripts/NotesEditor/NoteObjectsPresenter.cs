@@ -31,19 +31,6 @@ public class NoteObjectsPresenter : MonoBehaviour
 
 
         // Start editing of long note
-        /*
-        this.UpdateAsObservable()
-            .SkipUntil(closestNoteAreaOnMouseDownObservable)
-            .TakeWhile(_ => !Input.GetMouseButtonUp(0))
-            .RepeatSafe()
-            .Select(_ => Input.mousePosition)
-            .Select(pos => (closestNoteAreaOnMouseDownPosition.Value - pos).magnitude)
-            .Where(magnitude => 50 <= magnitude)
-            .Select(_ => longNoteStartPosition.Value)
-            .DistinctUntilChanged()
-            .Do(_ => model.EditType.Value = NoteTypes.Long)
-            .Subscribe(notePosition => model.LongNoteObservable.OnNext(notePosition));
-            // */
         closestNoteAreaOnMouseDownObservable
             .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Where(_ => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))

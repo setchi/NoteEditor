@@ -58,7 +58,6 @@ public class NoteObject : MonoBehaviour
             .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Where(_ => lastAddedLongNoteObject.Value == this)
             .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
-            // .Where(nextPosition => 0 < nextPosition.x - CalcPosition(notePosition).x)
             .Merge(drawLineObservable
                 .Where(_ => next != null)
                 .Select(_ => CalcPosition(next.notePosition)))
