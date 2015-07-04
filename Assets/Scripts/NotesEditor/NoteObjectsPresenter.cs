@@ -39,18 +39,18 @@ public class NoteObjectsPresenter : MonoBehaviour
             .Where(magnitude => 50 <= magnitude)
             .Select(_ => longNoteStartPosition.Value)
             .DistinctUntilChanged()
-            .Do(_ => model.EditType.Value = NoteTypeEnum.LongNotes)
+            .Do(_ => model.EditType.Value = NoteTypes.Long)
             .Subscribe(notePosition => model.LongNoteObservable.OnNext(notePosition));
 
 
         // Return to the normal notes edit mode
         this.UpdateAsObservable()
-            .Where(_ => model.EditType.Value == NoteTypeEnum.LongNotes)
+            .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Where(_ => Input.GetKeyDown(KeyCode.Escape))
-            .Subscribe(_ => model.EditType.Value = NoteTypeEnum.NormalNotes);
+            .Subscribe(_ => model.EditType.Value = NoteTypes.Normal);
 
         var endLongNoteObservable = model.EditType.DistinctUntilChanged()
-            .Where(editType => editType == NoteTypeEnum.NormalNotes)
+            .Where(editType => editType == NoteTypes.Normal)
             .Skip(1);
 
         model.AddedLongNoteObjectObservable.TakeUntil(endLongNoteObservable)
@@ -63,11 +63,11 @@ public class NoteObjectsPresenter : MonoBehaviour
 
 
         closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypeEnum.NormalNotes)
+            .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Subscribe(_ => model.NormalNoteObservable.OnNext(model.ClosestNotePosition.Value));
 
         closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypeEnum.LongNotes)
+            .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
 
 
@@ -81,7 +81,7 @@ public class NoteObjectsPresenter : MonoBehaviour
             {
                 var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
                 noteObject.notePosition = notePosition;
-                noteObject.noteType.Value = NoteTypeEnum.NormalNotes;
+                noteObject.noteType.Value = NoteTypes.Normal;
                 noteObject.transform.SetParent(notesRegion.transform);
 
                 model.NoteObjects.Add(notePosition, noteObject);
@@ -89,12 +89,13 @@ public class NoteObjectsPresenter : MonoBehaviour
         });
 
 
-        model.LongNoteObservable.Subscribe(notePosition => {
+        model.LongNoteObservable.Subscribe(notePosition =>
+        {
             if (model.NoteObjects.ContainsKey(notePosition))
             {
                 var noteObject = model.NoteObjects[notePosition];
 
-                if (noteObject.noteType.Value == NoteTypeEnum.LongNotes)
+                if (noteObject.noteType.Value == NoteTypes.Long)
                 {
 
                     if (noteObject.prev != null)
@@ -107,7 +108,7 @@ public class NoteObjectsPresenter : MonoBehaviour
                 }
                 else
                 {
-                    noteObject.noteType.Value = NoteTypeEnum.LongNotes;
+                    noteObject.noteType.Value = NoteTypes.Long;
                     model.AddedLongNoteObjectObservable.OnNext(noteObject);
                 }
             }
@@ -115,7 +116,7 @@ public class NoteObjectsPresenter : MonoBehaviour
             {
                 var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
                 noteObject.notePosition = notePosition;
-                noteObject.noteType.Value = NoteTypeEnum.LongNotes;
+                noteObject.noteType.Value = NoteTypes.Long;
                 noteObject.transform.SetParent(notesRegion.transform);
 
                 model.NoteObjects.Add(notePosition, noteObject);

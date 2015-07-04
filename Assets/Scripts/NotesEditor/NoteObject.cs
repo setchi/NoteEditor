@@ -8,10 +8,10 @@ public class NoteObject : MonoBehaviour
     public NotePosition notePosition;
     public NoteObject next;
     public NoteObject prev;
-    public ReactiveProperty<NoteTypeEnum> noteType = new ReactiveProperty<NoteTypeEnum>();
+    public ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
     NotesEditorModel model;
     RectTransform rectTransform;
-    Subject<NoteTypeEnum> onMouseDownObservable = new Subject<NoteTypeEnum>();
+    Subject<NoteTypes> onMouseDownObservable = new Subject<NoteTypes>();
 
     void Awake()
     {
@@ -22,7 +22,7 @@ public class NoteObject : MonoBehaviour
 
         var image = GetComponent<Image>();
         noteType.DistinctUntilChanged()
-            .Select(type => type == NoteTypeEnum.LongNotes)
+            .Select(type => type == NoteTypes.Long)
             .Subscribe(isLongNote => image.color = isLongNote ? Color.cyan : Color.white);
 
 
@@ -36,26 +36,26 @@ public class NoteObject : MonoBehaviour
             .Where(_ => model.ClosestNotePosition.Value.Equals(notePosition));
 
         var editObservable = mouseDownObservable
-            .Where(editType => editType == NoteTypeEnum.NormalNotes)
+            .Where(editType => editType == NoteTypes.Normal)
             .Where(editType => noteType.Value == editType)
             .Merge(mouseDownObservable
-                .Where(editType => editType == NoteTypeEnum.LongNotes));
+                .Where(editType => editType == NoteTypes.Long));
 
-        editObservable.Where(editType => editType == NoteTypeEnum.NormalNotes)
+        editObservable.Where(editType => editType == NoteTypes.Normal)
             .Subscribe(_ => model.NormalNoteObservable.OnNext(notePosition));
 
-        editObservable.Where(editType => editType == NoteTypeEnum.LongNotes)
+        editObservable.Where(editType => editType == NoteTypes.Long)
             .Subscribe(_ => model.LongNoteObservable.OnNext(notePosition));
 
 
         var drawLineObservable = this.LateUpdateAsObservable()
-            .Where(_ => noteType.Value == NoteTypeEnum.LongNotes);
+            .Where(_ => noteType.Value == NoteTypes.Long);
 
 
         var lastAddedLongNoteObject = model.AddedLongNoteObjectObservable.ToReactiveProperty();
         drawLineObservable
             .Where(_ => next == null)
-            .Where(_ => model.EditType.Value == NoteTypeEnum.LongNotes)
+            .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Where(_ => lastAddedLongNoteObject.Value.notePosition.Equals(notePosition))
             .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
             .Where(nextPosition => 0 < nextPosition.x - CalcPosition(notePosition).x)

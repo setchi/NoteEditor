@@ -2,44 +2,11 @@
 using UniRx;
 using UnityEngine;
 
-
-public enum NoteTypeEnum
-{
-    NormalNotes,
-    LongNotes
-}
-
-
-public struct NotePosition
-{
-    public int samples, blockNum;
-
-    public NotePosition(int samples, int blockNum)
-    {
-        this.samples = samples;
-        this.blockNum = blockNum;
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (!(obj is NotePosition))
-        {
-            return false;
-        }
-
-        NotePosition target = (NotePosition)obj;
-        return (samples == target.samples && blockNum == target.blockNum);
-    }
-
-    public override int GetHashCode()
-    {
-        return (blockNum + "-" + samples).GetHashCode();
-    }
-}
-
+public enum NoteTypes { Normal, Long }
 
 public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 {
+    public ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Normal);
     public ReactiveProperty<float> BPM = new ReactiveProperty<float>(0);
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
@@ -55,11 +22,9 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
     public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
     public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
-
-    public AudioSource Audio;
-    public ReactiveProperty<NoteTypeEnum> EditType = new ReactiveProperty<NoteTypeEnum>(NoteTypeEnum.NormalNotes);
-    public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
+    public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
+    public AudioSource Audio;
 
     void Awake()
     {
