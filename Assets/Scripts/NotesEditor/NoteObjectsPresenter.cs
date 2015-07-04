@@ -19,6 +19,7 @@ public class NoteObjectsPresenter : MonoBehaviour
 
 
         var closestNoteAreaOnMouseDownObservable = canvasEvents.ScrollPadOnMouseDownObservable
+            .Where(_ => !Input.GetMouseButtonDown(1))
             .Where(_ => 0 <= model.ClosestNotePosition.Value.samples);
 
         var closestNoteAreaOnMouseDownPosition = closestNoteAreaOnMouseDownObservable
