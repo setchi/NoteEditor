@@ -30,6 +30,7 @@ public class NoteObjectsPresenter : MonoBehaviour
 
 
         // Start editing of long note
+        /*
         this.UpdateAsObservable()
             .SkipUntil(closestNoteAreaOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
@@ -41,19 +42,25 @@ public class NoteObjectsPresenter : MonoBehaviour
             .DistinctUntilChanged()
             .Do(_ => model.EditType.Value = NoteTypes.Long)
             .Subscribe(notePosition => model.LongNoteObservable.OnNext(notePosition));
+            // */
+        closestNoteAreaOnMouseDownObservable
+            .Where(_ => model.EditType.Value == NoteTypes.Normal)
+            .Where(_ => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            .Do(_ => model.EditType.Value = NoteTypes.Long)
+            .Select(_ => model.ClosestNotePosition.Value)
+            .Do(_ => longNoteStartPosition.Value = model.ClosestNotePosition.Value)
+            .Do(notePosition => model.LongNoteObservable.OnNext(notePosition))
+            .Subscribe(notePosition => model.LongNoteObservable.OnNext(notePosition));
 
 
         // Return to the normal notes edit mode
-        this.UpdateAsObservable()
+        var endLongNoteObservable = this.UpdateAsObservable()
             .Where(_ => model.EditType.Value == NoteTypes.Long)
-            .Where(_ => Input.GetKeyDown(KeyCode.Escape))
-            .Subscribe(_ => model.EditType.Value = NoteTypes.Normal);
+            .Where(_ => Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
+            .Do(_ => model.EditType.Value = NoteTypes.Normal);
 
-        var endLongNoteObservable = model.EditType.DistinctUntilChanged()
-            .Where(editType => editType == NoteTypes.Normal)
-            .Skip(1);
-
-        model.AddedLongNoteObjectObservable.TakeUntil(endLongNoteObservable)
+        model.AddedLongNoteObjectObservable.Where(obj => obj != null)
+            .TakeUntil(endLongNoteObservable)
             .Buffer(2, 1).Where(b => 2 <= b.Count)
             .RepeatSafe()
             .Subscribe(b => {

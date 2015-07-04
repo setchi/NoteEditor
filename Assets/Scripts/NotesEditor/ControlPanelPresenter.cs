@@ -17,6 +17,8 @@ public class ControlPanelPresenter : MonoBehaviour
     [SerializeField]
     Button playButton;
     [SerializeField]
+    Button editTypeToggleButton;
+    [SerializeField]
     Text titleText;
     [SerializeField]
     Slider canvasWidthScaleController;
@@ -91,6 +93,23 @@ public class ControlPanelPresenter : MonoBehaviour
         model.Volume.DistinctUntilChanged().Subscribe(x => model.Audio.volume = x);
 
 
+        // Binds edit type with toggle button
+        editTypeToggleButton.OnClickAsObservable()
+            .Select(_ => model.EditType.Value == NoteTypes.Normal ? NoteTypes.Long : NoteTypes.Normal)
+            .Subscribe(editType => model.EditType.Value = editType);
+
+        model.EditType.Select(_ => model.EditType.Value == NoteTypes.Long)
+            .Subscribe(isLongType => {
+                editTypeToggleButton.GetComponentInChildren<Text>().text = (isLongType ? "Long" : "Normal") + " Notes";
+                editTypeToggleButton.GetComponent<Image>().color = isLongType ? Color.cyan : Color.white;
+
+                if (isLongType)
+                {
+                    model.AddedLongNoteObjectObservable.OnNext(null);
+                }
+            });
+
+
         // Binds canvas width with mouse scroll wheel and slider
         model.CanvasWidth = canvasEvents.MouseScrollWheelObservable
             .Where(_ => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
@@ -151,6 +170,7 @@ public class ControlPanelPresenter : MonoBehaviour
         // Binds samples with dragging canvas and mouse scroll wheel
         this.UpdateAsObservable()
             .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable
+                .Where(_ => !Input.GetMouseButtonDown(1))
                 .Where(_ => 0 > model.ClosestNotePosition.Value.samples))
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Input.mousePosition.x)
@@ -217,7 +237,5 @@ public class ControlPanelPresenter : MonoBehaviour
                 playButtonText.text = "Play";
             }
         });
-
     }
-
 }
