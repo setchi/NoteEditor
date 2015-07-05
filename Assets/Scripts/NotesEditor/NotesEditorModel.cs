@@ -11,7 +11,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
     public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
-    public ReactiveProperty<int> DivisionNumOfOneMeasure = new ReactiveProperty<int>();
+    public ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
     public ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
@@ -36,7 +36,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public float BlockNumToScreenPositionY(int blockNum)
     {
-        return (blockNum * 70 - 140) / CanvasScaleFactor.Value;
+        return (blockNum * 60 - 120) / CanvasScaleFactor.Value;
     }
 
     public Vector3 ScreenToCanvasPosition(Vector3 screenPosition)

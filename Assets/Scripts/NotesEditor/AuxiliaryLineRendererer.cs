@@ -13,18 +13,18 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
     void LateUpdate()
     {
-        var beatNum = model.DivisionNumOfOneMeasure.Value * Mathf.CeilToInt(model.Audio.clip.samples / (float)model.UnitBeatSamples.Value);
+        var beatNum = model.LPB.Value * Mathf.CeilToInt(model.Audio.clip.samples / (float)model.UnitBeatSamples.Value);
         var beatSamples = Enumerable.Range(0, beatNum)
-            .Select(i => i * model.UnitBeatSamples.Value / model.DivisionNumOfOneMeasure.Value)
+            .Select(i => i * model.UnitBeatSamples.Value / model.LPB.Value)
             .ToArray();
 
 
         var beatLines = beatSamples
             .Select(x => model.SamplesToScreenPositionX(x))
             .Select((x, i) => new Line(
-                new Vector3(x, 200, 0),
-                new Vector3(x, -200, 0),
-                i % model.DivisionNumOfOneMeasure.Value == 0 ? Color.white : Color.white / 2))
+                new Vector3(x, 140, 0),
+                new Vector3(x, -140, 0),
+                i % model.LPB.Value == 0 ? Color.white : Color.white / 2))
             .ToArray();
 
 
@@ -41,7 +41,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         // Highlighting closest line to mouse pointer
         if (model.IsMouseOverCanvas.Value)
         {
-            var highlightColor = Color.yellow * 0.8f;
+            var highlightColor = new Color(253 / 255f, 230 / 255f, 3 / 255f) * 0.8f;
             var mouseX = model.ScreenToCanvasPosition(Input.mousePosition).x;
             var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouseX));
             var closestBeatLine = beatLines[closestLineIndex];

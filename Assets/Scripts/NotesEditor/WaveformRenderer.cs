@@ -23,11 +23,15 @@ public class WaveformRenderer : MonoBehaviour
                 model.Audio.clip.GetData(waveData, model.Audio.timeSamples);
                 var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
                 var offsetX = model.CanvasOffsetX.Value;
+                var offsetY = 200;
+                var y = 0f;
 
                 for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
                 {
                     lines[li].start.x = lines[li].end.x = wi * x + offsetX;
-                    lines[li].end.y = -(lines[li].start.y = waveData[wi] * 200);
+                    y = waveData[wi] * 45;
+                    lines[li].end.y =  -y - offsetY;
+                    lines[li].start.y = y - offsetY;
                 }
 
                 GLLineRenderer.RenderLines("waveform", lines);

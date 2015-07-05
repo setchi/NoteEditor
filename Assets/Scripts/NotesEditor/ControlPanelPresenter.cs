@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -17,19 +18,39 @@ public class ControlPanelPresenter : MonoBehaviour
     [SerializeField]
     Button playButton;
     [SerializeField]
+    Sprite iconPlay;
+    [SerializeField]
+    Sprite iconPause;
+    [SerializeField]
     Button editTypeToggleButton;
     [SerializeField]
     Text titleText;
     [SerializeField]
     Slider canvasWidthScaleController;
     [SerializeField]
-    Slider divisionNumOfOneMeasureController;
+    Text LPBDisplayText;
+    [SerializeField]
+    Button LPBUpButton;
+    [SerializeField]
+    Button LPBDownButton;
     [SerializeField]
     Slider volumeController;
     [SerializeField]
+    Slider playPositionController;
+    [SerializeField]
+    Text playPositionDisplayText;
+    [SerializeField]
     InputField BPMInputField;
     [SerializeField]
+    Button BPMUpButton;
+    [SerializeField]
+    Button BPMDownButton;
+    [SerializeField]
     InputField beatOffsetInputField;
+    [SerializeField]
+    Button beatOffsetIncreaseButton;
+    [SerializeField]
+    Button beatOffsetDecreaseButton;
     [SerializeField]
     Toggle waveformDisplayEnabled;
 
@@ -69,10 +90,14 @@ public class ControlPanelPresenter : MonoBehaviour
             .ToReactiveProperty();
 
 
-        // Binds division number of measure
-        divisionNumOfOneMeasureController.OnValueChangedAsObservable()
-            .Select(x => Mathf.FloorToInt(x))
-            .Subscribe(x => model.DivisionNumOfOneMeasure.Value = x);
+        // Binds LPB
+        Observable.Merge(
+                LPBUpButton.OnClickAsObservable().Select(_ => model.LPB.Value + 1),
+                LPBDownButton.OnClickAsObservable().Select(_ => model.LPB.Value - 1))
+            .Select(LPB => Mathf.Clamp(LPB, 2, 20))
+            .Subscribe(LPB => model.LPB.Value = LPB);
+
+        model.LPB.Select(LPB => "1/" + LPB).SubscribeToText(LPBDisplayText);
 
 
         // Apply music data
@@ -98,10 +123,11 @@ public class ControlPanelPresenter : MonoBehaviour
             .Select(_ => model.EditType.Value == NoteTypes.Normal ? NoteTypes.Long : NoteTypes.Normal)
             .Subscribe(editType => model.EditType.Value = editType);
 
+        var editTypeToggleButtonDefaultColor = editTypeToggleButton.GetComponent<Image>().color;
         model.EditType.Select(_ => model.EditType.Value == NoteTypes.Long)
             .Subscribe(isLongType => {
                 editTypeToggleButton.GetComponentInChildren<Text>().text = (isLongType ? "Long" : "Normal") + " Notes";
-                editTypeToggleButton.GetComponent<Image>().color = isLongType ? Color.cyan : Color.white;
+                editTypeToggleButton.GetComponent<Image>().color = isLongType ? Color.cyan : editTypeToggleButtonDefaultColor;
             });
 
 
@@ -133,7 +159,9 @@ public class ControlPanelPresenter : MonoBehaviour
 
         BPMInputField.OnValueChangeAsObservable()
             .Select(x => string.IsNullOrEmpty(x) ? "1" : x)
-            .Select(x => int.Parse(x))
+            .Select(x => float.Parse(x))
+            .Merge(BPMUpButton.OnClickAsObservable().Select(_ => model.BPM.Value + 1))
+            .Merge(BPMDownButton.OnClickAsObservable().Select(_ => model.BPM.Value - 1))
             .Select(x => Mathf.Clamp(x, 1, 320))
             .Subscribe(x => model.BPM.Value = x);
 
@@ -145,6 +173,9 @@ public class ControlPanelPresenter : MonoBehaviour
         beatOffsetInputField.OnValueChangeAsObservable()
             .Select(x => string.IsNullOrEmpty(x) ? "0" : x)
             .Select(x => int.Parse(x))
+            .Merge(beatOffsetIncreaseButton.OnClickAsObservable().Select(_ => model.BeatOffsetSamples.Value + 100))
+            .Merge(beatOffsetDecreaseButton.OnClickAsObservable().Select(_ => model.BeatOffsetSamples.Value - 100))
+            .Select(x => Mathf.Clamp(x, 0, int.MaxValue))
             .Subscribe(x => model.BeatOffsetSamples.Value = x);
 
         model.BeatOffsetSamples.DistinctUntilChanged()
@@ -162,7 +193,21 @@ public class ControlPanelPresenter : MonoBehaviour
             .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
 
 
-        // Binds samples with dragging canvas and mouse scroll wheel
+        // Binds play position controller with samples
+        this.UpdateAsObservable()
+            .Select(_ => model.Audio.timeSamples)
+            .DistinctUntilChanged()
+            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
+            /*
+            .Do(per => playPositionController.value = per)
+            // */
+            .Select(per => new TimeSpan(0, 0, Mathf.FloorToInt(model.Audio.time)).ToString().Substring(3, 5)
+                + " / "
+                + new TimeSpan(0, 0, Mathf.RoundToInt(model.Audio.clip.samples / model.Audio.clip.frequency)).ToString().Substring(3, 5))
+            .SubscribeToText(playPositionDisplayText);
+
+
+        // Binds samples with dragging canvas and mouse scroll wheel and slider
         this.UpdateAsObservable()
             .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable
                 .Where(_ => !Input.GetMouseButtonDown(1))
@@ -179,6 +224,10 @@ public class ControlPanelPresenter : MonoBehaviour
                 .Where(_ => !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
                 .Select(delta => model.Audio.clip.samples / 100 * -delta))
             .Select(deltaSamples => model.Audio.timeSamples + Mathf.RoundToInt(deltaSamples))
+            .Merge(playPositionController.OnValueChangedAsObservable() // Merge slider value change
+                .DistinctUntilChanged()
+                .Select(x => x * model.Audio.clip.samples * x)
+                .Select(x => Mathf.RoundToInt(x)))
             .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
             .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
 
@@ -219,17 +268,18 @@ public class ControlPanelPresenter : MonoBehaviour
 
         model.IsPlaying.DistinctUntilChanged().Subscribe(playing =>
         {
-            var playButtonText = playButton.GetComponentInChildren<Text>();
+            var playButtonImage = playButton.GetComponent<Image>();
 
             if (playing)
             {
                 model.Audio.Play();
-                playButtonText.text = "Pause";
+                playButtonImage.sprite = iconPause;
+
             }
             else
             {
                 model.Audio.Pause();
-                playButtonText.text = "Play";
+                playButtonImage.sprite = iconPlay;
             }
         });
     }
