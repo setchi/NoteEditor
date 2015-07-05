@@ -22,48 +22,47 @@ public class NoteObjectsPresenter : MonoBehaviour
             .Where(_ => !Input.GetMouseButtonDown(1))
             .Where(_ => 0 <= model.ClosestNotePosition.Value.samples);
 
-        var closestNoteAreaOnMouseDownPosition = closestNoteAreaOnMouseDownObservable
-            .Select(_ => Input.mousePosition)
-            .ToReactiveProperty();
-
-        var longNoteStartPosition = model.NormalNoteObservable
-            .ToReactiveProperty();
+        closestNoteAreaOnMouseDownObservable
+            .Select(_ => model.EditType.Value == NoteTypes.Long
+                ? model.LongNoteObservable
+                : model.NormalNoteObservable)
+            .Subscribe(observable => observable.OnNext(model.ClosestNotePosition.Value));
 
 
         // Start editing of long note
         closestNoteAreaOnMouseDownObservable
             .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Where(_ => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-            .Do(_ => model.EditType.Value = NoteTypes.Long)
-            .Select(_ => model.ClosestNotePosition.Value)
-            .Do(_ => longNoteStartPosition.Value = model.ClosestNotePosition.Value)
-            .Do(notePosition => model.LongNoteObservable.OnNext(notePosition))
-            .Subscribe(notePosition => model.LongNoteObservable.OnNext(notePosition));
+            .Do(notePosition => model.EditType.Value = NoteTypes.Long)
+            .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
 
 
-        // Return to the normal notes edit mode
-        var endLongNoteObservable = this.UpdateAsObservable()
+        // Finish editing of long note
+        this.UpdateAsObservable()
             .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Where(_ => Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
-            .Do(_ => model.EditType.Value = NoteTypes.Normal);
+            .Subscribe(_ => model.EditType.Value = NoteTypes.Normal);
 
-        model.AddedLongNoteObjectObservable.Where(obj => obj != null)
-            .TakeUntil(endLongNoteObservable)
-            .Buffer(2, 1).Where(b => 2 <= b.Count)
-            .RepeatSafe()
-            .Subscribe(b => {
-                b[0].next = b[1];
-                b[1].prev = b[0];
+        var finishEditLongNoteObservable = model.EditType.DistinctUntilChanged()
+            .Where(editType => editType == NoteTypes.Normal)
+            .Skip(1);
+
+        finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = new NotePosition(-1, -1));
+
+
+        // Update long note link and tail position
+        model.AddedLongNoteObjectObservable
+            .Subscribe(obj =>
+            {
+                if (model.NoteObjects.ContainsKey(model.LongNoteTailPosition.Value))
+                {
+                    var tailObj = model.NoteObjects[model.LongNoteTailPosition.Value];
+                    tailObj.next = obj;
+                    obj.prev = tailObj;
+                }
+
+                model.LongNoteTailPosition.Value = obj.notePosition;
             });
-
-
-        closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypes.Normal)
-            .Subscribe(_ => model.NormalNoteObservable.OnNext(model.ClosestNotePosition.Value));
-
-        closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypes.Long)
-            .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
 
 
         model.NormalNoteObservable.Subscribe(notePosition =>
@@ -98,6 +97,10 @@ public class NoteObjectsPresenter : MonoBehaviour
 
                     if (noteObject.next != null)
                         noteObject.next.prev = noteObject.prev;
+                    else
+                    {
+                        model.LongNoteTailPosition.Value = noteObject.prev == null ? new NotePosition(-1, -1) : noteObject.prev.notePosition;
+                    }
 
                     RemoveNote(notePosition);
                 }

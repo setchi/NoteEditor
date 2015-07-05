@@ -24,6 +24,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
     public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
+    public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
     public AudioSource Audio;
 
     public float SamplesToScreenPositionX(int samples)

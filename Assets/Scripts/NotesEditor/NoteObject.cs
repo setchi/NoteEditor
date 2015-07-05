@@ -48,19 +48,17 @@ public class NoteObject : MonoBehaviour
             .Subscribe(_ => model.LongNoteObservable.OnNext(notePosition));
 
 
-        var lastAddedLongNoteObject = model.AddedLongNoteObjectObservable.ToReactiveProperty();
-
-        var drawLineObservable = this.LateUpdateAsObservable()
+        var longNoteLateUpdateObservable = this.LateUpdateAsObservable()
             .Where(_ => noteType.Value == NoteTypes.Long);
 
-        drawLineObservable
-            .Where(_ => next == null)
-            .Where(_ => model.EditType.Value == NoteTypes.Long)
-            .Where(_ => lastAddedLongNoteObject.Value == this)
-            .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
-            .Merge(drawLineObservable
-                .Where(_ => next != null)
-                .Select(_ => CalcPosition(next.notePosition)))
+        longNoteLateUpdateObservable
+            .Where(_ => next != null)
+            .Select(_ => CalcPosition(next.notePosition))
+            .Merge(longNoteLateUpdateObservable
+                .Where(_ => next == null)
+                .Where(_ => model.EditType.Value == NoteTypes.Long)
+                .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
+                .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
             .Select(nextPosition => new Line[] { new Line(CalcPosition(notePosition), nextPosition, 0 < nextPosition.x - CalcPosition(notePosition).x ? Color.cyan : Color.red) })
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.blockNum + "-" + notePosition.samples, lines));
     }

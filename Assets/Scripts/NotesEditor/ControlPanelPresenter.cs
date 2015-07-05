@@ -102,11 +102,6 @@ public class ControlPanelPresenter : MonoBehaviour
             .Subscribe(isLongType => {
                 editTypeToggleButton.GetComponentInChildren<Text>().text = (isLongType ? "Long" : "Normal") + " Notes";
                 editTypeToggleButton.GetComponent<Image>().color = isLongType ? Color.cyan : Color.white;
-
-                if (isLongType)
-                {
-                    model.AddedLongNoteObjectObservable.OnNext(null);
-                }
             });
 
 
