@@ -464,8 +464,8 @@ RectTransform:
   m_RootOrder: 1
   m_AnchorMin: {x: 1, y: .5}
   m_AnchorMax: {x: 1, y: .5}
-  m_AnchoredPosition: {x: -378, y: 298.399994}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -328, y: 228}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &107512839
 MonoBehaviour:
@@ -1180,7 +1180,7 @@ RectTransform:
   m_RootOrder: 0
   m_AnchorMin: {x: .5, y: 0}
   m_AnchorMax: {x: .5, y: 0}
-  m_AnchoredPosition: {x: 0, y: -483.5}
+  m_AnchoredPosition: {x: 0, y: -494}
   m_SizeDelta: {x: 1275, y: 60}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &323965441
@@ -1239,11 +1239,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 107512838}
   m_RootOrder: 0
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: -19.7000275}
-  m_SizeDelta: {x: 590, y: 130}
-  m_Pivot: {x: .449999988, y: 0}
+  m_AnchorMin: {x: 1, y: .5}
+  m_AnchorMax: {x: 1, y: .5}
+  m_AnchoredPosition: {x: -255, y: 0}
+  m_SizeDelta: {x: 580, y: 130}
+  m_Pivot: {x: 0, y: 0}
 --- !u!114 &333114353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1398,7 +1398,7 @@ RectTransform:
   m_RootOrder: 0
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -6.10351562e-05}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: .5, y: 1}
 --- !u!114 &381058714
@@ -2529,7 +2529,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 120452562}
   m_HandleRect: {fileID: 120452561}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -5372,7 +5372,7 @@ RectTransform:
   m_RootOrder: 2
   m_AnchorMin: {x: .5, y: 0}
   m_AnchorMax: {x: .5, y: 0}
-  m_AnchoredPosition: {x: 41, y: -13.8999996}
+  m_AnchoredPosition: {x: 0, y: 6}
   m_SizeDelta: {x: 500, y: 85}
   m_Pivot: {x: .5, y: 0}
 --- !u!114 &1337332809
@@ -5944,7 +5944,7 @@ RectTransform:
   m_RootOrder: 1
   m_AnchorMin: {x: .5, y: 1}
   m_AnchorMax: {x: .5, y: 1}
-  m_AnchoredPosition: {x: 41, y: -11.1000004}
+  m_AnchoredPosition: {x: 0, y: 109}
   m_SizeDelta: {x: 500, y: 30}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &1766608602
@@ -6169,7 +6169,7 @@ RectTransform:
   m_RootOrder: 3
   m_AnchorMin: {x: .5, y: 0}
   m_AnchorMax: {x: .5, y: 0}
-  m_AnchoredPosition: {x: 331.600006, y: -10}
+  m_AnchoredPosition: {x: 286.600006, y: 5}
   m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: .5, y: 0}
 --- !u!114 &1773141861
@@ -6193,7 +6193,7 @@ MonoBehaviour:
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: .960784316, g: .960784316, b: .960784316, a: 1}
-    m_PressedColor: {r: .392156869, g: .392156869, b: .392156869, a: 1}
+    m_PressedColor: {r: .784313738, g: .784313738, b: .784313738, a: 1}
     m_DisabledColor: {r: .784313738, g: .784313738, b: .784313738, a: .501960814}
     m_ColorMultiplier: 1
     m_FadeDuration: .100000001
@@ -6207,7 +6207,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_DisabledTrigger: Disabled
   m_Interactable: 1
-  m_TargetGraphic: {fileID: 1773141862}
+  m_TargetGraphic: {fileID: 1956531576}
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
