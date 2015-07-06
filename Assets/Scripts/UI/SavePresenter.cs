@@ -35,7 +35,7 @@ public class SavePresenter : MonoBehaviour
                 model.OnLoadedMusicObservable.Select(_ => false),
                 saveActionObservable.Select(_ => false))
             .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))
-            .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? Color.yellow : Color.white)
+            .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? new Color(253 / 255f, 230 / 255f, 3 / 255f) : Color.white)
             .SubscribeToText(messageText, unsaved => unsaved ? "保存が必要な状態" : "");
 
         saveActionObservable.Subscribe(_ => {

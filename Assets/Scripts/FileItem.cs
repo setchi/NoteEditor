@@ -19,7 +19,7 @@ public class FileItem : MonoBehaviour
         this.UpdateAsObservable()
             .Select(_ => fileName == model.SelectedFileName.Value)
             .Do(selected => image.color = selected ? new Color(17 / 255f, 19 / 255f, 16 / 255f) : new Color(48 / 255f, 49 / 255f, 47 / 255f))
-            .Subscribe(selected => text.color = selected ? new Color(175 / 255f, 255 / 255f, 182 / 255f) : new Color(146 / 255f, 148 / 255f, 143 / 255f));
+            .Subscribe(selected => text.color = selected ? new Color(175 / 255f, 1, 78 / 255f) : new Color(146 / 255f, 148 / 255f, 143 / 255f));
     }
 
     public void SetName(string name)

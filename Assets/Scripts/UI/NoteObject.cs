@@ -23,7 +23,7 @@ public class NoteObject : MonoBehaviour
         var image = GetComponent<Image>();
         noteType.DistinctUntilChanged()
             .Select(type => type == NoteTypes.Long)
-            .Subscribe(isLongNote => image.color = isLongNote ? Color.cyan : Color.white);
+            .Subscribe(isLongNote => image.color = isLongNote ? Color.cyan : new Color(175 / 255f, 1, 78 / 255f));
 
 
         this.LateUpdateAsObservable()
