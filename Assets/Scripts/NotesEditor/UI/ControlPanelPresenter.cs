@@ -15,6 +15,7 @@ public class ControlPanelPresenter : MonoBehaviour
     {
         var model = NotesEditorModel.Instance;
         model.Audio = gameObject.AddComponent<AudioSource>();
+        model.MusicName.SubscribeToText(titleText);
 
 
         // Binds canvas scale factor
@@ -32,7 +33,7 @@ public class ControlPanelPresenter : MonoBehaviour
 
             // Apply music data
             model.Audio.clip = selectedMusicData.audioClip;
-            titleText.text = selectedMusicData.fileName ?? "Test";
+            model.MusicName.Value = selectedMusicData.fileName ?? "Test";
 
             model.OnLoadedMusicObservable.OnNext(selectedMusicData);
         });
