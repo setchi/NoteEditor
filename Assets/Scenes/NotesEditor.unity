@@ -3470,8 +3470,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canvasEvents: {fileID: 798471448}
   canvasRect: {fileID: 18061599}
-  playPositionController: {fileID: 41238605}
-  playPositionDisplayText: {fileID: 842025356}
+  playbackPositionController: {fileID: 41238605}
+  playbackTimeDisplayText: {fileID: 842025356}
 --- !u!114 &798471458
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3960,7 +3960,7 @@ GameObject:
   - 222: {fileID: 1012010632}
   - 114: {fileID: 1012010631}
   m_Layer: 5
-  m_Name: Display
+  m_Name: PlaybackTimeDisplayText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5288,7 +5288,7 @@ GameObject:
   - 222: {fileID: 1330484500}
   - 114: {fileID: 1330484501}
   m_Layer: 5
-  m_Name: PlayPosition
+  m_Name: PlaybackPosition
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5579,7 +5579,7 @@ GameObject:
   - 114: {fileID: 1487070250}
   - 114: {fileID: 1487070252}
   m_Layer: 5
-  m_Name: HLayoutGroup
+  m_Name: ToolBarRegion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

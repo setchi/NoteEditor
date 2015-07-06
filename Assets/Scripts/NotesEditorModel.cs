@@ -42,7 +42,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     {
         BPM.Value = 120;
         BeatOffsetSamples.Value = 0;
-        MusicName.Value = "NotesEditor";
+        MusicName.Value = "Notes Editor";
         LPB.Value = 4;
         IsPlaying.Value = false;
         TimeSamples.Value = 0;

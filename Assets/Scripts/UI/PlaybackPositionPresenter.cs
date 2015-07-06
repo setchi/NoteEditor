@@ -4,16 +4,16 @@ using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayPositionPresenter : MonoBehaviour
+public class PlaybackPositionPresenter : MonoBehaviour
 {
     [SerializeField]
     CanvasEvents canvasEvents;
     [SerializeField]
     RectTransform canvasRect;
     [SerializeField]
-    Slider playPositionController;
+    Slider playbackPositionController;
     [SerializeField]
-    Text playPositionDisplayText;
+    Text playbackTimeDisplayText;
 
     NotesEditorModel model;
 
@@ -26,7 +26,7 @@ public class PlayPositionPresenter : MonoBehaviour
     void Init()
     {
         model.Audio.ObserveEveryValueChanged(audio => audio.clip.samples)
-            .Subscribe(samples => playPositionController.maxValue = samples);
+            .Subscribe(samples => playbackPositionController.maxValue = samples);
 
 
         // Input -> Audio timesamples -> Model timesamples -> UI
@@ -67,7 +67,7 @@ public class PlayPositionPresenter : MonoBehaviour
             .Select(deltaSamples => model.Audio.timeSamples + deltaSamples);
 
         // Input (slider)
-        var operatePlayPositionSliderObservable = playPositionController.OnValueChangedAsObservable()
+        var operatePlayPositionSliderObservable = playbackPositionController.OnValueChangedAsObservable()
             .DistinctUntilChanged();
 
 
@@ -89,7 +89,7 @@ public class PlayPositionPresenter : MonoBehaviour
 
         // Model timesamples -> UI(slider)
         model.TimeSamples.DistinctUntilChanged()
-            .Subscribe(timeSamples => playPositionController.value = timeSamples);
+            .Subscribe(timeSamples => playbackPositionController.value = timeSamples);
 
         // Model timesamples -> UI(text)
         model.TimeSamples.DistinctUntilChanged()
@@ -98,7 +98,7 @@ public class PlayPositionPresenter : MonoBehaviour
                 TimeSpan.FromSeconds(model.Audio.time).ToString().Substring(3, 5)
                 + " / "
                 + TimeSpan.FromSeconds(model.Audio.clip.samples / (float)model.Audio.clip.frequency).ToString().Substring(3, 5))
-            .SubscribeToText(playPositionDisplayText);
+            .SubscribeToText(playbackTimeDisplayText);
 
         // Model timesamples -> UI(canvas position)
         model.TimeSamples.DistinctUntilChanged()
