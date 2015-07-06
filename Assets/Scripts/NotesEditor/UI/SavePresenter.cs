@@ -19,7 +19,11 @@ public class SavePresenter : MonoBehaviour
         model = NotesEditorModel.Instance;
 
         var saveActionObservable = this.UpdateAsObservable()
-            .Where(_ => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            .Where(_ =>
+                Input.GetKey(KeyCode.LeftControl) ||
+                Input.GetKey(KeyCode.LeftCommand) ||
+                Input.GetKey(KeyCode.RightControl) ||
+                Input.GetKey(KeyCode.RightCommand))
             .Where(_ => Input.GetKey(KeyCode.S))
             .Merge(saveButton.OnClickAsObservable());
 
@@ -28,8 +32,8 @@ public class SavePresenter : MonoBehaviour
                 model.LPB.Select(_ => true),
                 model.BeatOffsetSamples.Select(_ => true),
                 model.NormalNoteObservable.Select(_ => true),
-                model.LongNoteObservable.Select(_ => true))
-            .Merge(saveActionObservable.Select(_ => false))
+                model.LongNoteObservable.Select(_ => true),
+                saveActionObservable.Select(_ => false))
             .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))
             .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? Color.yellow : Color.white)
             .SubscribeToText(messageText, _ => "保存が必要な状態");

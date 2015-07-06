@@ -22,7 +22,11 @@ public class CanvasWidthScalePresenter : MonoBehaviour
     void Init()
     {
         model.CanvasWidth = canvasEvents.MouseScrollWheelObservable
-            .Where(_ => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            .Where(_ =>
+                Input.GetKey(KeyCode.LeftControl) ||
+                Input.GetKey(KeyCode.LeftCommand) ||
+                Input.GetKey(KeyCode.RightControl) ||
+                Input.GetKey(KeyCode.RightCommand))
             .Select(delta => model.CanvasWidth.Value * (1 + delta))
             .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))

@@ -64,7 +64,12 @@ public class PlayPositionPresenter : MonoBehaviour
                 * model.CanvasScaleFactor.Value
                 * model.Audio.clip.samples)
             .Merge(canvasEvents.MouseScrollWheelObservable // Merge mouse scroll wheel
-                .Where(_ => !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+                .Where(_ =>
+                    // Ctrl key and Command key is not pressed
+                    !Input.GetKey(KeyCode.LeftControl) &&
+                    !Input.GetKey(KeyCode.LeftCommand) &&
+                    !Input.GetKey(KeyCode.RightControl) &&
+                    !Input.GetKey(KeyCode.RightCommand))
                 .Select(delta => model.Audio.clip.samples / 100 * -delta))
             .Select(deltaSamples => model.Audio.timeSamples + Mathf.RoundToInt(deltaSamples))
             .Merge(playPositionController.OnValueChangedAsObservable() // Merge slider value change
