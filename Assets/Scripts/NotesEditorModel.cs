@@ -38,7 +38,6 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         ClearNotesData();
     }
 
-
     public void ClearNotesData()
     {
         BPM.Value = 120;

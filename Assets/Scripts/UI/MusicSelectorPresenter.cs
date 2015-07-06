@@ -129,7 +129,8 @@ public class MusicSelectorPresenter : MonoBehaviour
             }
 
             var longNoteObjects = new MusicModel.Note[] { note }.Concat(note.noteList)
-                .Select(note_ => InstantiateNoteObject(note_)).ToList();
+                .Select(note_ => InstantiateNoteObject(note_))
+                .ToList();
 
             for (int i = 1; i < longNoteObjects.Count; i++)
             {
