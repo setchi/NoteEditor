@@ -25,7 +25,8 @@ public class PlayPositionPresenter : MonoBehaviour
 
     void Init()
     {
-        playPositionController.maxValue = model.Audio.clip.samples;
+        model.Audio.ObserveEveryValueChanged(audio => audio.clip.samples)
+            .Subscribe(samples => playPositionController.maxValue = samples);
 
 
         // Input -> Audio timesamples -> Model timesamples -> UI
@@ -62,7 +63,8 @@ public class PlayPositionPresenter : MonoBehaviour
                 !Input.GetKey(KeyCode.LeftCommand) &&
                 !Input.GetKey(KeyCode.RightControl) &&
                 !Input.GetKey(KeyCode.RightCommand))
-            .Select(delta => model.Audio.clip.samples / 100 * -delta);
+            .Select(delta => model.Audio.clip.samples / 100f * -delta)
+            .Select(deltaSamples => model.Audio.timeSamples + deltaSamples);
 
         // Input (slider)
         var operatePlayPositionSliderObservable = playPositionController.OnValueChangedAsObservable()
@@ -80,8 +82,7 @@ public class PlayPositionPresenter : MonoBehaviour
 
 
         // Audio timesamples -> Model timesamples
-        this.UpdateAsObservable()
-            .Select(_ => model.Audio.timeSamples)
+        model.Audio.ObserveEveryValueChanged(audio => audio.timeSamples)
             .DistinctUntilChanged()
             .Subscribe(timeSamples => model.TimeSamples.Value = timeSamples);
 
@@ -96,7 +97,7 @@ public class PlayPositionPresenter : MonoBehaviour
             .Select(per =>
                 TimeSpan.FromSeconds(model.Audio.time).ToString().Substring(3, 5)
                 + " / "
-                + TimeSpan.FromSeconds(model.Audio.clip.samples / model.Audio.clip.frequency).ToString().Substring(3, 5))
+                + TimeSpan.FromSeconds(model.Audio.clip.samples / (float)model.Audio.clip.frequency).ToString().Substring(3, 5))
             .SubscribeToText(playPositionDisplayText);
 
         // Model timesamples -> UI(canvas position)
