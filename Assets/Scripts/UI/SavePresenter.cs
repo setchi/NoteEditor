@@ -39,7 +39,8 @@ public class SavePresenter : MonoBehaviour
             .SubscribeToText(messageText, _ => "保存が必要な状態");
 
         saveActionObservable.Subscribe(_ => {
-            var fileName = Path.GetFileNameWithoutExtension(SelectedMusicDataStore.Instance.fileName) + ".json";
+            Debug.Log(model.MusicName.Value + " 保存した！！");
+            var fileName = Path.GetFileNameWithoutExtension(model.MusicName.Value) + ".json";
             var filePath = Application.persistentDataPath + "/Notes/";
             var fileFullPath = filePath + fileName;
             var text = model.SerializeNotesData();

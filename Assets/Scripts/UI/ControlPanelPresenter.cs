@@ -17,25 +17,12 @@ public class ControlPanelPresenter : MonoBehaviour
         model.Audio = gameObject.AddComponent<AudioSource>();
         model.MusicName.SubscribeToText(titleText);
 
-
         // Binds canvas scale factor
-        model.CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / Screen.width;
+        model.OnLoadedMusicObservable.Select(_ =>  model.CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / Screen.width);
+
         this.UpdateAsObservable()
             .Select(_ => Screen.width)
             .DistinctUntilChanged()
             .Subscribe(w => model.CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
-
-
-        ObservableWWW.GetWWW("file:///" + Application.persistentDataPath + "/Musics/test.wav").Subscribe(www =>
-        {
-            var selectedMusicData = SelectedMusicDataStore.Instance;
-            selectedMusicData.audioClip = www.audioClip;
-
-            // Apply music data
-            model.Audio.clip = selectedMusicData.audioClip;
-            model.MusicName.Value = selectedMusicData.fileName ?? "Test";
-
-            model.OnLoadedMusicObservable.OnNext(selectedMusicData);
-        });
     }
 }

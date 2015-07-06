@@ -29,9 +29,32 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
     public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
     public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
-    public Subject<SelectedMusicDataStore> OnLoadedMusicObservable = new Subject<SelectedMusicDataStore>();
+    public Subject<int> OnLoadedMusicObservable = new Subject<int>();
     public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
     public AudioSource Audio;
+
+    void Awake()
+    {
+        ClearNotesData();
+    }
+
+
+    public void ClearNotesData()
+    {
+        BPM.Value = 120;
+        BeatOffsetSamples.Value = 0;
+        MusicName.Value = "NotesEditor";
+        LPB.Value = 4;
+        IsPlaying.Value = false;
+        TimeSamples.Value = 0;
+
+        foreach (var noteObject in NoteObjects.Values)
+        {
+            DestroyObject(noteObject.gameObject);
+        }
+
+        NoteObjects.Clear();
+    }
 
     public float SamplesToScreenPositionX(int samples)
     {
@@ -96,6 +119,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         var note = new MusicModel.Note();
         note.sample = noteObject.notePosition.samples;
         note.blockNum = noteObject.notePosition.blockNum;
+        note.state = noteObject.noteType.Value == NoteTypes.Long ? 2 : 1;
         note.noteList = new List<MusicModel.Note>();
         return note;
     }

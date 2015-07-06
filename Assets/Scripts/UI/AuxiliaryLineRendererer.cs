@@ -13,6 +13,9 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
     void LateUpdate()
     {
+        if (model.Audio == null || model.Audio.clip == null)
+            return;
+
         var beatNum = model.LPB.Value * Mathf.CeilToInt(model.Audio.clip.samples / (float)model.UnitBeatSamples.Value);
         var beatSamples = Enumerable.Range(0, beatNum)
             .Select(i => i * model.UnitBeatSamples.Value / model.LPB.Value)

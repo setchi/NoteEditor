@@ -18,6 +18,7 @@ public class WaveformRenderer : MonoBehaviour
 
         this.LateUpdateAsObservable()
             .Where(_ => model.WaveformDisplayEnabled.Value)
+            .SkipWhile(_ => model.Audio.clip == null)
             .Subscribe(_ =>
             {
                 model.Audio.clip.GetData(waveData, model.Audio.timeSamples);

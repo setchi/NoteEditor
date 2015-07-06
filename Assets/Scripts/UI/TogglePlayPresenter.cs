@@ -16,7 +16,7 @@ public class TogglePlayPresenter : MonoBehaviour
     void Awake()
     {
         model = NotesEditorModel.Instance;
-        model.OnLoadedMusicObservable.Subscribe(_ => Init());
+        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
     }
 
     void Init()

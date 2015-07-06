@@ -3,6 +3,7 @@ using UniRx;
 
 public class MusicSelectorModel : SingletonGameObject<MusicSelectorModel>
 {
+    public ReactiveProperty<string> DirectoryPath = new ReactiveProperty<string>();
     public ReactiveProperty<List<string>> FilePathList = new ReactiveProperty<List<string>>();
     public ReactiveProperty<string> SelectedFileName = new ReactiveProperty<string>();
 
