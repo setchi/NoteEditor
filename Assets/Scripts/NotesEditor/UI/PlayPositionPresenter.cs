@@ -25,33 +25,13 @@ public class PlayPositionPresenter : MonoBehaviour
 
     void Init()
     {
-        // Binds canvas position with samples
-        this.UpdateAsObservable()
-            .Select(_ => model.Audio.timeSamples)
-            .DistinctUntilChanged()
-            .Merge(model.CanvasWidth.Select(_ => model.Audio.timeSamples)) // Merge resized timing
-            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
-            .Select(per => canvasRect.sizeDelta.x * per)
-            .Select(x => x + model.CanvasOffsetX.Value)
-            .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
+        playPositionController.maxValue = model.Audio.clip.samples;
 
 
-        // Binds play position controller with samples
-        this.UpdateAsObservable()
-            .Select(_ => model.Audio.timeSamples)
-            .DistinctUntilChanged()
-            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
-            /*
-            .Do(per => playPositionController.value = per)
-            // */
-            .Select(per => new TimeSpan(0, 0, Mathf.FloorToInt(model.Audio.time)).ToString().Substring(3, 5)
-                + " / "
-                + new TimeSpan(0, 0, Mathf.RoundToInt(model.Audio.clip.samples / model.Audio.clip.frequency)).ToString().Substring(3, 5))
-            .SubscribeToText(playPositionDisplayText);
+        // Input -> Audio timesamples -> Model timesamples -> UI
 
-
-        // Binds samples with dragging canvas and mouse scroll wheel and slider
-        this.UpdateAsObservable()
+        // Input (scroll pad)
+        var operateScrollPadObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable
                 .Where(_ => !Input.GetMouseButtonDown(1))
                 .Where(_ => 0 > model.ClosestNotePosition.Value.samples))
@@ -63,21 +43,7 @@ public class PlayPositionPresenter : MonoBehaviour
                 / model.CanvasWidth.Value
                 * model.CanvasScaleFactor.Value
                 * model.Audio.clip.samples)
-            .Merge(canvasEvents.MouseScrollWheelObservable // Merge mouse scroll wheel
-                .Where(_ =>
-                    // Ctrl key and Command key is not pressed
-                    !Input.GetKey(KeyCode.LeftControl) &&
-                    !Input.GetKey(KeyCode.LeftCommand) &&
-                    !Input.GetKey(KeyCode.RightControl) &&
-                    !Input.GetKey(KeyCode.RightCommand))
-                .Select(delta => model.Audio.clip.samples / 100 * -delta))
-            .Select(deltaSamples => model.Audio.timeSamples + Mathf.RoundToInt(deltaSamples))
-            .Merge(playPositionController.OnValueChangedAsObservable() // Merge slider value change
-                .DistinctUntilChanged()
-                .Select(x => x * model.Audio.clip.samples * x)
-                .Select(x => Mathf.RoundToInt(x)))
-            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
-            .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
+            .Select(delta => model.Audio.timeSamples + delta);
 
         model.IsDraggingDuringPlay = canvasEvents.ScrollPadOnMouseDownObservable
             .Where(_ => model.IsPlaying.Value)
@@ -87,5 +53,58 @@ public class PlayPositionPresenter : MonoBehaviour
                 .Where(_ => Input.GetMouseButtonUp(0))
                 .Select(_ => !(model.IsPlaying.Value = true)))
             .ToReactiveProperty();
+
+        // Input (mouse scroll wheel)
+        var operateMouseScrollWheelObservable = canvasEvents.MouseScrollWheelObservable
+            .Where(_ =>
+                // Ctrl key and Command key is not pressed
+                !Input.GetKey(KeyCode.LeftControl) &&
+                !Input.GetKey(KeyCode.LeftCommand) &&
+                !Input.GetKey(KeyCode.RightControl) &&
+                !Input.GetKey(KeyCode.RightCommand))
+            .Select(delta => model.Audio.clip.samples / 100 * -delta);
+
+        // Input (slider)
+        var operatePlayPositionSliderObservable = playPositionController.OnValueChangedAsObservable()
+            .DistinctUntilChanged();
+
+
+        // Input -> Audio timesamples
+        Observable.Merge(
+                operateScrollPadObservable,
+                operateMouseScrollWheelObservable,
+                operatePlayPositionSliderObservable)
+            .Select(timeSamples => Mathf.FloorToInt(timeSamples))
+            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
+            .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
+
+
+        // Audio timesamples -> Model timesamples
+        this.UpdateAsObservable()
+            .Select(_ => model.Audio.timeSamples)
+            .DistinctUntilChanged()
+            .Subscribe(timeSamples => model.TimeSamples.Value = timeSamples);
+
+
+        // Model timesamples -> UI(slider)
+        model.TimeSamples.DistinctUntilChanged()
+            .Subscribe(timeSamples => playPositionController.value = timeSamples);
+
+        // Model timesamples -> UI(text)
+        model.TimeSamples.DistinctUntilChanged()
+            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
+            .Select(per =>
+                TimeSpan.FromSeconds(model.Audio.time).ToString().Substring(3, 5)
+                + " / "
+                + TimeSpan.FromSeconds(model.Audio.clip.samples / model.Audio.clip.frequency).ToString().Substring(3, 5))
+            .SubscribeToText(playPositionDisplayText);
+
+        // Model timesamples -> UI(canvas position)
+        model.TimeSamples.DistinctUntilChanged()
+            .Merge(model.CanvasWidth.Select(_ => model.TimeSamples.Value)) // Merge width scaling timing
+            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
+            .Select(per => canvasRect.sizeDelta.x * per)
+            .Select(x => x + model.CanvasOffsetX.Value)
+            .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
     }
 }

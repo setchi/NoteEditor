@@ -16,6 +16,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
     public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
+    public ReactiveProperty<int> TimeSamples = new ReactiveProperty<int>();
     public ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
