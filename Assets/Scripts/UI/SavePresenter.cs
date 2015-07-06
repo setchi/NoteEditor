@@ -29,7 +29,6 @@ public class SavePresenter : MonoBehaviour
 
         Observable.Merge(
                 model.BPM.Select(_ => true),
-                model.LPB.Select(_ => true),
                 model.BeatOffsetSamples.Select(_ => true),
                 model.NormalNoteObservable.Select(_ => true),
                 model.LongNoteObservable.Select(_ => true),

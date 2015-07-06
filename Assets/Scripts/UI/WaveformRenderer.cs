@@ -10,7 +10,7 @@ public class WaveformRenderer : MonoBehaviour
         var model = NotesEditorModel.Instance;
         var waveData = new float[500000];
         var skipSamples = 50;
-        var lineColor = Color.green * 0.5f;
+        var lineColor = Color.green * 0.6f;
         var lines = Enumerable.Range(0, waveData.Length / skipSamples)
             .Select(_ => new Line(Vector3.zero, Vector3.zero, lineColor))
             .ToArray();
@@ -25,14 +25,12 @@ public class WaveformRenderer : MonoBehaviour
                 var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
                 var offsetX = model.CanvasOffsetX.Value;
                 var offsetY = 200;
-                var y = 0f;
 
-                for (int li = 0, wi = 0, l = waveData.Length; wi < l; li++, wi += skipSamples)
+                for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
                 {
                     lines[li].start.x = lines[li].end.x = wi * x + offsetX;
-                    y = waveData[wi] * 45;
-                    lines[li].end.y =  -y - offsetY;
-                    lines[li].start.y = y - offsetY;
+                    lines[li].end.y =  waveData[wi] * 45 - offsetY;
+                    lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
                 }
 
                 GLLineRenderer.RenderLines("waveform", lines);

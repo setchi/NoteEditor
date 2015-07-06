@@ -6,6 +6,10 @@ public class EditTypeTogglePresenter : MonoBehaviour
 {
     [SerializeField]
     Button editTypeToggleButton;
+    [SerializeField]
+    Sprite iconLongNotes;
+    [SerializeField]
+    Sprite iconNormalNotes;
 
     void Awake()
     {
@@ -15,11 +19,13 @@ public class EditTypeTogglePresenter : MonoBehaviour
             .Select(_ => model.EditType.Value == NoteTypes.Normal ? NoteTypes.Long : NoteTypes.Normal)
             .Subscribe(editType => model.EditType.Value = editType);
 
-        var editTypeToggleButtonDefaultColor = editTypeToggleButton.GetComponent<Image>().color;
+        var buttonImage = editTypeToggleButton.GetComponent<Image>();
+        var defaultButtonColor = buttonImage.color;
+
         model.EditType.Select(_ => model.EditType.Value == NoteTypes.Long)
             .Subscribe(isLongType => {
-                editTypeToggleButton.GetComponentInChildren<Text>().text = (isLongType ? "Long" : "Normal") + " Notes";
-                editTypeToggleButton.GetComponent<Image>().color = isLongType ? Color.cyan : editTypeToggleButtonDefaultColor;
+                buttonImage.sprite = isLongType ? iconLongNotes : iconNormalNotes;
+                buttonImage.color = isLongType ? Color.cyan : defaultButtonColor;
             });
     }
 }

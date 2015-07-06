@@ -88,9 +88,9 @@ public class MusicSelectorPresenter : MonoBehaviour
                         editorModel.Audio.clip = www.audioClip;
                         editorModel.MusicName.Value = fileName;
 
-                        LoadNotesData();
-
                         editorModel.OnLoadedMusicObservable.OnNext(0);
+
+                        LoadNotesData();
                     });
                 });
 

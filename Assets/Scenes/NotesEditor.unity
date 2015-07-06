@@ -227,8 +227,8 @@ RectTransform:
   m_RootOrder: 1
   m_AnchorMin: {x: 1, y: .5}
   m_AnchorMax: {x: 1, y: .5}
-  m_AnchoredPosition: {x: -28.1999969, y: 0}
-  m_SizeDelta: {x: 100, y: 20}
+  m_AnchoredPosition: {x: -14.6999998, y: 0}
+  m_SizeDelta: {x: 110, y: 20}
   m_Pivot: {x: 1, y: .5}
 --- !u!114 &41238605
 MonoBehaviour:
@@ -1054,8 +1054,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: .75686276, g: .764705896, b: .752941191, a: 1}
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: c7bbcbe30d240c34d90236e947e1b1c5, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -1080,7 +1080,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 100
+  m_MinWidth: 30
   m_MinHeight: 30
   m_PreferredWidth: -1
   m_PreferredHeight: -1
@@ -1398,7 +1398,7 @@ RectTransform:
   m_RootOrder: 0
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 3.05175781e-05}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: .5, y: 1}
 --- !u!114 &381058714
@@ -1815,7 +1815,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Normal Notes
+  m_Text: 
 --- !u!222 &460008178
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3443,6 +3443,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   editTypeToggleButton: {fileID: 302783611}
+  iconLongNotes: {fileID: 21300000, guid: dc0ac44e1ae7c794e93c66fc6cc35d1c, type: 3}
+  iconNormalNotes: {fileID: 21300000, guid: c7bbcbe30d240c34d90236e947e1b1c5, type: 3}
 --- !u!114 &798471453
 MonoBehaviour:
   m_ObjectHideFlags: 0
