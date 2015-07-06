@@ -1,6 +1,6 @@
-﻿using UniRx;
+﻿using System;
+using UniRx;
 using UniRx.Triggers;
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 
