@@ -33,10 +33,11 @@ public class SavePresenter : MonoBehaviour
                 model.BeatOffsetSamples.Select(_ => true),
                 model.NormalNoteObservable.Select(_ => true),
                 model.LongNoteObservable.Select(_ => true),
+                model.OnLoadedMusicObservable.Select(_ => false),
                 saveActionObservable.Select(_ => false))
             .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))
             .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? Color.yellow : Color.white)
-            .SubscribeToText(messageText, _ => "保存が必要な状態");
+            .SubscribeToText(messageText, unsaved => unsaved ? "保存が必要な状態" : "");
 
         saveActionObservable.Subscribe(_ => {
             Debug.Log(model.MusicName.Value + " 保存した！！");
