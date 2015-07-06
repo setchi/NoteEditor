@@ -1896,10 +1896,10 @@ RectTransform:
   - {fileID: 180205642}
   m_Father: {fileID: 1910481095}
   m_RootOrder: 1
-  m_AnchorMin: {x: .5, y: .5}
-  m_AnchorMax: {x: .5, y: .5}
-  m_AnchoredPosition: {x: -14, y: 0}
-  m_SizeDelta: {x: 65, y: 30}
+  m_AnchorMin: {x: 0, y: .5}
+  m_AnchorMax: {x: 0, y: .5}
+  m_AnchoredPosition: {x: 54, y: 0}
+  m_SizeDelta: {x: 70, y: 30}
   m_Pivot: {x: 0, y: .5}
 --- !u!114 &665551238
 MonoBehaviour:
@@ -2300,6 +2300,16 @@ GameObject:
   - 114: {fileID: 798471447}
   - 114: {fileID: 798471445}
   - 114: {fileID: 798471449}
+  - 114: {fileID: 798471450}
+  - 114: {fileID: 798471451}
+  - 114: {fileID: 798471452}
+  - 114: {fileID: 798471453}
+  - 114: {fileID: 798471454}
+  - 114: {fileID: 798471455}
+  - 114: {fileID: 798471456}
+  - 114: {fileID: 798471457}
+  - 114: {fileID: 798471458}
+  - 114: {fileID: 798471459}
   m_Layer: 5
   m_Name: GUICanvas
   m_TagString: Untagged
@@ -2403,29 +2413,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8bb4e337553ccd4eb2ff210f3ed77b9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvasEvents: {fileID: 798471448}
   canvasScaler: {fileID: 798471442}
-  canvasRect: {fileID: 18061599}
-  verticalLineRect: {fileID: 629520007}
-  playButton: {fileID: 1956531575}
-  iconPlay: {fileID: 21300000, guid: 405f0877aa5fda84fb6f3839b7ecf29a, type: 3}
-  iconPause: {fileID: 21300000, guid: 517d1e49804347d42b772f3ed3bdbdf2, type: 3}
-  editTypeToggleButton: {fileID: 302783611}
   titleText: {fileID: 1882975966}
-  canvasWidthScaleController: {fileID: 1213569132}
-  LPBDisplayText: {fileID: 1017852148}
-  LPBUpButton: {fileID: 1131764331}
-  LPBDownButton: {fileID: 493727591}
-  volumeController: {fileID: 1286275368}
-  playPositionController: {fileID: 41238605}
-  playPositionDisplayText: {fileID: 842025356}
-  BPMInputField: {fileID: 2111547991}
-  BPMUpButton: {fileID: 895933284}
-  BPMDownButton: {fileID: 493843418}
-  beatOffsetInputField: {fileID: 665551238}
-  beatOffsetIncreaseButton: {fileID: 793128775}
-  beatOffsetDecreaseButton: {fileID: 1932676059}
-  waveformDisplayEnabled: {fileID: 657980408}
 --- !u!114 &798471447
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2462,6 +2451,140 @@ MonoBehaviour:
   notesRegion: {fileID: 1253846481}
   canvasEvents: {fileID: 798471448}
   notePrefab: {fileID: 145270, guid: 117a02bd3aa02974286fd278ec0611d1, type: 2}
+--- !u!114 &798471450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 923a8e49da6bb85409aec9fa0d47ee73, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeController: {fileID: 1286275368}
+--- !u!114 &798471451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a76d5b729a74814db181bd2980d8fde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvasEvents: {fileID: 798471448}
+  canvasWidthScaleController: {fileID: 1213569132}
+  canvasRect: {fileID: 18061599}
+--- !u!114 &798471452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da9a8c3d93a7a3b49aff261119e6238b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  editTypeToggleButton: {fileID: 302783611}
+--- !u!114 &798471453
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e0c5f32966e79846883c935c4a8b622, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  togglePlayButton: {fileID: 1956531575}
+  iconPlay: {fileID: 21300000, guid: 405f0877aa5fda84fb6f3839b7ecf29a, type: 3}
+  iconPause: {fileID: 21300000, guid: 517d1e49804347d42b772f3ed3bdbdf2, type: 3}
+--- !u!114 &798471454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a21e1f0714070f4f93a2b5a0c005bd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  beatOffsetInputField: {fileID: 665551238}
+  beatOffsetIncreaseButton: {fileID: 793128775}
+  beatOffsetDecreaseButton: {fileID: 1932676059}
+--- !u!114 &798471455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93e29a11d8b807c4d8df02f69b180d2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BPMInputField: {fileID: 2111547991}
+  BPMUpButton: {fileID: 895933284}
+  BPMDownButton: {fileID: 493843418}
+--- !u!114 &798471456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae3193dbe841478479cb21b8d51e2803, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LPBDisplayText: {fileID: 1017852148}
+  LPBUpButton: {fileID: 1131764331}
+  LPBDownButton: {fileID: 493727591}
+--- !u!114 &798471457
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b508201f5ab6c974185a3116e786b9e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvasEvents: {fileID: 798471448}
+  canvasRect: {fileID: 18061599}
+  playPositionController: {fileID: 41238605}
+  playPositionDisplayText: {fileID: 842025356}
+--- !u!114 &798471458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a49739583d27aba4a8036239b3e23f1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waveformDisplayToggle: {fileID: 657980408}
+--- !u!114 &798471459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 798471440}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42be2b19d720fa948b4398b7514b2ae0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canvasEvents: {fileID: 798471448}
+  verticalLineRect: {fileID: 629520007}
 --- !u!1 &833008781
 GameObject:
   m_ObjectHideFlags: 0
@@ -3842,7 +3965,7 @@ GameObject:
   - 222: {fileID: 1283695312}
   - 114: {fileID: 1283695311}
   m_Layer: 5
-  m_Name: WaveformDisplayEnabled
+  m_Name: WaveformDisplayToggle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5208,7 +5331,7 @@ GameObject:
   - 114: {fileID: 1956531575}
   - 114: {fileID: 1956531578}
   m_Layer: 5
-  m_Name: PlayButton
+  m_Name: TogglePlayButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -20,11 +20,12 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<bool> IsDraggingDuringPlay = new ReactiveProperty<bool>();
     public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
     public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
-    public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
-    public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
-    public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
+    public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
+    public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
+    public Subject<SelectedMusicDataStore> OnLoadedMusicObservable = new Subject<SelectedMusicDataStore>();
+    public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
     public AudioSource Audio;
 
     public float SamplesToScreenPositionX(int samples)

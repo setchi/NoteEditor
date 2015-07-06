@@ -16,6 +16,11 @@ public class CanvasEvents : MonoBehaviour
             .Select(_ => Input.GetAxis("Mouse ScrollWheel"))
             .Where(delta => delta != 0)
             .Subscribe(MouseScrollWheelObservable.OnNext);
+
+        var model = NotesEditorModel.Instance;
+        model.IsMouseOverCanvas = ScrollPadOnMouseExitObservable.Select(_ => false)
+            .Merge(ScrollPadOnMouseEnterObservable.Select(_ => true))
+            .ToReactiveProperty();
     }
 
     public void ScrollPadOnMouseDown()
