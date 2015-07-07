@@ -67,6 +67,14 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         return (blockNum * 60 - 120) / CanvasScaleFactor.Value;
     }
 
+    public Vector3 NoteToScreenPosition(NotePosition notePosition)
+    {
+        return new Vector3(
+            SamplesToScreenPositionX(notePosition.samples),
+            BlockNumToScreenPositionY(notePosition.blockNum) * CanvasScaleFactor.Value,
+            0);
+    }
+
     public Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
     {
         return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * CanvasScaleFactor.Value;

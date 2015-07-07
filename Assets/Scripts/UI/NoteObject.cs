@@ -17,7 +17,7 @@ public class NoteObject : MonoBehaviour
     {
         model = NotesEditorModel.Instance;
         rectTransform = GetComponent<RectTransform>();
-        rectTransform.localPosition = CalcPosition(notePosition);
+        rectTransform.localPosition = model.NoteToScreenPosition(notePosition);
 
 
         var image = GetComponent<Image>();
@@ -26,8 +26,8 @@ public class NoteObject : MonoBehaviour
             .Subscribe(isLongNote => image.color = isLongNote ? Color.cyan : new Color(175 / 255f, 1, 78 / 255f));
 
 
-        this.LateUpdateAsObservable()
-            .Select(_ => CalcPosition(notePosition))
+        this.UpdateAsObservable()
+            .Select(_ => model.NoteToScreenPosition(notePosition))
             .DistinctUntilChanged()
             .Subscribe(pos => rectTransform.localPosition = pos);
 
@@ -53,22 +53,14 @@ public class NoteObject : MonoBehaviour
 
         longNoteLateUpdateObservable
             .Where(_ => next != null)
-            .Select(_ => CalcPosition(next.notePosition))
+            .Select(_ => model.NoteToScreenPosition(next.notePosition))
             .Merge(longNoteLateUpdateObservable
                 .Where(_ => next == null)
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
-            .Select(nextPosition => new Line[] { new Line(CalcPosition(notePosition), nextPosition, 0 < nextPosition.x - CalcPosition(notePosition).x ? Color.cyan : Color.red) })
+            .Select(nextPosition => new Line[] { new Line(model.NoteToScreenPosition(notePosition), nextPosition, 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? Color.cyan : Color.red) })
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.blockNum + "-" + notePosition.samples, lines));
-    }
-
-    Vector3 CalcPosition(NotePosition notePosition)
-    {
-        return new Vector3(
-            model.SamplesToScreenPositionX(notePosition.samples),
-            model.BlockNumToScreenPositionY(notePosition.blockNum) * model.CanvasScaleFactor.Value,
-            0);
     }
 
     public void OnMouseEnter()
