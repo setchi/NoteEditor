@@ -32,7 +32,6 @@ public class MusicSelectorPresenter : MonoBehaviour
     {
         var fileItemList = new List<GameObject>();
         var model = MusicSelectorModel.Instance;
-        var resourcePath = Application.persistentDataPath + "/Musics/";
 
         directoryPathInputField.OnValueChangeAsObservable()
             .Subscribe(path => model.DirectoryPath.Value = path);
@@ -40,17 +39,18 @@ public class MusicSelectorPresenter : MonoBehaviour
         model.DirectoryPath.DistinctUntilChanged()
             .Subscribe(path => directoryPathInputField.text = path);
 
-        model.DirectoryPath.Value = resourcePath;
+        model.DirectoryPath.Value = Application.persistentDataPath + "/Musics/";
 
 
-        if (!File.Exists(resourcePath))
+        if (!Directory.Exists(model.DirectoryPath.Value))
         {
-            Directory.CreateDirectory(resourcePath);
+            Directory.CreateDirectory(model.DirectoryPath.Value);
         }
 
 
         Observable.Timer(TimeSpan.FromMilliseconds(300), TimeSpan.Zero)
-                .Select(_ => new DirectoryInfo(resourcePath).GetFiles())
+                .Where(_ => Directory.Exists(model.DirectoryPath.Value))
+                .Select(_ => new DirectoryInfo(model.DirectoryPath.Value).GetFiles())
                 .Select(fileInfo => fileInfo.Select(file => file.FullName).ToList())
                 .Where(x => !x.SequenceEqual(model.FilePathList.Value))
                 .Subscribe(filePathList => model.FilePathList.Value = filePathList);
