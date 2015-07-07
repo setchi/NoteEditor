@@ -13,9 +13,9 @@ public struct NotePosition
     }
 
 
-    public int ToSamples(AudioClip audioClip)
+    public int ToSamples(int frequency)
     {
-        return Mathf.FloorToInt(num * (audioClip.frequency * 60f / BPM / LPB));
+        return Mathf.FloorToInt(num * (frequency * 60f / BPM / LPB));
     }
 
     public override string ToString()

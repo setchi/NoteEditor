@@ -20,7 +20,7 @@ public class NoteObjectsPresenter : MonoBehaviour
 
         var closestNoteAreaOnMouseDownObservable = canvasEvents.ScrollPadOnMouseDownObservable
             .Where(_ => !Input.GetMouseButtonDown(1))
-            .Where(_ => 0 <= model.ClosestNotePosition.Value.ToSamples(model.Audio.clip));
+            .Where(_ => 0 <= model.ClosestNotePosition.Value.ToSamples(model.Audio.clip.frequency));
 
         closestNoteAreaOnMouseDownObservable
             .Select(_ => model.EditType.Value == NoteTypes.Long
