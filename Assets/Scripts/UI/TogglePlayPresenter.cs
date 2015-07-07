@@ -1,4 +1,5 @@
 ﻿using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,7 +22,9 @@ public class TogglePlayPresenter : MonoBehaviour
 
     void Init()
     {
-        togglePlayButton.OnClickAsObservable()
+        this.UpdateAsObservable()
+            .Where(_ => Input.GetKeyDown(KeyCode.Space))
+            .Merge(togglePlayButton.OnClickAsObservable())
             .Subscribe(_ => model.IsPlaying.Value = !model.IsPlaying.Value);
 
         model.IsPlaying.DistinctUntilChanged().Subscribe(playing =>
