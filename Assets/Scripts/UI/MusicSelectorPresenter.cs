@@ -117,19 +117,19 @@ public class MusicSelectorPresenter : MonoBehaviour
     {
         var editorModel = NotesEditorModel.Instance;
 
-        editorModel.BPM.Value = float.Parse(notesData.BPM);
+        editorModel.BPM.Value = notesData.BPM;
         editorModel.BeatOffsetSamples.Value = notesData.offset;
 
         foreach (var note in notesData.notes)
         {
-            if (note.state == 1)
+            if (note.type == 1)
             {
-                InstantiateNoteObject(note);
+                InstantiateNoteObject(notesData, note);
                 continue;
             }
 
-            var longNoteObjects = new MusicModel.Note[] { note }.Concat(note.noteList)
-                .Select(note_ => InstantiateNoteObject(note_))
+            var longNoteObjects = new MusicModel.Note[] { note }.Concat(note.notes)
+                .Select(note_ => InstantiateNoteObject(notesData, note_))
                 .ToList();
 
             for (int i = 1; i < longNoteObjects.Count; i++)
@@ -140,11 +140,11 @@ public class MusicSelectorPresenter : MonoBehaviour
         }
     }
 
-    NoteObject InstantiateNoteObject(MusicModel.Note note)
+    NoteObject InstantiateNoteObject(MusicModel.NotesData notesData, MusicModel.Note note)
     {
         var noteObject = (Instantiate(noteObjectPrefab) as GameObject).GetComponent<NoteObject>();
-        noteObject.notePosition = new NotePosition(note.sample, note.blockNum);
-        noteObject.noteType.Value = note.state == 2 ? NoteTypes.Long : NoteTypes.Normal;
+        noteObject.notePosition = new NotePosition(notesData.BPM, note.LPB, note.num, note.block);
+        noteObject.noteType.Value = note.type == 2 ? NoteTypes.Long : NoteTypes.Normal;
         noteObject.transform.SetParent(notesRegion.transform);
         NotesEditorModel.Instance.NoteObjects.Add(noteObject.notePosition, noteObject);
         return noteObject;

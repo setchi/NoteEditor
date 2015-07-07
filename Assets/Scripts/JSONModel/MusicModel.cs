@@ -19,19 +19,21 @@ public class MusicModel
         }
     }
 
-    public class Note
-    {
-        public int sample;
-        public int blockNum;
-        public int state;
-        public List<Note> noteList;
-    }
-
     public class NotesData
     {
+        public string name;
+        public int BPM;
         public int offset;
-        public string fileName;
-        public string BPM;
         public List<Note> notes;
     }
+
+    public class Note
+    {
+        public int LPB;
+        public int num;
+        public int block;
+        public int type;
+        public List<Note> notes;
+    }
+
 }

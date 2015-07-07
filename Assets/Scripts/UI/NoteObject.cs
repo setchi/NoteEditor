@@ -60,7 +60,7 @@ public class NoteObject : MonoBehaviour
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
             .Select(nextPosition => new Line[] { new Line(model.NoteToScreenPosition(notePosition), nextPosition, 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? Color.cyan : Color.red) })
-            .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.blockNum + "-" + notePosition.samples, lines));
+            .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.ToString(), lines));
     }
 
     public void OnMouseEnter()

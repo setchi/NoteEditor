@@ -1,11 +1,26 @@
-﻿public struct NotePosition
-{
-    public int samples, blockNum;
+﻿using UnityEngine;
 
-    public NotePosition(int samples, int blockNum)
+public struct NotePosition
+{
+    public int BPM, LPB, num, block;
+
+    public NotePosition(int BPM, int LPB, int num, int block)
     {
-        this.samples = samples;
-        this.blockNum = blockNum;
+        this.BPM = BPM;
+        this.LPB = LPB;
+        this.num = num;
+        this.block = block;
+    }
+
+
+    public int ToSamples(AudioClip audioClip)
+    {
+        return Mathf.FloorToInt(num * (audioClip.frequency * 60f / BPM / LPB));
+    }
+
+    public override string ToString()
+    {
+        return BPM + "-" + LPB + "-" + num + "-" + block;
     }
 
     public override bool Equals(object obj)
@@ -16,11 +31,15 @@
         }
 
         NotePosition target = (NotePosition)obj;
-        return (samples == target.samples && blockNum == target.blockNum);
+        return (
+            BPM == target.BPM &&
+            LPB == target.LPB &&
+            num == target.num &&
+            block == target.block);
     }
 
     public override int GetHashCode()
     {
-        return (blockNum + "-" + samples).GetHashCode();
+        return ToString().GetHashCode();
     }
 }

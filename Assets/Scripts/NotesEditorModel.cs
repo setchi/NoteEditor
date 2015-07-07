@@ -12,7 +12,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Normal);
     public ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
     public ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
-    public ReactiveProperty<float> BPM = new ReactiveProperty<float>(0);
+    public ReactiveProperty<int> BPM = new ReactiveProperty<int>(0);
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
     public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
     public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
@@ -32,6 +32,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Subject<int> OnLoadedMusicObservable = new Subject<int>();
     public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
     public AudioSource Audio;
+
 
     void Awake()
     {
@@ -70,8 +71,8 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Vector3 NoteToScreenPosition(NotePosition notePosition)
     {
         return new Vector3(
-            SamplesToScreenPositionX(notePosition.samples),
-            BlockNumToScreenPositionY(notePosition.blockNum) * CanvasScaleFactor.Value,
+            SamplesToScreenPositionX(notePosition.ToSamples(Audio.clip)),
+            BlockNumToScreenPositionY(notePosition.block) * CanvasScaleFactor.Value,
             0);
     }
 
@@ -83,13 +84,13 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public string SerializeNotesData()
     {
         var data = new MusicModel.NotesData();
-        data.BPM = BPM.Value.ToString();
+        data.BPM = BPM.Value;
         data.offset = BeatOffsetSamples.Value;
-        data.fileName = Path.GetFileNameWithoutExtension(MusicName.Value);
+        data.name = Path.GetFileNameWithoutExtension(MusicName.Value);
 
         var sortedNoteObjects = NoteObjects.Values
             .Where(note => !(note.noteType.Value == NoteTypes.Long && note.prev != null))
-            .OrderBy(note => note.notePosition.samples);
+            .OrderBy(note => note.notePosition.ToSamples(Audio.clip));
 
         data.notes = new List<MusicModel.Note>();
 
@@ -106,7 +107,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
                 while (current.next != null)
                 {
-                    note.noteList.Add(ConvertToNote(current.next));
+                    note.notes.Add(ConvertToNote(current.next));
                     current = current.next;
                 }
 
@@ -124,10 +125,11 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public MusicModel.Note ConvertToNote(NoteObject noteObject)
     {
         var note = new MusicModel.Note();
-        note.sample = noteObject.notePosition.samples;
-        note.blockNum = noteObject.notePosition.blockNum;
-        note.state = noteObject.noteType.Value == NoteTypes.Long ? 2 : 1;
-        note.noteList = new List<MusicModel.Note>();
+        note.num = noteObject.notePosition.num;
+        note.block = noteObject.notePosition.block;
+        note.LPB = noteObject.notePosition.LPB;
+        note.type = noteObject.noteType.Value == NoteTypes.Long ? 2 : 1;
+        note.notes = new List<MusicModel.Note>();
         return note;
     }
 }

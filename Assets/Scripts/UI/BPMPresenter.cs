@@ -21,7 +21,7 @@ public class BPMPresenter : MonoBehaviour
     void Init()
     {
         model.UnitBeatSamples = model.BPM.DistinctUntilChanged()
-            .Select(x => Mathf.FloorToInt(model.Audio.clip.frequency * 60 / x))
+            .Select(x => Mathf.FloorToInt(model.Audio.clip.frequency * 60f / x))
             .ToReactiveProperty();
 
         var buttonOperateObservable = Observable.Merge(
@@ -37,7 +37,7 @@ public class BPMPresenter : MonoBehaviour
 
         BPMInputField.OnValueChangeAsObservable()
             .Select(x => string.IsNullOrEmpty(x) ? "1" : x)
-            .Select(x => float.Parse(x))
+            .Select(x => int.Parse(x))
             .Merge(buttonOperateObservable)
             .Select(x => Mathf.Clamp(x, 1, 320))
             .Subscribe(x => model.BPM.Value = x);

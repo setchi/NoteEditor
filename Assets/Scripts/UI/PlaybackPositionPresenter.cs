@@ -35,7 +35,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
         var operateScrollPadObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable
                 .Where(_ => !Input.GetMouseButtonDown(1))
-                .Where(_ => 0 > model.ClosestNotePosition.Value.samples))
+                .Where(_ => 0 > model.ClosestNotePosition.Value.ToSamples(model.Audio.clip)))
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Input.mousePosition.x)
             .Buffer(2, 1).Where(b => 2 <= b.Count)
@@ -104,7 +104,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
         model.TimeSamples.DistinctUntilChanged()
             .Merge(model.CanvasWidth.Select(_ => model.TimeSamples.Value)) // Merge width scaling timing
             .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
-            .Select(per => canvasRect.sizeDelta.x * per)
+            .Select(per => model.CanvasWidth.Value * per)
             .Select(x => x + model.CanvasOffsetX.Value)
             .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
     }
