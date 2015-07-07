@@ -33,8 +33,7 @@ public struct NotePosition
         NotePosition target = (NotePosition)obj;
         return (
             BPM == target.BPM &&
-            LPB == target.LPB &&
-            num == target.num &&
+            Mathf.Approximately((float)num / LPB, (float)target.num / target.LPB) &&
             block == target.block);
     }
 
