@@ -16,21 +16,32 @@ public class SoundEffectPlayer : MonoBehaviour
         var model = NotesEditorModel.Instance;
         var clapOffsetSamples = 1800;
 
-        model.IsPlaying.Where(isPlaying => isPlaying).SelectMany(__ =>
-        {
-            var notesQueue = new Queue<int>(model.NoteObjects.Values
-                .Select(noteObject => noteObject.notePosition.ToSamples(model.Audio.clip.frequency))
-                .Where(samples => model.Audio.timeSamples <= samples)
-                .OrderBy(samples => samples)
-                .Select(samples => samples - clapOffsetSamples));
+        var notesChangeDuringPlayObservable = Observable.Merge(
+                model.BeatOffsetSamples.Select(_ => false),
+                model.LongNoteObservable.Select(_ => false),
+                model.LongNoteObservable.Select(_ => false))
+            .Where(_ => model.IsPlaying.Value);
 
-            return this.LateUpdateAsObservable()
-                .TakeWhile(_ => model.IsPlaying.Value)
-                .Select(_ => new { timeSamples = model.Audio.timeSamples, queue = notesQueue });
-        })
-        .Where(obj => obj.queue.Count > 0)
-        .Where(obj => obj.queue.Peek() <= obj.timeSamples)
-        .Do(obj => obj.queue.Dequeue())
+        model.IsPlaying.Where(isPlaying => isPlaying)
+            .Merge(notesChangeDuringPlayObservable)
+            .Select(_ =>
+                new Queue<int>(
+                    model.NoteObjects.Values
+                        .Select(noteObject => noteObject.notePosition.ToSamples(model.Audio.clip.frequency))
+                        .Select(samples => samples + model.BeatOffsetSamples.Value)
+                        .Where(samples => model.Audio.timeSamples <= samples)
+                        .OrderBy(samples => samples)
+                        .Select(samples => samples - clapOffsetSamples)))
+
+            .SelectMany(samplesQueue =>
+                this.LateUpdateAsObservable()
+                    .TakeWhile(_ => model.IsPlaying.Value)
+                    .TakeUntil(notesChangeDuringPlayObservable.Skip(1))
+                    .Select(_ => samplesQueue))
+
+        .Where(samplesQueue => samplesQueue.Count > 0)
+        .Where(samplesQueue => samplesQueue.Peek() <= model.Audio.timeSamples)
+        .Do(samplesQueue => samplesQueue.Dequeue())
         .Where(_ => model.PlaySoundEffectEnabled.Value)
         .Subscribe(_ => AudioSource.PlayClipAtPoint(clap, Vector3.zero));
     }
