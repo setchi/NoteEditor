@@ -117,4 +117,22 @@ public class PlaybackPositionPresenter : MonoBehaviour
             .Select(x => x + model.CanvasOffsetX.Value)
             .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
     }
+
+    public void PlaybackPositionControllerOnMouseDown()
+    {
+        if (model.IsPlaying.Value)
+        {
+            model.IsOperatingPlaybackPositionDuringPlay.Value = true;
+            model.IsPlaying.Value = false;
+        }
+    }
+
+    public void PlaybackPositionControllerOnMouseUp()
+    {
+        if (model.IsOperatingPlaybackPositionDuringPlay.Value)
+        {
+            model.IsPlaying.Value = true;
+            model.IsOperatingPlaybackPositionDuringPlay.Value = false;
+        }
+    }
 }
