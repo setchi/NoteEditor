@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum NoteTypes { Normal, Long }
 
@@ -20,7 +22,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
-    public ReactiveProperty<bool> IsMouseOverCanvas = new ReactiveProperty<bool>();
+    public ReactiveProperty<bool> IsMouseOverNotesRegion = new ReactiveProperty<bool>();
     public ReactiveProperty<int> UnitBeatSamples = new ReactiveProperty<int>();
     public ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>();
     public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
@@ -32,11 +34,23 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
     public Subject<int> OnLoadedMusicObservable = new Subject<int>();
     public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
+
+    [HideInInspector]
     public AudioSource Audio;
 
+    [SerializeField]
+    CanvasScaler canvasScaler;
 
     void Awake()
     {
+        Audio = gameObject.AddComponent<AudioSource>();
+
+        CanvasScaleFactor = this.UpdateAsObservable()
+            .Select(_ => Screen.width)
+            .DistinctUntilChanged()
+            .Select(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w)
+            .ToReactiveProperty();
+
         ClearNotesData();
     }
 

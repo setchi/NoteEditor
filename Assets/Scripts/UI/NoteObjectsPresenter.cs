@@ -18,7 +18,7 @@ public class NoteObjectsPresenter : MonoBehaviour
         model = NotesEditorModel.Instance;
 
 
-        var closestNoteAreaOnMouseDownObservable = canvasEvents.ScrollPadOnMouseDownObservable
+        var closestNoteAreaOnMouseDownObservable = canvasEvents.NotesRegionOnMouseDownObservable
             .Where(_ => !Input.GetMouseButtonDown(1))
             .Where(_ => 0 <= model.ClosestNotePosition.Value.ToSamples(model.Audio.clip.frequency));
 
@@ -32,7 +32,7 @@ public class NoteObjectsPresenter : MonoBehaviour
         // Start editing of long note
         closestNoteAreaOnMouseDownObservable
             .Where(_ => model.EditType.Value == NoteTypes.Normal)
-            .Where(_ => Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            .Where(_ => KeyInput.ShiftKey())
             .Do(notePosition => model.EditType.Value = NoteTypes.Long)
             .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
 

@@ -9,8 +9,6 @@ public class PlaybackPositionPresenter : MonoBehaviour
     [SerializeField]
     CanvasEvents canvasEvents;
     [SerializeField]
-    RectTransform canvasRect;
-    [SerializeField]
     Slider playbackPositionController;
     [SerializeField]
     Text playbackTimeDisplayText;
@@ -33,7 +31,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
 
         // Input (scroll pad)
         var operateScrollPadObservable = this.UpdateAsObservable()
-            .SkipUntil(canvasEvents.ScrollPadOnMouseDownObservable
+            .SkipUntil(canvasEvents.WaveformRegionOnMouseDownObservable
                 .Where(_ => !Input.GetMouseButtonDown(1))
                 .Where(_ => 0 > model.ClosestNotePosition.Value.ToSamples(model.Audio.clip.frequency)))
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
@@ -46,7 +44,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
                 * model.Audio.clip.samples)
             .Select(delta => model.Audio.timeSamples + delta);
 
-        model.IsOperatingPlaybackPositionDuringPlay = canvasEvents.ScrollPadOnMouseDownObservable
+        model.IsOperatingPlaybackPositionDuringPlay = canvasEvents.WaveformRegionOnMouseDownObservable
             .Where(_ => model.IsPlaying.Value)
             .Select(_ => !(model.IsPlaying.Value = false))
             .Merge(this.UpdateAsObservable()
@@ -57,12 +55,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
 
         // Input (mouse scroll wheel)
         var operateMouseScrollWheelObservable = canvasEvents.MouseScrollWheelObservable
-            .Where(_ =>
-                // Ctrl key and Command key is not pressed
-                !Input.GetKey(KeyCode.LeftControl) &&
-                !Input.GetKey(KeyCode.LeftCommand) &&
-                !Input.GetKey(KeyCode.RightControl) &&
-                !Input.GetKey(KeyCode.RightCommand))
+            .Where(_ => !KeyInput.CtrlKey())
             .Select(delta => model.Audio.clip.samples / 100f * -delta)
             .Select(deltaSamples => model.Audio.timeSamples + deltaSamples);
 
@@ -108,14 +101,6 @@ public class PlaybackPositionPresenter : MonoBehaviour
                 + " / "
                 + TimeSpan.FromSeconds(model.Audio.clip.samples / (float)model.Audio.clip.frequency).ToString().Substring(3, 5))
             .SubscribeToText(playbackTimeDisplayText);
-
-        // Model timesamples -> UI(canvas position)
-        model.TimeSamples.DistinctUntilChanged()
-            .Merge(model.CanvasWidth.Select(_ => model.TimeSamples.Value)) // Merge width scaling timing
-            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
-            .Select(per => model.CanvasWidth.Value * per)
-            .Select(x => x + model.CanvasOffsetX.Value)
-            .Subscribe(x => canvasRect.localPosition = Vector3.left * x);
     }
 
     public void PlaybackPositionControllerOnMouseDown()

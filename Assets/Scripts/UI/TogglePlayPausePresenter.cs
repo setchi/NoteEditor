@@ -3,10 +3,10 @@ using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TogglePlayPresenter : MonoBehaviour
+public class TogglePlayPausePresenter : MonoBehaviour
 {
     [SerializeField]
-    Button togglePlayButton;
+    Button togglePlayPauseButton;
     [SerializeField]
     Sprite iconPlay;
     [SerializeField]
@@ -24,12 +24,12 @@ public class TogglePlayPresenter : MonoBehaviour
     {
         this.UpdateAsObservable()
             .Where(_ => Input.GetKeyDown(KeyCode.Space))
-            .Merge(togglePlayButton.OnClickAsObservable())
+            .Merge(togglePlayPauseButton.OnClickAsObservable())
             .Subscribe(_ => model.IsPlaying.Value = !model.IsPlaying.Value);
 
         model.IsPlaying.DistinctUntilChanged().Subscribe(playing =>
         {
-            var playButtonImage = togglePlayButton.GetComponent<Image>();
+            var playButtonImage = togglePlayPauseButton.GetComponent<Image>();
 
             if (playing)
             {

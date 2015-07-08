@@ -8,8 +8,6 @@ public class CanvasWidthScalePresenter : MonoBehaviour
     CanvasEvents canvasEvents;
     [SerializeField]
     Slider canvasWidthScaleController;
-    [SerializeField]
-    RectTransform canvasRect;
 
     NotesEditorModel model;
 
@@ -22,11 +20,7 @@ public class CanvasWidthScalePresenter : MonoBehaviour
     void Init()
     {
         model.CanvasWidth = canvasEvents.MouseScrollWheelObservable
-            .Where(_ =>
-                Input.GetKey(KeyCode.LeftControl) ||
-                Input.GetKey(KeyCode.LeftCommand) ||
-                Input.GetKey(KeyCode.RightControl) ||
-                Input.GetKey(KeyCode.RightCommand))
+            .Where(_ => KeyInput.CtrlKey())
             .Select(delta => model.CanvasWidth.Value * (1 + delta))
             .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
@@ -34,14 +28,5 @@ public class CanvasWidthScalePresenter : MonoBehaviour
                 .DistinctUntilChanged())
             .Select(x => model.Audio.clip.samples / 100f * x)
             .ToReactiveProperty();
-
-        model.CanvasWidth.DistinctUntilChanged()
-            .Do(x => canvasWidthScaleController.value = x / (model.Audio.clip.samples / 100f))
-            .Subscribe(x =>
-            {
-                var delta = canvasRect.sizeDelta;
-                delta.x = x;
-                canvasRect.sizeDelta = delta;
-            });
     }
 }

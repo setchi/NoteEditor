@@ -42,7 +42,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
 
         // Highlighting closest line to mouse pointer
-        if (model.IsMouseOverCanvas.Value)
+        if (model.IsMouseOverNotesRegion.Value)
         {
             var highlightColor = new Color(253 / 255f, 230 / 255f, 3 / 255f) * 0.8f;
             var mouseX = model.ScreenToCanvasPosition(Input.mousePosition).x;

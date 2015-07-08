@@ -63,11 +63,6 @@ public class NoteObject : MonoBehaviour
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.ToString(), lines));
     }
 
-    public void OnMouseEnter()
-    {
-        model.IsMouseOverCanvas.Value = true;
-    }
-
     public void OnMouseDown()
     {
         onMouseDownObservable.OnNext(model.EditType.Value);

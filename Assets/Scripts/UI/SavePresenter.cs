@@ -19,12 +19,7 @@ public class SavePresenter : MonoBehaviour
         model = NotesEditorModel.Instance;
 
         var saveActionObservable = this.UpdateAsObservable()
-            .Where(_ =>
-                Input.GetKey(KeyCode.LeftControl) ||
-                Input.GetKey(KeyCode.LeftCommand) ||
-                Input.GetKey(KeyCode.RightControl) ||
-                Input.GetKey(KeyCode.RightCommand))
-            .Where(_ => Input.GetKey(KeyCode.S))
+            .Where(_ => KeyInput.CtrlPlus(KeyCode.S))
             .Merge(saveButton.OnClickAsObservable());
 
         Observable.Merge(
