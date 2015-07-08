@@ -28,7 +28,7 @@ public class SoundEffectPlayer : MonoBehaviour
                 .TakeWhile(_ => model.IsPlaying.Value)
                 .Select(_ => new { timeSamples = model.Audio.timeSamples, queue = notesQueue });
         })
-        .Where(obj => 1 < obj.queue.Count)
+        .Where(obj => obj.queue.Count > 0)
         .Where(obj => obj.queue.Peek() <= obj.timeSamples)
         .Do(obj => obj.queue.Dequeue())
         .Where(_ => model.PlaySoundEffectEnabled.Value)
