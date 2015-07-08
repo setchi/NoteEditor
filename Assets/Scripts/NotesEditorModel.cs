@@ -25,6 +25,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<bool> IsDraggingDuringPlay = new ReactiveProperty<bool>();
     public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
     public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
+    public ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
     public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
