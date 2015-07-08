@@ -46,11 +46,11 @@ public class PlaybackPositionPresenter : MonoBehaviour
                 * model.Audio.clip.samples)
             .Select(delta => model.Audio.timeSamples + delta);
 
-        model.IsDraggingDuringPlay = canvasEvents.ScrollPadOnMouseDownObservable
+        model.IsOperatingPlaybackPositionDuringPlay = canvasEvents.ScrollPadOnMouseDownObservable
             .Where(_ => model.IsPlaying.Value)
             .Select(_ => !(model.IsPlaying.Value = false))
             .Merge(this.UpdateAsObservable()
-                .Where(_ => model.IsDraggingDuringPlay.Value)
+                .Where(_ => model.IsOperatingPlaybackPositionDuringPlay.Value)
                 .Where(_ => Input.GetMouseButtonUp(0))
                 .Select(_ => !(model.IsPlaying.Value = true)))
             .ToReactiveProperty();
@@ -65,6 +65,15 @@ public class PlaybackPositionPresenter : MonoBehaviour
                 !Input.GetKey(KeyCode.RightCommand))
             .Select(delta => model.Audio.clip.samples / 100f * -delta)
             .Select(deltaSamples => model.Audio.timeSamples + deltaSamples);
+
+        operateMouseScrollWheelObservable.Where(_ => model.IsPlaying.Value)
+            .Do(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = true)
+            .Subscribe(_ => model.IsPlaying.Value = false);
+
+        operateMouseScrollWheelObservable.Throttle(TimeSpan.FromMilliseconds(350))
+            .Where(_ => model.IsOperatingPlaybackPositionDuringPlay.Value)
+            .Do(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = false)
+            .Subscribe(_ => model.IsPlaying.Value = true);
 
         // Input (slider)
         var operatePlayPositionSliderObservable = playbackPositionController.OnValueChangedAsObservable()
