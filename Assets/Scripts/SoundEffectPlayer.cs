@@ -16,14 +16,14 @@ public class SoundEffectPlayer : MonoBehaviour
         var model = NotesEditorModel.Instance;
         var clapOffsetSamples = 1800;
 
-        var notesChangeDuringPlayObservable = Observable.Merge(
+        var editedDuringPlaybackObservable = Observable.Merge(
                 model.BeatOffsetSamples.Select(_ => false),
                 model.LongNoteObservable.Select(_ => false),
                 model.LongNoteObservable.Select(_ => false))
             .Where(_ => model.IsPlaying.Value);
 
         model.IsPlaying.Where(isPlaying => isPlaying)
-            .Merge(notesChangeDuringPlayObservable)
+            .Merge(editedDuringPlaybackObservable)
             .Select(_ =>
                 new Queue<int>(
                     model.NoteObjects.Values
@@ -36,7 +36,7 @@ public class SoundEffectPlayer : MonoBehaviour
             .SelectMany(samplesQueue =>
                 this.LateUpdateAsObservable()
                     .TakeWhile(_ => model.IsPlaying.Value)
-                    .TakeUntil(notesChangeDuringPlayObservable.Skip(1))
+                    .TakeUntil(editedDuringPlaybackObservable.Skip(1))
                     .Select(_ => samplesQueue))
 
         .Where(samplesQueue => samplesQueue.Count > 0)
