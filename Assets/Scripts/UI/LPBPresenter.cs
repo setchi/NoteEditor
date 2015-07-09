@@ -27,7 +27,7 @@ public class LPBPresenter : MonoBehaviour
                 .Select(_ => delta))
             .Merge(ChangeButtonsOnMouseDownObservable)
             .Select(delta => model.LPB.Value + delta)
-            .Select(LPB => Mathf.Clamp(LPB, 2, 20))
+            .Select(LPB => Mathf.Clamp(LPB, 2, 32))
             .Subscribe(LPB => model.LPB.Value = LPB);
     }
 
