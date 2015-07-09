@@ -1,13 +1,12 @@
 ﻿using UnityEngine;
 
-public class Line
+public struct Line
 {
 
     public Color color;
     public Vector3 start;
     public Vector3 end;
 
-    public Line() { }
     public Line(Vector3 start, Vector3 end, Color color)
     {
         this.color = color;

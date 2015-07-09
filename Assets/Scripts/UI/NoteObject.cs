@@ -9,8 +9,9 @@ public class NoteObject : MonoBehaviour
     public NoteObject next;
     public NoteObject prev;
     public ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
+    public ReactiveProperty<bool> isSelected = new ReactiveProperty<bool>();
+    public RectTransform rectTransform;
     NotesEditorModel model;
-    RectTransform rectTransform;
     Subject<NoteTypes> onMouseDownObservable = new Subject<NoteTypes>();
 
     void Awake()
@@ -22,8 +23,13 @@ public class NoteObject : MonoBehaviour
 
         var image = GetComponent<Image>();
         noteType.DistinctUntilChanged()
+            .Where(_ => !isSelected.Value)
+            .Merge(isSelected.Select(_ => noteType.Value))
             .Select(type => type == NoteTypes.Long)
             .Subscribe(isLongNote => image.color = isLongNote ? Color.cyan : new Color(175 / 255f, 1, 78 / 255f));
+
+        isSelected.Where(selected => selected)
+            .Subscribe(_ => image.color = Color.magenta);
 
 
         this.UpdateAsObservable()

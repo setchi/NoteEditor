@@ -2592,7 +2592,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 120452562}
   m_HandleRect: {fileID: 120452561}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -3475,6 +3475,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25ac1a284e585ba4f810b4b15ec2705b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  canvasEvents: {fileID: 798471448}
 --- !u!1 &804642297
 GameObject:
   m_ObjectHideFlags: 0
