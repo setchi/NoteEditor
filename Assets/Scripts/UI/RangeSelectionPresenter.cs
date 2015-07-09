@@ -47,7 +47,6 @@ public class RangeSelectionPresenter : MonoBehaviour
 
     void SelectNotesWithinRect(Rect rect)
     {
-        if (model.NoteObjects == null) Debug.Log("aaaaaaaaa");
         Deselect();
         var notesWithinRect = model.NoteObjects.Values
             .Where(noteObject => rect.Contains(noteObject.rectTransform.localPosition, true));
