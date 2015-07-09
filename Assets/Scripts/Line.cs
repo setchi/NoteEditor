@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public struct Line
+public class Line
 {
 
     public Color color;
