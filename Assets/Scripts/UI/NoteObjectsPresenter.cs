@@ -16,8 +16,11 @@ public class NoteObjectsPresenter : MonoBehaviour
     void Awake()
     {
         model = NotesEditorModel.Instance;
+        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
+    }
 
-
+    void Init()
+    {
         var closestNoteAreaOnMouseDownObservable = canvasEvents.NotesRegionOnMouseDownObservable
             .Where(_ => !Input.GetMouseButtonDown(1))
             .Where(_ => 0 <= model.ClosestNotePosition.Value.ToSamples(model.Audio.clip.frequency));
