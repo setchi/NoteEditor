@@ -24,7 +24,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                 .Where(_ => model.IsMouseOverNotesRegion.Value)
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
                 .Select(currentPos => new Rect(startPos, currentPos - startPos)))
-            .Do(rect => SelectNotesWithinRect(rect))
+            .Do(rect => SelectNotesWithin(rect))
             .Subscribe(rect => GLLineRenderer.RenderLines("selectionRect", ToLines(rect, Color.magenta)));
 
 
@@ -45,23 +45,17 @@ public class RangeSelectionPresenter : MonoBehaviour
                 .OnNext(selectedNote.notePosition));
     }
 
-    void SelectNotesWithinRect(Rect rect)
+    void SelectNotesWithin(Rect rect)
     {
-        Deselect();
-        var notesWithinRect = model.NoteObjects.Values
-            .Where(noteObject => rect.Contains(noteObject.rectTransform.localPosition, true));
-
-        foreach (var note in notesWithinRect)
+        foreach (var note in model.NoteObjects.Values)
         {
-            note.isSelected.Value = true;
+            note.isSelected.Value = rect.Contains(note.rectTransform.localPosition, true);
         }
     }
 
     void Deselect()
     {
-        var selectedNotes = model.NoteObjects.Values.Where(noteObject => noteObject.isSelected.Value);
-
-        foreach (var note in selectedNotes)
+        foreach (var note in model.NoteObjects.Values)
         {
             note.isSelected.Value = false;
         }
