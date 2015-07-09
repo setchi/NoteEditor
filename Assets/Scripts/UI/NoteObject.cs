@@ -65,7 +65,9 @@ public class NoteObject : MonoBehaviour
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
-            .Select(nextPosition => new Line[] { new Line(model.NoteToScreenPosition(notePosition), nextPosition, 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? Color.cyan : Color.red) })
+            .Select(nextPosition => new Line[] { new Line( model.NoteToScreenPosition(notePosition), nextPosition,
+                isSelected.Value || next != null && next.isSelected.Value ? Color.magenta
+                    : 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? Color.cyan : Color.red) })
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.ToString(), lines));
     }
 
