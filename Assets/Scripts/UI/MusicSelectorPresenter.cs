@@ -101,13 +101,13 @@ public class MusicSelectorPresenter : MonoBehaviour
     {
         var editorModel = NotesEditorModel.Instance;
 
-        var notesFileName = Path.GetFileNameWithoutExtension(editorModel.MusicName.Value) + ".json";
-        var notesFilePath = Application.persistentDataPath + "/Notes/";
-        var notesFileFullPath = notesFilePath + notesFileName;
+        var fileName = Path.GetFileNameWithoutExtension(editorModel.MusicName.Value) + ".json";
+        var directoryPath = Application.persistentDataPath + "/Notes/";
+        var filePath = directoryPath + fileName;
 
-        if (File.Exists(notesFileFullPath))
+        if (File.Exists(filePath))
         {
-            var json = File.ReadAllText(notesFileFullPath, System.Text.Encoding.UTF8);
+            var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
             var notesData = JsonMapper.ToObject<MusicModel.NotesData>(json);
             InstantiateNotesData(notesData);
         }

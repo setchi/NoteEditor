@@ -39,17 +39,17 @@ public class SavePresenter : MonoBehaviour
 
         saveActionObservable.Subscribe(_ => {
             var fileName = Path.GetFileNameWithoutExtension(model.MusicName.Value) + ".json";
-            var filePath = Application.persistentDataPath + "/Notes/";
-            var fileFullPath = filePath + fileName;
-            var text = model.SerializeNotesData();
+            var directoryPath = Application.persistentDataPath + "/Notes/";
+            var filePath = directoryPath + fileName;
+            var json = model.SerializeNotesData();
 
-            if (!File.Exists(filePath))
+            if (!Directory.Exists(directoryPath))
             {
-                Directory.CreateDirectory(filePath);
+                Directory.CreateDirectory(directoryPath);
             }
 
-            File.WriteAllText(fileFullPath, text, System.Text.Encoding.UTF8);
-            messageText.text = fileFullPath + " に保存しました";
+            File.WriteAllText(filePath, json, System.Text.Encoding.UTF8);
+            messageText.text = filePath + " に保存しました";
         });
     }
 }
