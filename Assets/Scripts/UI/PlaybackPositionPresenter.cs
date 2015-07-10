@@ -29,6 +29,17 @@ public class PlaybackPositionPresenter : MonoBehaviour
 
         // Input -> Audio timesamples -> Model timesamples -> UI
 
+        // Input (arrow key)
+        var operateArrowKeyObservable = Observable.Merge(
+                this.UpdateAsObservable().Where(_ => Input.GetKey(KeyCode.LeftArrow)).Select(_ => 7),
+                this.UpdateAsObservable().Where(_ => Input.GetKey(KeyCode.RightArrow)).Select(_ => -7))
+            .Select(delta => delta * (KeyInput.CtrlKey() ? 5 : 1))
+            .Select(delta => delta
+                / model.CanvasWidth.Value
+                * model.CanvasScaleFactor.Value
+                * model.Audio.clip.samples)
+            .Select(deltaSamples => model.Audio.timeSamples + deltaSamples);
+
         // Input (scroll pad)
         var operateScrollPadObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.WaveformRegionOnMouseDownObservable
@@ -75,6 +86,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
 
         // Input -> Audio timesamples
         Observable.Merge(
+                operateArrowKeyObservable,
                 operateScrollPadObservable,
                 operateMouseScrollWheelObservable,
                 operatePlayPositionSliderObservable)
