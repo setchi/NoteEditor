@@ -1,4 +1,5 @@
 ﻿using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +22,8 @@ public class CanvasWidthScalePresenter : MonoBehaviour
     {
         model.CanvasWidth = canvasEvents.MouseScrollWheelObservable
             .Where(_ => KeyInput.CtrlKey())
+            .Merge(this.UpdateAsObservable().Where(_ => Input.GetKey(KeyCode.UpArrow)).Select(_ => 0.1f))
+            .Merge(this.UpdateAsObservable().Where(_ => Input.GetKey(KeyCode.DownArrow)).Select(_ => -0.1f))
             .Select(delta => model.CanvasWidth.Value * (1 + delta))
             .Select(x => x / (model.Audio.clip.samples / 100f))
             .Select(x => Mathf.Clamp(x, 0.1f, 2f))
