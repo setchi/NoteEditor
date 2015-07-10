@@ -81,8 +81,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 075e9941ca31c2848bdf764074c04852, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectedStateColor: {r: 1, g: 0, b: 1, a: 1}
+  normalStateColor: {r: .686274529, g: 1, b: .305882365, a: 1}
+  longStateColor: {r: 0, g: 1, b: 1, a: 1}
   next: {fileID: 0}
   prev: {fileID: 0}
+  rectTransform: {fileID: 0}
 --- !u!222 &22264220
 CanvasRenderer:
   m_ObjectHideFlags: 1
@@ -263,6 +267,18 @@ Prefab:
       propertyPath: m_Delegates.Array.data[1].callback.m_TypeName
       value: UnityEngine.EventSystems.EventTrigger+TriggerEvent, UnityEngine.UI, Version=1.0.0.0,
         Culture=neutral, PublicKeyToken=null
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateColor.g
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}

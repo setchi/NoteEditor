@@ -4,6 +4,15 @@ using UnityEngine;
 
 public class AuxiliaryLineRendererer : MonoBehaviour
 {
+    [SerializeField]
+    Color highlightColor;
+    [SerializeField]
+    Color mainBeatLineColor;
+    [SerializeField]
+    Color subBeatLineColor;
+    [SerializeField]
+    Color blockLineColor;
+
     NotesEditorModel model;
 
     void Awake()
@@ -27,7 +36,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
             .Select((x, i) => new Line(
                 new Vector3(x, 140, 0),
                 new Vector3(x, -140, 0),
-                i % model.LPB.Value == 0 ? Color.white : Color.white / 2))
+                i % model.LPB.Value == 0 ? mainBeatLineColor : subBeatLineColor))
             .ToArray();
 
 
@@ -37,14 +46,13 @@ public class AuxiliaryLineRendererer : MonoBehaviour
             .Select((y, i) => new Line(
                 model.ScreenToCanvasPosition(new Vector3(0, y, 0)),
                 model.ScreenToCanvasPosition(new Vector3(Screen.width, y, 0)),
-                Color.white / 2f))
+                blockLineColor))
             .ToArray();
 
 
         // Highlighting closest line to mouse pointer
         if (model.IsMouseOverNotesRegion.Value)
         {
-            var highlightColor = new Color(253 / 255f, 230 / 255f, 3 / 255f) * 0.8f;
             var mouseX = model.ScreenToCanvasPosition(Input.mousePosition).x;
             var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouseX));
             var closestBeatLine = beatLines[closestLineIndex];

@@ -856,6 +856,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02348d465351f9a42a0c65780473414d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  highlightColor: {r: .793725491, g: .721568644, b: .00941176526, a: .800000012}
+  mainBeatLineColor: {r: 1, g: 1, b: 1, a: 1}
+  subBeatLineColor: {r: .5, g: .5, b: .5, a: .5}
+  blockLineColor: {r: .5, g: .5, b: .5, a: .5}
 --- !u!1 &245668761
 GameObject:
   m_ObjectHideFlags: 0
@@ -1040,6 +1044,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   saveButton: {fileID: 263463472}
   messageText: {fileID: 1111987237}
+  unsavedStateButtonColor: {r: .992156863, g: .90196079, b: .0117647061, a: 1}
+  savedStateButtonColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &276340733
 GameObject:
   m_ObjectHideFlags: 0
@@ -1239,6 +1245,8 @@ MonoBehaviour:
   editTypeToggleButton: {fileID: 302783611}
   iconLongNotes: {fileID: 21300000, guid: dc0ac44e1ae7c794e93c66fc6cc35d1c, type: 3}
   iconNormalNotes: {fileID: 21300000, guid: c7bbcbe30d240c34d90236e947e1b1c5, type: 3}
+  longTypeStateButtonColor: {r: 0, g: 1, b: 1, a: 1}
+  normalTypeStateButtonColor: {r: .75686276, g: .764705896, b: .752941191, a: 1}
 --- !u!1 &304772956
 GameObject:
   m_ObjectHideFlags: 0
@@ -3476,6 +3484,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvasEvents: {fileID: 798471448}
+  selectionRectColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!1 &804642297
 GameObject:
   m_ObjectHideFlags: 0
@@ -6584,6 +6593,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5b0e5db208537641bcb91540d65516c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  color: {r: 0, g: .600000024, b: 0, a: .600000024}
 --- !u!1 &1876829891
 GameObject:
   m_ObjectHideFlags: 0

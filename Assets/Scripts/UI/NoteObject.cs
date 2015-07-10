@@ -5,12 +5,29 @@ using UnityEngine.UI;
 
 public class NoteObject : MonoBehaviour
 {
+    [SerializeField]
+    Color selectedStateColor;
+    [SerializeField]
+    Color normalStateColor;
+    [SerializeField]
+    Color longStateColor;
+    [SerializeField]
+    Color invalidStateColor;
+
+
+    [HideInInspector]
     public NotePosition notePosition;
+    [HideInInspector]
     public NoteObject next;
+    [HideInInspector]
     public NoteObject prev;
+    [HideInInspector]
     public ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
+    [HideInInspector]
     public ReactiveProperty<bool> isSelected = new ReactiveProperty<bool>();
+    [HideInInspector]
     public RectTransform rectTransform;
+
     NotesEditorModel model;
     Subject<NoteTypes> onMouseDownObservable = new Subject<NoteTypes>();
 
@@ -26,10 +43,10 @@ public class NoteObject : MonoBehaviour
             .Where(_ => !isSelected.Value)
             .Merge(isSelected.Select(_ => noteType.Value))
             .Select(type => type == NoteTypes.Long)
-            .Subscribe(isLongNote => image.color = isLongNote ? Color.cyan : new Color(175 / 255f, 1, 78 / 255f));
+            .Subscribe(isLongNote => image.color = isLongNote ? longStateColor : normalStateColor);
 
         isSelected.Where(selected => selected)
-            .Subscribe(_ => image.color = Color.magenta);
+            .Subscribe(_ => image.color = selectedStateColor);
 
 
         this.UpdateAsObservable()
@@ -66,8 +83,8 @@ public class NoteObject : MonoBehaviour
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
             .Select(nextPosition => new Line[] { new Line( model.NoteToScreenPosition(notePosition), nextPosition,
-                isSelected.Value || next != null && next.isSelected.Value ? Color.magenta
-                    : 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? Color.cyan : Color.red) })
+                isSelected.Value || next != null && next.isSelected.Value ? selectedStateColor
+                    : 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? longStateColor : invalidStateColor) })
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.ToString(), lines));
     }
 

@@ -5,6 +5,15 @@ using UniRx.Triggers;
 
 public class FileItem : MonoBehaviour
 {
+    [SerializeField]
+    Color selectedStateBackgroundColor;
+    [SerializeField]
+    Color normalBackgroundColor;
+    [SerializeField]
+    Color selectedTextColor;
+    [SerializeField]
+    Color normalTextColor;
+
     string fileName;
     MusicSelectorModel model;
 
@@ -18,8 +27,8 @@ public class FileItem : MonoBehaviour
 
         this.UpdateAsObservable()
             .Select(_ => fileName == model.SelectedFileName.Value)
-            .Do(selected => image.color = selected ? new Color(17 / 255f, 19 / 255f, 16 / 255f) : new Color(48 / 255f, 49 / 255f, 47 / 255f))
-            .Subscribe(selected => text.color = selected ? new Color(253 / 255f, 255 / 255f, 251 / 255f) : new Color(146 / 255f, 148 / 255f, 143 / 255f));
+            .Do(selected => image.color = selected ? selectedStateBackgroundColor : normalBackgroundColor)
+            .Subscribe(selected => text.color = selected ? selectedTextColor : normalTextColor);
     }
 
     public void SetName(string name)

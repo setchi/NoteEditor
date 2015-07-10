@@ -5,14 +5,16 @@ using UnityEngine;
 
 public class WaveformRenderer : MonoBehaviour
 {
+    [SerializeField]
+    Color color;
+
     void Awake()
     {
         var model = NotesEditorModel.Instance;
         var waveData = new float[500000];
         var skipSamples = 50;
-        var lineColor = Color.green * 0.6f;
         var lines = Enumerable.Range(0, waveData.Length / skipSamples)
-            .Select(_ => new Line(Vector3.zero, Vector3.zero, lineColor))
+            .Select(_ => new Line(Vector3.zero, Vector3.zero, color))
             .ToArray();
 
 

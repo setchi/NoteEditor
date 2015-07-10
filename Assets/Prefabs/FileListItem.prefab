@@ -67,6 +67,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d933f2a3b6b3b649a1a5c408e9572f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectedStateBackgroundColor: {r: .0666666701, g: .0745098069, b: .0627451017, a: 1}
+  normalBackgroundColor: {r: .188235298, g: .192156866, b: .184313729, a: 1}
+  selectedTextColor: {r: .992156863, g: 1, b: .984313726, a: 1}
+  normalTextColor: {r: .572549045, g: .580392182, b: .56078434, a: 1}
 --- !u!114 &11456160
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -258,6 +262,22 @@ Prefab:
     - target: {fileID: 0}
       propertyPath: m_Navigation.m_Mode
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateBackgroundColor.b
+      value: .0627451017
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateBackgroundColor.r
+      value: .0666666701
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateBackgroundColor.g
+      value: .0745098069
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: selectedStateBackgroundColor.a
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}

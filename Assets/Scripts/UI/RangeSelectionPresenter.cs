@@ -7,6 +7,8 @@ public class RangeSelectionPresenter : MonoBehaviour
 {
     [SerializeField]
     CanvasEvents canvasEvents;
+    [SerializeField]
+    Color selectionRectColor;
 
     NotesEditorModel model;
 
@@ -25,7 +27,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
                 .Select(currentPos => new Rect(startPos, currentPos - startPos)))
             .Do(rect => SelectNotesWithin(rect))
-            .Subscribe(rect => GLLineRenderer.RenderLines("selectionRect", ToLines(rect, Color.magenta)));
+            .Subscribe(rect => GLLineRenderer.RenderLines("selectionRect", ToLines(rect, selectionRectColor)));
 
 
         // Deselect by mousedown

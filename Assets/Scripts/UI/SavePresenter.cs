@@ -11,6 +11,10 @@ public class SavePresenter : MonoBehaviour
     Button saveButton;
     [SerializeField]
     Text messageText;
+    [SerializeField]
+    Color unsavedStateButtonColor;
+    [SerializeField]
+    Color savedStateButtonColor = Color.white;
 
     NotesEditorModel model;
 
@@ -30,7 +34,7 @@ public class SavePresenter : MonoBehaviour
                 model.OnLoadedMusicObservable.Select(_ => false),
                 saveActionObservable.Select(_ => false))
             .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))
-            .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? new Color(253 / 255f, 230 / 255f, 3 / 255f) : Color.white)
+            .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? unsavedStateButtonColor : savedStateButtonColor)
             .SubscribeToText(messageText, unsaved => unsaved ? "保存が必要な状態" : "");
 
         saveActionObservable.Subscribe(_ => {

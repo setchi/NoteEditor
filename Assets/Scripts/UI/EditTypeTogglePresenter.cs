@@ -10,6 +10,10 @@ public class EditTypeTogglePresenter : MonoBehaviour
     Sprite iconLongNotes;
     [SerializeField]
     Sprite iconNormalNotes;
+    [SerializeField]
+    Color longTypeStateButtonColor;
+    [SerializeField]
+    Color normalTypeStateButtonColor;
 
     void Awake()
     {
@@ -20,12 +24,11 @@ public class EditTypeTogglePresenter : MonoBehaviour
             .Subscribe(editType => model.EditType.Value = editType);
 
         var buttonImage = editTypeToggleButton.GetComponent<Image>();
-        var defaultButtonColor = buttonImage.color;
 
         model.EditType.Select(_ => model.EditType.Value == NoteTypes.Long)
             .Subscribe(isLongType => {
                 buttonImage.sprite = isLongType ? iconLongNotes : iconNormalNotes;
-                buttonImage.color = isLongType ? Color.cyan : defaultButtonColor;
+                buttonImage.color = isLongType ? longTypeStateButtonColor : normalTypeStateButtonColor;
             });
     }
 }
