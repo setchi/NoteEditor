@@ -1,8 +1,9 @@
 ﻿using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EditTypeTogglePresenter : MonoBehaviour
+public class ToggleEditTypePresenter : MonoBehaviour
 {
     [SerializeField]
     Button editTypeToggleButton;
@@ -20,6 +21,7 @@ public class EditTypeTogglePresenter : MonoBehaviour
         var model = NotesEditorModel.Instance;
 
         editTypeToggleButton.OnClickAsObservable()
+            .Merge(this.UpdateAsObservable().Where(_ => KeyInput.AltKeyDown()))
             .Select(_ => model.EditType.Value == NoteTypes.Normal ? NoteTypes.Long : NoteTypes.Normal)
             .Subscribe(editType => model.EditType.Value = editType);
 

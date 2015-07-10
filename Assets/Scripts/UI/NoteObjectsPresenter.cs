@@ -40,7 +40,7 @@ public class NoteObjectsPresenter : MonoBehaviour
             .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
 
 
-        // Finish editing of long note
+        // Finish editing long note by press-escape or right-click
         this.UpdateAsObservable()
             .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Where(_ => Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))

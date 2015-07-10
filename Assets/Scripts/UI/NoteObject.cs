@@ -14,7 +14,6 @@ public class NoteObject : MonoBehaviour
     [SerializeField]
     Color invalidStateColor;
 
-
     [HideInInspector]
     public NotePosition notePosition;
     [HideInInspector]

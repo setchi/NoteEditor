@@ -12,6 +12,11 @@ public class KeyInput
         return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
     }
 
+    public static bool ShiftKeyDown()
+    {
+        return Input.GetKeyDown(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);
+    }
+
     public static bool AltPlus(KeyCode keyCode)
     {
         return AltKey() && Input.GetKeyDown(keyCode);
@@ -20,6 +25,11 @@ public class KeyInput
     public static bool AltKey()
     {
         return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
+    }
+
+    public static bool AltKeyDown()
+    {
+        return Input.GetKeyDown(KeyCode.LeftAlt) || Input.GetKeyDown(KeyCode.RightAlt);
     }
 
     public static bool CtrlPlus(KeyCode keyCode)
@@ -33,5 +43,13 @@ public class KeyInput
             Input.GetKey(KeyCode.LeftCommand) ||
             Input.GetKey(KeyCode.RightControl) ||
             Input.GetKey(KeyCode.RightCommand);
+    }
+
+    public static bool CtrlKeyDown()
+    {
+        return Input.GetKeyDown(KeyCode.LeftControl) ||
+            Input.GetKeyDown(KeyCode.LeftCommand) ||
+            Input.GetKeyDown(KeyCode.RightControl) ||
+            Input.GetKeyDown(KeyCode.RightCommand);
     }
 }
