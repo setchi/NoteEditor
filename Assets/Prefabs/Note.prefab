@@ -84,6 +84,7 @@ MonoBehaviour:
   selectedStateColor: {r: 1, g: 0, b: 1, a: 1}
   normalStateColor: {r: .686274529, g: 1, b: .305882365, a: 1}
   longStateColor: {r: 0, g: 1, b: 1, a: 1}
+  invalidStateColor: {r: 1, g: 0, b: 0, a: 1}
   next: {fileID: 0}
   prev: {fileID: 0}
   rectTransform: {fileID: 0}
@@ -279,6 +280,22 @@ Prefab:
     - target: {fileID: 0}
       propertyPath: selectedStateColor.g
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: invalidStateColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: invalidStateColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: invalidStateColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: invalidStateColor.a
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
