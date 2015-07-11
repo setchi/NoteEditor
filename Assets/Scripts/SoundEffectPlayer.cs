@@ -7,9 +7,9 @@ using UnityEngine;
 public class SoundEffectPlayer : MonoBehaviour
 {
     [SerializeField]
-    AudioClip clap;
+    AudioSource clapAudioSource;
     [SerializeField]
-    AudioClip click;
+    AudioSource clickAudioSource;
 
     void Awake()
     {
@@ -28,6 +28,7 @@ public class SoundEffectPlayer : MonoBehaviour
                 new Queue<int>(
                     model.NoteObjects.Values
                         .Select(noteObject => noteObject.notePosition.ToSamples(model.Audio.clip.frequency))
+                        .Distinct()
                         .Select(samples => samples + model.BeatOffsetSamples.Value)
                         .Where(samples => model.Audio.timeSamples <= samples)
                         .OrderBy(samples => samples)
@@ -43,6 +44,6 @@ public class SoundEffectPlayer : MonoBehaviour
         .Where(samplesQueue => samplesQueue.Peek() <= model.Audio.timeSamples)
         .Do(samplesQueue => samplesQueue.Dequeue())
         .Where(_ => model.PlaySoundEffectEnabled.Value)
-        .Subscribe(_ => AudioSource.PlayClipAtPoint(clap, Vector3.zero));
+        .Subscribe(_ => clapAudioSource.PlayOneShot(clapAudioSource.clip, 1));
     }
 }
