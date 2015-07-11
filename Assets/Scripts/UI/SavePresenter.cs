@@ -31,6 +31,7 @@ public class SavePresenter : MonoBehaviour
                 model.BeatOffsetSamples.Select(_ => true),
                 model.NormalNoteObservable.Select(_ => true),
                 model.LongNoteObservable.Select(_ => true),
+                model.MaxBlock.Select(_ => true),
                 model.OnLoadedMusicObservable.Select(_ => false),
                 saveActionObservable.Select(_ => false))
             .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))

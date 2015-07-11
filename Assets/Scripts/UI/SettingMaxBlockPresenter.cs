@@ -13,7 +13,7 @@ public class SettingMaxBlockPresenter : MonoBehaviour
 
     void Awake()
     {
-        var model = NotesEditorSettingsModel.Instance;
+        var model = NotesEditorModel.Instance;
 
         model.MaxBlock.DistinctUntilChanged().SubscribeToText(MaxBlockDisplaytext);
 
@@ -27,7 +27,7 @@ public class SettingMaxBlockPresenter : MonoBehaviour
                 .Select(_ => delta))
             .Merge(ChangeButtonsOnMouseDownObservable)
             .Select(delta => model.MaxBlock.Value + delta)
-            .Select(maxBlock => Mathf.Clamp(maxBlock, 1, 200))
+            .Select(maxBlock => Mathf.Clamp(maxBlock, 2, 200))
             .Subscribe(maxBlock => model.MaxBlock.Value = maxBlock);
     }
 

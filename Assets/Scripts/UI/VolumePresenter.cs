@@ -6,6 +6,14 @@ public class VolumePresenter : MonoBehaviour
 {
     [SerializeField]
     Slider volumeController;
+    [SerializeField]
+    Image image;
+    [SerializeField]
+    Sprite iconSound2;
+    [SerializeField]
+    Sprite iconSound;
+    [SerializeField]
+    Sprite iconMute;
 
     NotesEditorModel model;
 
@@ -19,5 +27,8 @@ public class VolumePresenter : MonoBehaviour
     {
         model.Volume = volumeController.OnValueChangedAsObservable().ToReactiveProperty();
         model.Volume.DistinctUntilChanged().Subscribe(x => model.Audio.volume = x);
+        model.Volume.Select(volume => Mathf.Approximately(volume, 0f) ? iconMute : volume < 0.6f ? iconSound : iconSound2)
+            .DistinctUntilChanged()
+            .Subscribe(sprite => image.sprite = sprite);
     }
 }

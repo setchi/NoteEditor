@@ -26,7 +26,6 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         var blockLines = new Line[1];
         var cachedZeroSamplePosX = -1f;
         var cachedCanvasWidth = 0f;
-        var TMP_MAX_BLOCK = 5;
 
         this.LateUpdateAsObservable()
             .Where(_ => model.Audio != null && model.Audio.clip != null)
@@ -68,9 +67,9 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                 }
 
 
-                if (blockLines.Length != TMP_MAX_BLOCK)
+                if (blockLines.Length != model.MaxBlock.Value)
                 {
-                    blockLines = Enumerable.Range(0, TMP_MAX_BLOCK)
+                    blockLines = Enumerable.Range(0, model.MaxBlock.Value)
                         .Select(i => model.BlockNumToScreenPositionY(i))
                         .Select(i => i + Screen.height * 0.5f)
                         .Select((y, i) => new Line(
@@ -81,7 +80,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                 }
                 else
                 {
-                    for (int i = 0; i < TMP_MAX_BLOCK; i++)
+                    for (int i = 0; i < model.MaxBlock.Value; i++)
                     {
                         blockLines[i].color = blockLineColor;
                     }

@@ -13,6 +13,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 {
     public ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Normal);
     public ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
+    public ReactiveProperty<int> MaxBlock = new ReactiveProperty<int>(5);
     public ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
     public ReactiveProperty<int> BPM = new ReactiveProperty<int>(0);
     public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
@@ -58,6 +59,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         BPM.Value = 120;
         BeatOffsetSamples.Value = 0;
         MusicName.Value = "Notes Editor";
+        MaxBlock.Value = NotesEditorSettingsModel.Instance.MaxBlock;
         LPB.Value = 4;
         IsPlaying.Value = false;
         TimeSamples.Value = 0;
@@ -79,7 +81,9 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public float BlockNumToScreenPositionY(int blockNum)
     {
-        return (blockNum * 60 - 120) / CanvasScaleFactor.Value;
+        var height = 240f;
+        var maxIndex = MaxBlock.Value - 1;
+        return ((maxIndex - blockNum) * height / maxIndex - height / 2) / CanvasScaleFactor.Value;
     }
 
     public Vector3 NoteToScreenPosition(NotePosition notePosition)
@@ -99,6 +103,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     {
         var data = new MusicModel.NotesData();
         data.BPM = BPM.Value;
+        data.maxBlock = MaxBlock.Value;
         data.offset = BeatOffsetSamples.Value;
         data.name = Path.GetFileNameWithoutExtension(MusicName.Value);
 

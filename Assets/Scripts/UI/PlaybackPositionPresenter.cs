@@ -52,8 +52,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
         // Input (scroll pad)
         var operateScrollPadObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.WaveformRegionOnMouseDownObservable
-                .Where(_ => !Input.GetMouseButtonDown(1))
-                .Where(_ => 0 > model.ClosestNotePosition.Value.ToSamples(model.Audio.clip.frequency)))
+                .Where(_ => !Input.GetMouseButtonDown(1)))
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Input.mousePosition.x)
             .Buffer(2, 1).Where(b => 2 <= b.Count)

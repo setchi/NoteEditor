@@ -43,7 +43,7 @@ public class SettingsWindowPresenter : MonoBehaviour
         model.Apply(LoadSettings(model));
 
 
-        model.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
+        NotesEditorModel.Instance.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
                 .Select(i => itemContentTransform.GetChild(i))
                 .ToList()
                 .ForEach(child => DestroyObject(child.gameObject)))
@@ -68,10 +68,10 @@ public class SettingsWindowPresenter : MonoBehaviour
 
         Observable.Merge(
                  model.ChangeInputKeyCodesObservable.Select(_ => 0),
-                 model.MaxBlock,
+                 NotesEditorModel.Instance.MaxBlock,
                  model.WorkSpaceDirectoryPath.Select(_ => 0))
              .Where(_ => model.IsViewing.Value)
-             .DelayFrame(100)
+             .DelayFrame(1)
              .Subscribe(_ => SaveSettings(model));
     }
 }

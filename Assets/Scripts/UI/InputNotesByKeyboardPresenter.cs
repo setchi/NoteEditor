@@ -18,16 +18,13 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
 
         this.UpdateAsObservable()
             .Where(_ => !settingsModel.IsViewing.Value)
-            .SelectMany(_ => Observable.Range(0, settingsModel.MaxBlock.Value))
+            .SelectMany(_ => Observable.Range(0, model.MaxBlock.Value))
             .Where(num => Input.GetKeyDown(settingsModel.NoteInputKeyCodes.Value[num]))
             .Subscribe(num => EnterNote(num));
     }
 
     void EnterNote(int block)
     {
-        if (block >= 5) return; // Provisional
-
-
         var offset = -5000;
         var unitBeatSamples = model.Audio.clip.frequency * 60f / model.BPM.Value / model.LPB.Value;
         var timeSamples = model.Audio.timeSamples - model.BeatOffsetSamples.Value + (model.IsPlaying.Value ? offset : 0);

@@ -5,6 +5,7 @@ public class MusicModel
     public class NotesData
     {
         public string name;
+        public int maxBlock;
         public int BPM;
         public int offset;
         public List<Note> notes;

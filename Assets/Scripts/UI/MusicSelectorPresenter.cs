@@ -119,6 +119,7 @@ public class MusicSelectorPresenter : MonoBehaviour
         var editorModel = NotesEditorModel.Instance;
 
         editorModel.BPM.Value = notesData.BPM;
+        editorModel.MaxBlock.Value = notesData.maxBlock;
         editorModel.BeatOffsetSamples.Value = notesData.offset;
 
         foreach (var note in notesData.notes)
