@@ -27,8 +27,7 @@ public class MusicSelectorPresenter : MonoBehaviour
     [SerializeField]
     GameObject noteObjectPrefab;
 
-
-    void Awake()
+    void Start()
     {
         var fileItemList = new List<GameObject>();
         var model = MusicSelectorModel.Instance;
@@ -39,7 +38,7 @@ public class MusicSelectorPresenter : MonoBehaviour
         model.DirectoryPath.DistinctUntilChanged()
             .Subscribe(path => directoryPathInputField.text = path);
 
-        model.DirectoryPath.Value = Application.persistentDataPath + "/Musics/";
+        model.DirectoryPath.Value = NotesEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
 
 
         if (!Directory.Exists(model.DirectoryPath.Value))
@@ -72,7 +71,7 @@ public class MusicSelectorPresenter : MonoBehaviour
                 .Where(fileName => !string.IsNullOrEmpty(fileName))
                 .Subscribe(fileName =>
                 {
-                    ObservableWWW.GetWWW("file:///" + Application.persistentDataPath + "/Musics/" + fileName).Subscribe(www =>
+                    ObservableWWW.GetWWW("file:///" + model.DirectoryPath.Value + fileName).Subscribe(www =>
                     {
 
                         if (www.audioClip == null)

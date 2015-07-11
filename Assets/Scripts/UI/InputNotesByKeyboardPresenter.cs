@@ -1,4 +1,5 @@
-﻿using UniRx;
+﻿using System.Linq;
+using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 
@@ -10,28 +11,24 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
     {
         model = NotesEditorModel.Instance;
 
-        var targetFrameObservable = this.UpdateAsObservable();
+        var settingsModel = NotesEditorSettingsModel.Instance;
 
-        targetFrameObservable
-            .Where(_ => Input.GetKeyDown(KeyCode.R)).Subscribe(_ => EnterNote(0));
-
-        targetFrameObservable
-            .Where(_ => Input.GetKeyDown(KeyCode.F)).Subscribe(_ => EnterNote(1));
-
-        targetFrameObservable
-            .Where(_ => Input.GetKeyDown(KeyCode.H)).Subscribe(_ => EnterNote(2));
-
-        targetFrameObservable
-            .Where(_ => Input.GetKeyDown(KeyCode.I)).Subscribe(_ => EnterNote(3));
-
-        targetFrameObservable
-            .Where(_ => Input.GetKeyDown(KeyCode.J)).Subscribe(_ => EnterNote(4));
+        this.UpdateAsObservable()
+            .Where(_ => !settingsModel.IsViewing.Value)
+            .SelectMany(_ => Enumerable.Range(0, settingsModel.MaxBlock.Value))
+            .Where(num => Input.GetKeyDown(settingsModel.NoteInputKeyCodes.Value[num]))
+            .Subscribe(num => EnterNote(num));
     }
 
     void EnterNote(int block)
     {
+        if (block >= 5) return; // Provisional
+
+
+
+        var offset = -5000;
         var unitBeatSamples = model.Audio.clip.frequency * 60f / model.BPM.Value / model.LPB.Value;
-        var timeSamples = model.Audio.timeSamples - model.BeatOffsetSamples.Value;
+        var timeSamples = model.Audio.timeSamples - model.BeatOffsetSamples.Value + (model.IsPlaying.Value ? offset : 0);
         var beats = Mathf.RoundToInt(timeSamples / unitBeatSamples);
 
         var observable = model.EditType.Value == NoteTypes.Long

@@ -52,4 +52,19 @@ public class KeyInput
             Input.GetKeyDown(KeyCode.RightControl) ||
             Input.GetKeyDown(KeyCode.RightCommand);
     }
+
+    public static KeyCode FetchKey()
+    {
+        int e = System.Enum.GetNames(typeof(KeyCode)).Length;
+
+        for (int i = 0; i < e; i++)
+        {
+            if (Input.GetKey((KeyCode)i))
+            {
+                return (KeyCode)i;
+            }
+        }
+
+        return KeyCode.None;
+    }
 }

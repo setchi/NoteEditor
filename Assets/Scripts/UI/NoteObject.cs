@@ -30,7 +30,7 @@ public class NoteObject : MonoBehaviour
     NotesEditorModel model;
     Subject<NoteTypes> onMouseDownObservable = new Subject<NoteTypes>();
 
-    void Awake()
+    void Start()
     {
         model = NotesEditorModel.Instance;
         rectTransform = GetComponent<RectTransform>();

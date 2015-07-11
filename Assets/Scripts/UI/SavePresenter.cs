@@ -39,7 +39,7 @@ public class SavePresenter : MonoBehaviour
 
         saveActionObservable.Subscribe(_ => {
             var fileName = Path.GetFileNameWithoutExtension(model.MusicName.Value) + ".json";
-            var directoryPath = Application.persistentDataPath + "/Notes/";
+            var directoryPath = NotesEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Notes/";
             var filePath = directoryPath + fileName;
             var json = model.SerializeNotesData();
 
