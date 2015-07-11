@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using UniRx;
+﻿using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 
@@ -10,12 +9,16 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
     void Awake()
     {
         model = NotesEditorModel.Instance;
+        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
+    }
 
+    void Init()
+    {
         var settingsModel = NotesEditorSettingsModel.Instance;
 
         this.UpdateAsObservable()
             .Where(_ => !settingsModel.IsViewing.Value)
-            .SelectMany(_ => Enumerable.Range(0, settingsModel.MaxBlock.Value))
+            .SelectMany(_ => Observable.Range(0, settingsModel.MaxBlock.Value))
             .Where(num => Input.GetKeyDown(settingsModel.NoteInputKeyCodes.Value[num]))
             .Subscribe(num => EnterNote(num));
     }
@@ -23,7 +26,6 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
     void EnterNote(int block)
     {
         if (block >= 5) return; // Provisional
-
 
 
         var offset = -5000;

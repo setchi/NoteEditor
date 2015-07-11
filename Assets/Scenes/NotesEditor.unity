@@ -647,6 +647,7 @@ MonoBehaviour:
   directoryPathInputField: {fileID: 1766608602}
   fileItem: {fileID: 132690, guid: 1e268423609e86e4da1648375715dd32, type: 2}
   fileItemContainer: {fileID: 381058712}
+  fileItemContainerTransform: {fileID: 381058713}
   LoadButton: {fileID: 1773141861}
   notesRegion: {fileID: 1852700502}
   noteObjectPrefab: {fileID: 145270, guid: 117a02bd3aa02974286fd278ec0611d1, type: 2}
@@ -1948,7 +1949,7 @@ RectTransform:
   m_RootOrder: 0
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -3.05175781e-05}
+  m_AnchoredPosition: {x: 0, y: 3.05175781e-05}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: .5, y: 1}
 --- !u!114 &381058714
@@ -7314,7 +7315,7 @@ RectTransform:
   m_RootOrder: 0
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -3.05175781e-05}
+  m_AnchoredPosition: {x: 0, y: 3.05175781e-05}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: .5, y: 1}
 --- !u!114 &1487170632

@@ -27,13 +27,14 @@ public class FileItem : MonoBehaviour
 
         this.UpdateAsObservable()
             .Select(_ => fileName == model.SelectedFileName.Value)
+            .DistinctUntilChanged()
             .Do(selected => image.color = selected ? selectedStateBackgroundColor : normalBackgroundColor)
             .Subscribe(selected => text.color = selected ? selectedTextColor : normalTextColor);
     }
 
     public void SetName(string name)
     {
-        this.fileName = name;
+        fileName = name;
         GetComponentInChildren<Text>().text = name;
     }
 

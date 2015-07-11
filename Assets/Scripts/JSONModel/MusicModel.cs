@@ -2,23 +2,6 @@
 
 public class MusicModel
 {
-
-    public class NoteInfo
-    {
-        public int sample;
-        public int blockNum;
-        public int state;
-        public int longNoteStartSample = -1;
-        public int longNoteStartBlockNum = -1;
-
-        public NoteInfo(int sample, int blockNum, int state)
-        {
-            this.sample = sample;
-            this.blockNum = blockNum;
-            this.state = state;
-        }
-    }
-
     public class NotesData
     {
         public string name;
@@ -35,5 +18,4 @@ public class MusicModel
         public int type;
         public List<Note> notes;
     }
-
 }

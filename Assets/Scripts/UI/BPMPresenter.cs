@@ -20,10 +20,6 @@ public class BPMPresenter : MonoBehaviour
 
     void Init()
     {
-        model.UnitBeatSamples = model.BPM.DistinctUntilChanged()
-            .Select(x => Mathf.FloorToInt(model.Audio.clip.frequency * 60f / x))
-            .ToReactiveProperty();
-
         var buttonOperateObservable = Observable.Merge(
                 ChangeButtonsOnMouseDownObservable,
                 ChangeButtonsOnMouseUpObservable)

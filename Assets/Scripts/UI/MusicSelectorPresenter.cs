@@ -16,6 +16,8 @@ public class MusicSelectorPresenter : MonoBehaviour
     [SerializeField]
     GameObject fileItemContainer;
     [SerializeField]
+    Transform fileItemContainerTransform;
+    [SerializeField]
     Button LoadButton;
     [SerializeField]
     GameObject notesRegion;
@@ -29,7 +31,6 @@ public class MusicSelectorPresenter : MonoBehaviour
 
     void Start()
     {
-        var fileItemList = new List<GameObject>();
         var model = MusicSelectorModel.Instance;
 
         directoryPathInputField.OnValueChangeAsObservable()
@@ -57,11 +58,12 @@ public class MusicSelectorPresenter : MonoBehaviour
 
         model.FilePathList.AsObservable()
             .Select(filePathList => filePathList.Select(path => Path.GetFileName(path)))
-            .Do(_ => fileItemList.ForEach(DestroyObject))
-            .Do(_ => fileItemList.Clear())
+            .Do(_ => Enumerable.Range(0, fileItemContainerTransform.childCount)
+                .Select(i => fileItemContainerTransform.GetChild(i))
+                .ToList()
+                .ForEach(child => DestroyObject(child.gameObject)))
             .SelectMany(fileNameList => fileNameList)
                 .Select(fileName => new { fileName, obj = Instantiate(fileItem) as GameObject })
-                .Do(elm => fileItemList.Add(elm.obj))
                 .Do(elm => elm.obj.transform.SetParent(fileItemContainer.transform))
                 .Subscribe(elm => elm.obj.GetComponent<FileItem>().SetName(elm.fileName));
 

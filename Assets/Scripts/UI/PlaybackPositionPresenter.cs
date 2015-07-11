@@ -40,6 +40,15 @@ public class PlaybackPositionPresenter : MonoBehaviour
                 * model.Audio.clip.samples)
             .Select(delta => model.Audio.timeSamples + delta);
 
+        operateArrowKeyObservable.Where(_ => model.IsPlaying.Value)
+            .Do(_ => model.IsPlaying.Value = false)
+            .Subscribe(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = true);
+
+        operateArrowKeyObservable.Where(_ => model.IsOperatingPlaybackPositionDuringPlay.Value)
+            .Throttle(TimeSpan.FromMilliseconds(50))
+            .Do(_ => model.IsPlaying.Value = true)
+            .Subscribe(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = false);
+
         // Input (scroll pad)
         var operateScrollPadObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.WaveformRegionOnMouseDownObservable
@@ -55,14 +64,16 @@ public class PlaybackPositionPresenter : MonoBehaviour
                 * model.Audio.clip.samples)
             .Select(delta => model.Audio.timeSamples + delta);
 
-        model.IsOperatingPlaybackPositionDuringPlay = canvasEvents.WaveformRegionOnMouseDownObservable
+        canvasEvents.WaveformRegionOnMouseDownObservable
             .Where(_ => model.IsPlaying.Value)
-            .Select(_ => !(model.IsPlaying.Value = false))
-            .Merge(this.UpdateAsObservable()
-                .Where(_ => model.IsOperatingPlaybackPositionDuringPlay.Value)
-                .Where(_ => Input.GetMouseButtonUp(0))
-                .Select(_ => !(model.IsPlaying.Value = true)))
-            .ToReactiveProperty();
+            .Do(_ => model.IsPlaying.Value = false)
+            .Subscribe(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = true);
+
+        this.UpdateAsObservable()
+            .Where(_ => model.IsOperatingPlaybackPositionDuringPlay.Value)
+            .Where(_ => Input.GetMouseButtonUp(0))
+            .Do(_ => model.IsPlaying.Value = true)
+            .Subscribe(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = false);
 
         // Input (mouse scroll wheel)
         var operateMouseScrollWheelObservable = canvasEvents.MouseScrollWheelObservable
