@@ -34,7 +34,6 @@ public class AuxiliaryLineRendererer : MonoBehaviour
 
                 var unitBeatSamples = Mathf.FloorToInt(model.Audio.clip.frequency * 60f / model.BPM.Value);
                 var beatNum = model.LPB.Value * Mathf.CeilToInt(model.Audio.clip.samples / (float)unitBeatSamples);
-                float check_time = Time.realtimeSinceStartup;
 
 
                 if (beatSamples.Length != beatNum || cachedCanvasWidth != model.CanvasWidth.Value)
