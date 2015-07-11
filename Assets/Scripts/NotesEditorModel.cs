@@ -89,7 +89,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public Vector3 NoteToScreenPosition(NotePosition notePosition)
     {
         return new Vector3(
-            SamplesToScreenPositionX(notePosition.ToSamples(Audio.clip.frequency)),
+            SamplesToScreenPositionX(notePosition.ToSamples(Audio.clip.frequency, BPM.Value)),
             BlockNumToScreenPositionY(notePosition.block) * CanvasScaleFactor.Value,
             0);
     }
@@ -109,7 +109,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
         var sortedNoteObjects = NoteObjects.Values
             .Where(note => !(note.noteType.Value == NoteTypes.Long && note.prev != null))
-            .OrderBy(note => note.notePosition.ToSamples(Audio.clip.frequency));
+            .OrderBy(note => note.notePosition.ToSamples(Audio.clip.frequency, BPM.Value));
 
         data.notes = new List<MusicModel.Note>();
 
