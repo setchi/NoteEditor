@@ -145,7 +145,7 @@ public class MusicSelectorPresenter : MonoBehaviour
     NoteObject InstantiateNoteObject(MusicModel.NotesData notesData, MusicModel.Note note)
     {
         var noteObject = (Instantiate(noteObjectPrefab) as GameObject).GetComponent<NoteObject>();
-        noteObject.notePosition = new NotePosition(notesData.BPM, note.LPB, note.num, note.block);
+        noteObject.notePosition = new NotePosition(note.LPB, note.num, note.block);
         noteObject.noteType.Value = note.type == 2 ? NoteTypes.Long : NoteTypes.Normal;
         noteObject.transform.SetParent(notesRegion.transform);
         NotesEditorModel.Instance.NoteObjects.Add(noteObject.notePosition, noteObject);

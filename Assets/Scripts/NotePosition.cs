@@ -4,7 +4,7 @@ public struct NotePosition
 {
     public int LPB, num, block;
 
-    public NotePosition(int BPM, int LPB, int num, int block)
+    public NotePosition(int LPB, int num, int block)
     {
         this.LPB = LPB;
         this.num = num;

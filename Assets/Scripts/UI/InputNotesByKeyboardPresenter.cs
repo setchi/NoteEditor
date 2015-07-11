@@ -34,6 +34,6 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
                 ? model.LongNoteObservable
                 : model.NormalNoteObservable;
 
-        observable.OnNext(new NotePosition(model.BPM.Value, model.LPB.Value, beats, block));
+        observable.OnNext(new NotePosition(model.LPB.Value, beats, block));
     }
 }
