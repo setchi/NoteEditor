@@ -110,7 +110,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                     {
                         closestBlockLine.color = highlightColor;
                         closestBeatLine.color = highlightColor;
-                        model.ClosestNotePosition.Value = new NotePosition( model.LPB.Value, closestLineIndex, closestBlockLindex);
+                        model.ClosestNotePosition.Value = new NotePosition(model.LPB.Value, closestLineIndex, closestBlockLindex);
                     }
                     else
                     {

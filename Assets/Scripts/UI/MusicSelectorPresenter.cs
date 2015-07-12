@@ -126,12 +126,12 @@ public class MusicSelectorPresenter : MonoBehaviour
         {
             if (note.type == 1)
             {
-                InstantiateNoteObject(notesData, note);
+                InstantiateNoteObject(note);
                 continue;
             }
 
             var longNoteObjects = new[] { note }.Concat(note.notes)
-                .Select(note_ => InstantiateNoteObject(notesData, note_))
+                .Select(note_ => InstantiateNoteObject(note_))
                 .ToList();
 
             for (int i = 1; i < longNoteObjects.Count; i++)
@@ -142,7 +142,7 @@ public class MusicSelectorPresenter : MonoBehaviour
         }
     }
 
-    NoteObject InstantiateNoteObject(MusicModel.NotesData notesData, MusicModel.Note note)
+    NoteObject InstantiateNoteObject(MusicModel.Note note)
     {
         var noteObject = (Instantiate(noteObjectPrefab) as GameObject).GetComponent<NoteObject>();
         noteObject.notePosition = new NotePosition(note.LPB, note.num, note.block);
