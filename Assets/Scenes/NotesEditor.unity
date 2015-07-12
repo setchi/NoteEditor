@@ -2291,10 +2291,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 779236361}
-  - {fileID: 461483646}
-  - {fileID: 675400503}
-  - {fileID: 676588973}
-  - {fileID: 1020856270}
   m_Father: {fileID: 798471444}
   m_RootOrder: 4
   m_AnchorMin: {x: .5, y: .5}
@@ -2398,11 +2394,11 @@ RectTransform:
   m_Children:
   - {fileID: 168168974}
   - {fileID: 1566896574}
-  m_Father: {fileID: 426613607}
-  m_RootOrder: 1
+  m_Father: {fileID: 779236361}
+  m_RootOrder: 0
   m_AnchorMin: {x: .5, y: .5}
   m_AnchorMax: {x: .5, y: .5}
-  m_AnchoredPosition: {x: 0, y: 71.8000031}
+  m_AnchoredPosition: {x: 0, y: 81.8000031}
   m_SizeDelta: {x: 500, y: 30}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &461483647
@@ -3618,11 +3614,11 @@ RectTransform:
   m_Children:
   - {fileID: 1407035482}
   - {fileID: 1524206811}
-  m_Father: {fileID: 426613607}
-  m_RootOrder: 2
+  m_Father: {fileID: 779236361}
+  m_RootOrder: 1
   m_AnchorMin: {x: .5, y: .5}
   m_AnchorMax: {x: .5, y: .5}
-  m_AnchoredPosition: {x: 0, y: 33.7999992}
+  m_AnchoredPosition: {x: 0, y: 43.7999992}
   m_SizeDelta: {x: 500, y: 30}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &675400504
@@ -3757,11 +3753,11 @@ RectTransform:
   - {fileID: 1560326355}
   - {fileID: 1294405695}
   - {fileID: 1562684915}
-  m_Father: {fileID: 426613607}
-  m_RootOrder: 3
+  m_Father: {fileID: 779236361}
+  m_RootOrder: 2
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -171.100006, y: -1.29999995}
+  m_AnchoredPosition: {x: 98.8999329, y: -101.299995}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: .5, y: .5}
 --- !u!114 &676588974
@@ -3936,6 +3932,7 @@ GameObject:
   - 224: {fileID: 779236361}
   - 222: {fileID: 779236363}
   - 114: {fileID: 779236362}
+  - 114: {fileID: 779236364}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -3953,7 +3950,11 @@ RectTransform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 461483646}
+  - {fileID: 675400503}
+  - {fileID: 676588973}
+  - {fileID: 1020856270}
   m_Father: {fileID: 426613607}
   m_RootOrder: 0
   m_AnchorMin: {x: .5, y: 1}
@@ -3990,6 +3991,53 @@ CanvasRenderer:
     type: 2}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 779236360}
+--- !u!114 &779236364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 779236360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1862395651, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 955272493}
+          m_MethodName: OnMouseEnterSettingsWindow
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+      m_TypeName: UnityEngine.EventSystems.EventTrigger+TriggerEvent, UnityEngine.UI,
+        Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 955272493}
+          m_MethodName: OnMouseExitSettingsWindow
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+      m_TypeName: UnityEngine.EventSystems.EventTrigger+TriggerEvent, UnityEngine.UI,
+        Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  delegates: []
 --- !u!1 &792158723
 GameObject:
   m_ObjectHideFlags: 0
@@ -4887,6 +4935,7 @@ GameObject:
   - 114: {fileID: 955272495}
   - 114: {fileID: 955272494}
   - 114: {fileID: 955272493}
+  - 114: {fileID: 955272498}
   m_Layer: 5
   m_Name: ToggleDisplaySettingsWindow
   m_TagString: Untagged
@@ -5011,6 +5060,53 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 955272491}
+--- !u!114 &955272498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 955272491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1862395651, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Delegates:
+  - eventID: 0
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 955272493}
+          m_MethodName: OnMouseEnterSettingsWindow
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+      m_TypeName: UnityEngine.EventSystems.EventTrigger+TriggerEvent, UnityEngine.UI,
+        Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  - eventID: 1
+    callback:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 955272493}
+          m_MethodName: OnMouseExitSettingsWindow
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+      m_TypeName: UnityEngine.EventSystems.EventTrigger+TriggerEvent, UnityEngine.UI,
+        Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  delegates: []
 --- !u!1 &994405461
 GameObject:
   m_ObjectHideFlags: 0
@@ -5303,11 +5399,11 @@ RectTransform:
   m_Children:
   - {fileID: 1487170631}
   - {fileID: 422343143}
-  m_Father: {fileID: 426613607}
-  m_RootOrder: 4
+  m_Father: {fileID: 779236361}
+  m_RootOrder: 3
   m_AnchorMin: {x: .5, y: 0}
   m_AnchorMax: {x: .5, y: 0}
-  m_AnchoredPosition: {x: 0, y: -106}
+  m_AnchoredPosition: {x: 0, y: 13.9999924}
   m_SizeDelta: {x: 500, y: 85}
   m_Pivot: {x: .5, y: 0}
 --- !u!114 &1020856271
