@@ -110,6 +110,10 @@ public class PlaybackPositionPresenter : MonoBehaviour
             .DistinctUntilChanged()
             .Subscribe(timeSamples => model.TimeSamples.Value = timeSamples);
 
+        this.UpdateAsObservable()
+            .Where(_ => model.Audio.timeSamples > model.Audio.clip.samples - 1)
+            .Subscribe(_ => model.IsPlaying.Value = false);
+
 
         // Model timesamples -> UI(slider)
         model.TimeSamples.DistinctUntilChanged()
