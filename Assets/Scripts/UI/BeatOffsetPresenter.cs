@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,7 +28,7 @@ public class BeatOffsetPresenter : MonoBehaviour
             .Select(delta => model.BeatOffsetSamples.Value + delta);
 
         beatOffsetInputField.OnValueChangeAsObservable()
-            .Select(x => string.IsNullOrEmpty(x) ? "0" : x)
+            .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
             .Select(x => int.Parse(x))
             .Merge(buttonOperateObservable)
             .Select(x => Mathf.Clamp(x, 0, int.MaxValue))

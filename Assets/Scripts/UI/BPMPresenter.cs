@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -32,7 +33,7 @@ public class BPMPresenter : MonoBehaviour
             .Select(delta => model.BPM.Value + delta);
 
         BPMInputField.OnValueChangeAsObservable()
-            .Select(x => string.IsNullOrEmpty(x) ? "1" : x)
+            .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
             .Select(x => int.Parse(x))
             .Merge(buttonOperateObservable)
             .Select(x => Mathf.Clamp(x, 1, 320))
