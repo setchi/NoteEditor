@@ -39,4 +39,14 @@ public struct NotePosition
     {
         return ToString().GetHashCode();
     }
+
+    public static NotePosition None
+    {
+        get { return new NotePosition(-1, -1, -1); }
+    }
+
+    public NotePosition Add(int LPB, int num, int block)
+    {
+        return new NotePosition(this.LPB + LPB, this.num + num, this.block + block);
+    }
 }

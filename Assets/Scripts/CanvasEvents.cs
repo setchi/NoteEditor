@@ -10,6 +10,8 @@ public class CanvasEvents : MonoBehaviour
     public Subject<Vector3> NotesRegionOnMouseEnterObservable = new Subject<Vector3>();
     public Subject<Vector3> VerticalLineOnMouseDownObservable = new Subject<Vector3>();
     public Subject<Vector3> WaveformRegionOnMouseDownObservable = new Subject<Vector3>();
+    public Subject<Vector3> WaveformRegionOnMouseExitObservable = new Subject<Vector3>();
+    public Subject<Vector3> WaveformRegionOnMouseEnterObservable = new Subject<Vector3>();
     public Subject<float> MouseScrollWheelObservable = new Subject<float>();
 
     void Awake()
@@ -23,6 +25,10 @@ public class CanvasEvents : MonoBehaviour
         model.IsMouseOverNotesRegion = NotesRegionOnMouseExitObservable.Select(_ => false)
             .Merge(NotesRegionOnMouseEnterObservable.Select(_ => true))
             .ToReactiveProperty();
+
+        model.IsMouseOverWaveformRegion = WaveformRegionOnMouseExitObservable.Select(_ => false)
+            .Merge(WaveformRegionOnMouseEnterObservable.Select(_ => true))
+            .ToReactiveProperty();
     }
 
     public void NotesRegionOnMouseUp() { NotesRegionOnMouseUpObservable.OnNext(Input.mousePosition); }
@@ -31,4 +37,6 @@ public class CanvasEvents : MonoBehaviour
     public void NotesRegionOnMouseEnter() { NotesRegionOnMouseEnterObservable.OnNext(Input.mousePosition); }
     public void VerticalLineOnMouseDown() { VerticalLineOnMouseDownObservable.OnNext(Input.mousePosition); }
     public void WaveformRegionOnMouseDown() { WaveformRegionOnMouseDownObservable.OnNext(Input.mousePosition); }
+    public void WaveformRegionOnMouseExit() { WaveformRegionOnMouseExitObservable.OnNext(Input.mousePosition); }
+    public void WaveformRegionOnMouseEnter() { WaveformRegionOnMouseEnterObservable.OnNext(Input.mousePosition); }
 }

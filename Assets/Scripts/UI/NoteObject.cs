@@ -38,8 +38,7 @@ public class NoteObject : MonoBehaviour
 
 
         var image = GetComponent<Image>();
-        noteType.DistinctUntilChanged()
-            .Where(_ => !isSelected.Value)
+        noteType.Where(_ => !isSelected.Value)
             .Merge(isSelected.Select(_ => noteType.Value))
             .Select(type => type == NoteTypes.Long)
             .Subscribe(isLongNote => image.color = isLongNote ? longStateColor : normalStateColor);
@@ -90,5 +89,13 @@ public class NoteObject : MonoBehaviour
     public void OnMouseDown()
     {
         onMouseDownObservable.OnNext(model.EditType.Value);
+    }
+
+    public Note ToNote()
+    {
+        var note = new Note(notePosition, noteType.Value);
+        note.next = next == null || next.notePosition.num < 0 ? NotePosition.None : next.notePosition;
+        note.prev = prev == null || prev.notePosition.num < 0 ? NotePosition.None : prev.notePosition;
+        return note;
     }
 }

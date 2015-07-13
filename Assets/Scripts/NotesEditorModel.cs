@@ -24,6 +24,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
     public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
     public ReactiveProperty<bool> IsMouseOverNotesRegion = new ReactiveProperty<bool>();
+    public ReactiveProperty<bool> IsMouseOverWaveformRegion = new ReactiveProperty<bool>();
     public ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>(false);
     public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
     public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
