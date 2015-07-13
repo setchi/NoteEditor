@@ -45,22 +45,18 @@ public class RangeSelectionPresenter : MonoBehaviour
             .Subscribe(noteObj => selectedNoteObjects.Set(noteObj.notePosition, noteObj));
 
 
-        // All select by Ctrl-C
+        // Copy notes by Ctrl-C
         this.UpdateAsObservable()
             .Where(_ => KeyInput.CtrlPlus(KeyCode.C))
-            .Subscribe(_ => copiedNotes = selectedNoteObjects.Values
-                .OrderBy(noteObj => noteObj.notePosition.ToSamples(model.Audio.clip.frequency, model.BPM.Value))
-                .Select(noteObj =>
-                {
-                    var note = noteObj.ToNote();
-                    if (noteObj.noteType.Value == NoteTypes.Long)
-                    {
-                        note.next = GetSelectedNextLongNote(noteObj.next, c => c.next);
-                        note.prev = GetSelectedNextLongNote(noteObj.prev, c => c.prev);
-                    }
-                    return note;
-                })
-                .ToList());
+            .Subscribe(notes => CopyNotes(selectedNoteObjects.Values));
+
+
+        // Cutting notes by Ctrl-X
+        this.UpdateAsObservable()
+            .Where(_ => KeyInput.CtrlPlus(KeyCode.X))
+            .Select(_ => selectedNoteObjects.Values)
+            .Do(notes => CopyNotes(notes))
+            .Subscribe(notes => DeleteNotes(notes));
 
 
         // Deselect by mousedown
@@ -73,25 +69,21 @@ public class RangeSelectionPresenter : MonoBehaviour
         // Delete selected notes by delete key
         this.UpdateAsObservable()
             .Where(_ => Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
-            .SelectMany(_ => selectedNoteObjects.Values
-                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.notePosition))
-                .ToList())
+            .Select(_ => selectedNoteObjects.Values
+                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.notePosition)).ToList())
             .Do(_ => selectedNoteObjects.Clear())
-            .Subscribe(selectedNote =>
-                (selectedNote.noteType.Value == NoteTypes.Long
-                    ? model.LongNoteObservable
-                    : model.NormalNoteObservable)
-                .OnNext(selectedNote.notePosition));
+            .Subscribe(notes => DeleteNotes(notes));
 
 
         // Paste to next beat by mousedown
         this.UpdateAsObservable()
             .Where(_ => KeyInput.CtrlPlus(KeyCode.V))
             .Where(_ => copiedNotes.Count > 0)
-            .Subscribe(_ =>
+            .Select(_ => copiedNotes.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)))
+            .Subscribe(sortedCopiedNotes =>
             {
-                var firstPos = copiedNotes.First().position;
-                var lastPos = copiedNotes.Last().position;
+                var firstPos = sortedCopiedNotes.First().position;
+                var lastPos = sortedCopiedNotes.Last().position;
                 var beatDiff = 1 + lastPos.num / lastPos.LPB - firstPos.num / firstPos.LPB;
 
                 var validNotes = copiedNotes.Where(note => note.position.Add(0, note.position.LPB * beatDiff, 0).ToSamples(model.Audio.clip.frequency, model.BPM.Value) < model.Audio.clip.samples)
@@ -178,6 +170,30 @@ public class RangeSelectionPresenter : MonoBehaviour
         return model.NoteObjects
             .Where(kv => rect.Contains(kv.Value.rectTransform.localPosition, true))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
+    void CopyNotes(IEnumerable<NoteObject> notes)
+    {
+        copiedNotes = notes.Select(noteObj =>
+        {
+            var note = noteObj.ToNote();
+            if (noteObj.noteType.Value == NoteTypes.Long)
+            {
+                note.next = GetSelectedNextLongNote(noteObj.next, c => c.next);
+                note.prev = GetSelectedNextLongNote(noteObj.prev, c => c.prev);
+            }
+            return note;
+        })
+        .ToList();
+    }
+
+    void DeleteNotes(IEnumerable<NoteObject> notes)
+    {
+        notes.ToList().ForEach(note =>
+            (note.noteType.Value == NoteTypes.Long
+                ? model.LongNoteObservable
+                : model.NormalNoteObservable)
+            .OnNext(note.notePosition));
     }
 
     void Deselect()
