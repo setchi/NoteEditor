@@ -31,7 +31,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
                 .Select(currentPos => new Rect(startPos, currentPos - startPos)))
             .Do(rect => GLLineRenderer.RenderLines("selectionRect", ToLines(rect, selectionRectColor)))
-            .Do(_ => Deselect())
+            .Do(_ => { if (!model.IsPlaying.Value) Deselect(); })
             .SelectMany(rect => GetNotesWithin(rect))
             .Do(kv => selectedNoteObjects.Set(kv))
             .Subscribe(kv => kv.Value.isSelected.Value = true);
