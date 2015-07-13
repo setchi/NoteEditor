@@ -65,9 +65,6 @@ public class UndoRedoPresenter : MonoBehaviour
     {
         var currentState = GetState();
 
-        if (operationStack.Count > 0)
-            undoStack.Push(operationStack.Peek());
-
         while (operationStack.Count > 0 && operationStack.Peek().Equals(currentState))
             operationStack.Pop();
 
@@ -76,8 +73,7 @@ public class UndoRedoPresenter : MonoBehaviour
 
         Debug.Log("Undo");
         var state = operationStack.Pop();
-
-        undoStack.Push(state);
+        undoStack.Push(currentState);
         ApplyDiff(state);
         isUndo = true;
     }
@@ -85,9 +81,6 @@ public class UndoRedoPresenter : MonoBehaviour
     void Redo()
     {
         var currentState = GetState();
-
-        if (undoStack.Count > 0)
-            operationStack.Push(undoStack.Peek());
 
         while (undoStack.Count > 0 && undoStack.Peek().Equals(currentState))
             undoStack.Pop();
@@ -97,8 +90,7 @@ public class UndoRedoPresenter : MonoBehaviour
 
         Debug.Log("Redo");
         var state = undoStack.Pop();
-
-        operationStack.Push(state);
+        operationStack.Push(currentState);
         ApplyDiff(state);
     }
 
