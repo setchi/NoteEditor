@@ -29,7 +29,7 @@
 
     public override bool Equals(object obj)
     {
-        if (obj == null || this.GetType() != obj.GetType())
+        if (obj == null || GetType() != obj.GetType())
         {
             return false;
         }
@@ -40,5 +40,10 @@
             type == c.type &&
             next.Equals(c.next) &&
             prev.Equals(c.prev);
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
     }
 }

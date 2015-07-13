@@ -1,21 +1,20 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Collections.Generic;
 using UniRx;
 using UniRx.Triggers;
+using UnityEngine;
 
 public class UndoRedoPresenter : MonoBehaviour
 {
     Stack<EditorState> operationStack = new Stack<EditorState>();
     Stack<EditorState> undoStack = new Stack<EditorState>();
 
+    NotesEditorModel model;
     bool isUndo = false;
 
     void Awake()
     {
-        var model = NotesEditorModel.Instance;
+        model = NotesEditorModel.Instance;
 
         model.OnLoadedMusicObservable
             .Do(_ => operationStack.Clear())
@@ -50,7 +49,6 @@ public class UndoRedoPresenter : MonoBehaviour
 
     EditorState GetState()
     {
-        var model = NotesEditorModel.Instance;
         var state = new EditorState();
         state.LPB = model.LPB.Value;
         state.BPM = model.BPM.Value;
@@ -106,8 +104,6 @@ public class UndoRedoPresenter : MonoBehaviour
 
     void ApplyDiff(EditorState state)
     {
-        var model = NotesEditorModel.Instance;
-
         model.LPB.Value = state.LPB;
         model.BPM.Value = state.BPM;
         model.BeatOffsetSamples.Value = state.BeatOffsetSamples;
@@ -115,33 +111,14 @@ public class UndoRedoPresenter : MonoBehaviour
         model.CanvasOffsetX.Value = state.CanvasOffsetX;
         model.CanvasWidth.Value = state.CanvasWidth;
 
-
-        var wantDeleteNotes = model.NoteObjects.Values
+        model.NoteObjects.Values
             .Where(noteObj => !state.NotesData.ContainsKey(noteObj.notePosition))
-            .ToList();
-
-        foreach (var note in wantDeleteNotes)
-        {
-            if (note.noteType.Value == NoteTypes.Long)
-            {
-                model.LongNoteObservable.OnNext(note.notePosition);
-            }
-            else
-            {
-                model.NormalNoteObservable.OnNext(note.notePosition);
-            }
-        }
-
-
-        var wantAddNotes = state.NotesData.Values
-            .Where(note => !model.NoteObjects.ContainsKey(note.position))
-            .ToList();
-
-        foreach (var note in wantAddNotes)
-        {
-            model.NormalNoteObservable.OnNext(note.position);
-        }
-
+            .Select(noteObj => noteObj.notePosition)
+            .Concat(state.NotesData.Values
+                .Where(note => !model.NoteObjects.ContainsKey(note.position))
+                .Select(note => note.position))
+            .ToList()
+            .ForEach(position => model.NormalNoteObservable.OnNext(position));
 
         foreach (var note in state.NotesData.Values)
         {
@@ -167,10 +144,12 @@ public class UndoRedoPresenter : MonoBehaviour
         public float CanvasOffsetX = 0;
         public float CanvasWidth = 0;
 
-        public bool Equals(EditorState target)
+        public override bool Equals(object obj)
         {
-            if (target == null)
+            if (obj == null || GetType() != obj.GetType())
                 return false;
+
+            var target = (EditorState)obj;
 
             if (target.NotesData.Values.Any(targetNote => !NotesData.ContainsKey(targetNote.position) || !NotesData[targetNote.position].Equals(targetNote)) ||
                 NotesData.Values.Any(selfNote => !target.NotesData.ContainsKey(selfNote.position) || !target.NotesData[selfNote.position].Equals(selfNote)))
@@ -183,6 +162,11 @@ public class UndoRedoPresenter : MonoBehaviour
                 TimeSamples == target.TimeSamples &&
                 CanvasOffsetX == target.CanvasOffsetX &&
                 CanvasWidth == target.CanvasWidth;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }
