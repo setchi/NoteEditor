@@ -50,7 +50,7 @@ public class NoteObjectsPresenter : MonoBehaviour
             .Where(editType => editType == NoteTypes.Normal)
             .Skip(1);
 
-        finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = new NotePosition(-1, -1, -1));
+        finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = NotePosition.None);
 
 
         // Update long note link and tail position
@@ -102,7 +102,7 @@ public class NoteObjectsPresenter : MonoBehaviour
                         noteObject.next.prev = noteObject.prev;
                     else
                     {
-                        model.LongNoteTailPosition.Value = noteObject.prev == null ? new NotePosition(-1, -1, -1) : noteObject.prev.notePosition;
+                        model.LongNoteTailPosition.Value = noteObject.prev == null ? NotePosition.None : noteObject.prev.notePosition;
                     }
 
                     RemoveNote(notePosition);

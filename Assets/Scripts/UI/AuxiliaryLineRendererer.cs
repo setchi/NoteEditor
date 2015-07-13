@@ -114,7 +114,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                     }
                     else
                     {
-                        model.ClosestNotePosition.Value = new NotePosition(-1, -1, -1);
+                        model.ClosestNotePosition.Value = NotePosition.None;
                     }
                 }
 
