@@ -23,11 +23,11 @@ public class UndoRedoPresenter : MonoBehaviour
             .Subscribe(_ => operationStack.Push(GetState()));
 
         this.UpdateAsObservable()
-            .Where(_ => KeyInput.ShiftPlus(KeyCode.Z))
+            .Where(_ => KeyInput.CtrlPlus(KeyCode.Z))
             .Subscribe(_ => Undo());
 
         this.UpdateAsObservable()
-            .Where(_ => KeyInput.ShiftPlus(KeyCode.Y))
+            .Where(_ => KeyInput.CtrlPlus(KeyCode.Y))
             .Subscribe(_ => Redo());
 
         Observable.Merge(
