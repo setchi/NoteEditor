@@ -18,8 +18,9 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
 
         this.UpdateAsObservable()
             .Where(_ => !settingsModel.IsViewing.Value)
-            .Where(_ => !KeyInput.CtrlKey())
             .Where(_ => !KeyInput.AltKey())
+            .Where(_ => !KeyInput.CtrlKey())
+            .Where(_ => !KeyInput.ShiftKey())
             .SelectMany(_ => Observable.Range(0, model.MaxBlock.Value))
             .Where(num => Input.GetKeyDown(settingsModel.NoteInputKeyCodes.Value[num]))
             .Subscribe(num => EnterNote(num));
