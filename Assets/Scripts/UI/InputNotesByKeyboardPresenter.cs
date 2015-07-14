@@ -33,10 +33,6 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
         var timeSamples = model.Audio.timeSamples - model.BeatOffsetSamples.Value + (model.IsPlaying.Value ? offset : 0);
         var beats = Mathf.RoundToInt(timeSamples / unitBeatSamples);
 
-        var observable = model.EditType.Value == NoteTypes.Long
-                ? model.LongNoteObservable
-                : model.NormalNoteObservable;
-
-        observable.OnNext(new NotePosition(model.LPB.Value, beats, block));
+        model.EditNoteObservable.OnNext(new Note(new NotePosition(model.LPB.Value, beats, block), model.EditType.Value));
     }
 }

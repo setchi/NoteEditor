@@ -26,10 +26,7 @@ public class NoteObjectsPresenter : MonoBehaviour
             .Where(_ => 0 <= model.ClosestNotePosition.Value.num);
 
         closestNoteAreaOnMouseDownObservable
-            .Select(_ => model.EditType.Value == NoteTypes.Long
-                ? model.LongNoteObservable
-                : model.NormalNoteObservable)
-            .Subscribe(observable => observable.OnNext(model.ClosestNotePosition.Value));
+            .Subscribe(_ => model.EditNoteObservable.OnNext(new Note(model.ClosestNotePosition.Value, model.EditType.Value)));
 
 
         // Start editing of long note
@@ -37,7 +34,7 @@ public class NoteObjectsPresenter : MonoBehaviour
             .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Where(_ => KeyInput.ShiftKey())
             .Do(notePosition => model.EditType.Value = NoteTypes.Long)
-            .Subscribe(_ => model.LongNoteObservable.OnNext(model.ClosestNotePosition.Value));
+            .Subscribe(_ => model.EditNoteObservable.OnNext(new Note(model.ClosestNotePosition.Value, NoteTypes.Long)));
 
 
         // Finish editing long note by press-escape or right-click
@@ -68,60 +65,62 @@ public class NoteObjectsPresenter : MonoBehaviour
             });
 
 
-        model.NormalNoteObservable.Subscribe(notePosition =>
+        model.EditNoteObservable.Subscribe(note =>
         {
-            if (model.NoteObjects.ContainsKey(notePosition))
+            if (note.type == NoteTypes.Normal)
             {
-                RemoveNote(notePosition);
-            }
-            else
-            {
-                var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
-                noteObject.notePosition = notePosition;
-                noteObject.noteType.Value = NoteTypes.Normal;
-                noteObject.transform.SetParent(notesRegion.transform);
 
-                model.NoteObjects.Add(notePosition, noteObject);
-            }
-        });
-
-
-        model.LongNoteObservable.Subscribe(notePosition =>
-        {
-            if (model.NoteObjects.ContainsKey(notePosition))
-            {
-                var noteObject = model.NoteObjects[notePosition];
-
-                if (noteObject.noteType.Value == NoteTypes.Long)
+                if (model.NoteObjects.ContainsKey(note.position))
                 {
-
-                    if (noteObject.prev != null)
-                        noteObject.prev.next = noteObject.next;
-
-                    if (noteObject.next != null)
-                        noteObject.next.prev = noteObject.prev;
-                    else
-                    {
-                        model.LongNoteTailPosition.Value = noteObject.prev == null ? NotePosition.None : noteObject.prev.notePosition;
-                    }
-
-                    RemoveNote(notePosition);
+                    RemoveNote(note.position);
                 }
                 else
                 {
-                    noteObject.noteType.Value = NoteTypes.Long;
-                    model.AddedLongNoteObjectObservable.OnNext(noteObject);
+                    var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
+                    noteObject.notePosition = note.position;
+                    noteObject.noteType.Value = NoteTypes.Normal;
+                    noteObject.transform.SetParent(notesRegion.transform);
+
+                    model.NoteObjects.Add(note.position, noteObject);
                 }
             }
-            else
-            {
-                var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
-                noteObject.notePosition = notePosition;
-                noteObject.noteType.Value = NoteTypes.Long;
-                noteObject.transform.SetParent(notesRegion.transform);
+            else if (note.type == NoteTypes.Long) {
 
-                model.NoteObjects.Add(notePosition, noteObject);
-                model.AddedLongNoteObjectObservable.OnNext(noteObject);
+                if (model.NoteObjects.ContainsKey(note.position))
+                {
+                    var noteObject = model.NoteObjects[note.position];
+
+                    if (noteObject.noteType.Value == NoteTypes.Long)
+                    {
+
+                        if (noteObject.prev != null)
+                            noteObject.prev.next = noteObject.next;
+
+                        if (noteObject.next != null)
+                            noteObject.next.prev = noteObject.prev;
+                        else
+                        {
+                            model.LongNoteTailPosition.Value = noteObject.prev == null ? NotePosition.None : noteObject.prev.notePosition;
+                        }
+
+                        RemoveNote(note.position);
+                    }
+                    else
+                    {
+                        noteObject.noteType.Value = NoteTypes.Long;
+                        model.AddedLongNoteObjectObservable.OnNext(noteObject);
+                    }
+                }
+                else
+                {
+                    var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
+                    noteObject.notePosition = note.position;
+                    noteObject.noteType.Value = NoteTypes.Long;
+                    noteObject.transform.SetParent(notesRegion.transform);
+
+                    model.NoteObjects.Add(note.position, noteObject);
+                    model.AddedLongNoteObjectObservable.OnNext(noteObject);
+                }
             }
         });
     }

@@ -18,8 +18,7 @@ public class SoundEffectPlayer : MonoBehaviour
 
         var editedDuringPlaybackObservable = Observable.Merge(
                 model.BeatOffsetSamples.Select(_ => false),
-                model.LongNoteObservable.Select(_ => false),
-                model.LongNoteObservable.Select(_ => false))
+                model.EditNoteObservable.Select(_ => false))
             .Where(_ => model.IsPlaying.Value);
 
         model.IsPlaying.Where(isPlaying => isPlaying)

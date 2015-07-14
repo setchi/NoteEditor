@@ -99,7 +99,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                     ))
                     .Do(obj => {
                         if (!model.NoteObjects.ContainsKey(obj.position))
-                            model.NormalNoteObservable.OnNext(obj.position);
+                            model.EditNoteObservable.OnNext(new Note(obj.position, NoteTypes.Normal));
                     })
                     .DelayFrame(1)
                     .Subscribe(obj =>
@@ -130,7 +130,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                     .Do(pastedPosition =>
                     {
                         if (!model.NoteObjects.ContainsKey(pastedPosition))
-                            model.NormalNoteObservable.OnNext(pastedPosition);
+                            model.EditNoteObservable.OnNext(new Note(pastedPosition, NoteTypes.Normal));
                     })
                     .Select(pastedPosition => model.NoteObjects[pastedPosition])
                     .Do(pastedObj => pastedObj.next = pastedObj.prev = null)
@@ -189,11 +189,7 @@ public class RangeSelectionPresenter : MonoBehaviour
 
     void DeleteNotes(IEnumerable<NoteObject> notes)
     {
-        notes.ToList().ForEach(note =>
-            (note.noteType.Value == NoteTypes.Long
-                ? model.LongNoteObservable
-                : model.NormalNoteObservable)
-            .OnNext(note.notePosition));
+        notes.ToList().ForEach(note => model.EditNoteObservable.OnNext(note.ToNote()));
     }
 
     void Deselect()

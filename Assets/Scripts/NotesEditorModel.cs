@@ -31,8 +31,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
-    public Subject<NotePosition> NormalNoteObservable = new Subject<NotePosition>();
-    public Subject<NotePosition> LongNoteObservable = new Subject<NotePosition>();
+    public Subject<Note> EditNoteObservable = new Subject<Note>();
     public Subject<int> OnLoadedMusicObservable = new Subject<int>();
     public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
 

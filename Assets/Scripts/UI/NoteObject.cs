@@ -62,11 +62,7 @@ public class NoteObject : MonoBehaviour
             .Merge(mouseDownObservable
                 .Where(editType => editType == NoteTypes.Long));
 
-        editObservable.Where(editType => editType == NoteTypes.Normal)
-            .Subscribe(_ => model.NormalNoteObservable.OnNext(notePosition));
-
-        editObservable.Where(editType => editType == NoteTypes.Long)
-            .Subscribe(_ => model.LongNoteObservable.OnNext(notePosition));
+        editObservable.Subscribe(_ => model.EditNoteObservable.OnNext(ToNote()));
 
 
         var longNoteLateUpdateObservable = this.LateUpdateAsObservable()
