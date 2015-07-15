@@ -2,7 +2,6 @@
 
 public class Line
 {
-
     public Color color;
     public Vector3 start;
     public Vector3 end;

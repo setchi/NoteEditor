@@ -79,6 +79,7 @@ public class NoteObject : MonoBehaviour
 
         longNoteLateUpdateObservable
             .Where(_ => model.NoteObjects.ContainsKey(next))
+            .Where(_ => model.NoteObjects[next].noteType.Value == NoteTypes.Long)
             .Select(_ => model.NoteToScreenPosition(next))
             .Merge(longNoteLateUpdateObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long)

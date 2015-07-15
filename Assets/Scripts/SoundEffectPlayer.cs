@@ -19,6 +19,7 @@ public class SoundEffectPlayer : MonoBehaviour
 
         var editedDuringPlaybackObservable = Observable.Merge(
                 model.BeatOffsetSamples.Select(_ => false),
+                editPresenter.RequestForEditNote.Select(_ => false),
                 editPresenter.RequestForRemoveNote.Select(_ => false),
                 editPresenter.RequestForAddNote.Select(_ => false))
             .Where(_ => model.IsPlaying.Value);
@@ -34,13 +35,11 @@ public class SoundEffectPlayer : MonoBehaviour
                         .Where(samples => model.Audio.timeSamples <= samples)
                         .OrderBy(samples => samples)
                         .Select(samples => samples - clapOffsetSamples)))
-
             .SelectMany(samplesQueue =>
                 this.LateUpdateAsObservable()
                     .TakeWhile(_ => model.IsPlaying.Value)
                     .TakeUntil(editedDuringPlaybackObservable.Skip(1))
                     .Select(_ => samplesQueue))
-
         .Where(samplesQueue => samplesQueue.Count > 0)
         .Where(samplesQueue => samplesQueue.Peek() <= model.Audio.timeSamples)
         .Do(samplesQueue => samplesQueue.Dequeue())
