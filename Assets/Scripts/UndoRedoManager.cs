@@ -36,24 +36,24 @@ public class UndoRedoManager : SingletonGameObject<UndoRedoManager>
         Instance.redoStack.Clear();
     }
 
-    static public void Undo()
+    void Undo()
     {
         if (Instance.undoStack.Count == 0)
             return;
 
-        var command = Instance.undoStack.Pop();
+        var command = undoStack.Pop();
         command.Undo();
-        Instance.redoStack.Push(command);
+        redoStack.Push(command);
     }
 
-    static public void Redo()
+    void Redo()
     {
         if (Instance.redoStack.Count == 0)
             return;
 
-        var command = Instance.redoStack.Pop();
+        var command = redoStack.Pop();
         command.Redo();
-        Instance.undoStack.Push(command);
+        undoStack.Push(command);
     }
 }
 
