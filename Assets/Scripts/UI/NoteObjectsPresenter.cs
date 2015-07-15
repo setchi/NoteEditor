@@ -65,23 +65,23 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
             .Select(b => b.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
                 new Command(
-                    () => notes.ForEach(note => RemoveNote(note.position)),
-                    () => notes.ForEach(note => AddNote(note)))));
+                    () => notes.ForEach(RemoveNote),
+                    () => notes.ForEach(AddNote))));
 
         model.AddNoteObservable.Buffer(model.AddNoteObservable.ThrottleFrame(1))
             .Select(b => b.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
                 new Command(
-                    () => notes.ForEach(note => AddNote(note)),
-                    () => notes.ForEach(note => RemoveNote(note.position)))));
+                    () => notes.ForEach(AddNote),
+                    () => notes.ForEach(RemoveNote))));
 
         model.ChangeNoteStateObservable.Select(note => new { current = note, prev = model.NoteObjects[note.position].ToNote() })
             .Buffer(model.ChangeNoteStateObservable.ThrottleFrame(1))
             .Select(b => b.OrderBy(note => note.current.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
                 new Command(
-                    () => notes.ForEach(x => ChangeStateNote(x.current)),
-                    () => notes.ForEach(x => ChangeStateNote(x.prev)))));
+                    () => notes.ForEach(x => ChangeNoteState(x.current)),
+                    () => notes.ForEach(x => ChangeNoteState(x.prev)))));
 
 
         model.EditNoteObservable.Subscribe(note =>
@@ -112,7 +112,7 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
         });
     }
 
-    void AddNote(Note note)
+    public void AddNote(Note note)
     {
         if (model.NoteObjects.ContainsKey(note.position))
         {
@@ -124,6 +124,8 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
         noteObject.notePosition = note.position;
         noteObject.noteType.Value = note.type;
         noteObject.transform.SetParent(notesRegion.transform);
+        noteObject.next = note.next;
+        noteObject.prev = note.prev;
         model.NoteObjects.Add(note.position, noteObject);
 
         if (model.NoteObjects.ContainsKey(note.prev))
@@ -138,11 +140,11 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
 
         if (note.type == NoteTypes.Long)
         {
-            AddedLongNote(noteObject, note);
+            UpdateLongNoteTailPosition(noteObject, note);
         }
     }
 
-    void ChangeStateNote(Note note)
+    void ChangeNoteState(Note note)
     {
         if (!model.NoteObjects.ContainsKey(note.position) || model.NoteObjects[note.position].ToNote().Equals(note))
             return;
@@ -165,38 +167,24 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
 
         if (note.type == NoteTypes.Long)
         {
-            AddedLongNote(noteObject, note);
+            UpdateLongNoteTailPosition(noteObject, note);
         }
     }
 
-    void AddedLongNote(NoteObject noteObject, Note note)
+    void UpdateLongNoteTailPosition(NoteObject noteObject, Note note)
     {
-        noteObject.prev = note.prev;
-        noteObject.next = note.next;
-
         model.LongNoteTailPosition.Value = model.LongNoteTailPosition.Value.Equals(note.prev)
             ? note.position
             : NotePosition.None;
     }
 
-    void RemoveNote(NotePosition notePosition)
+    void RemoveNote(Note note)
     {
-        if (!model.NoteObjects.ContainsKey(notePosition))
+        if (!model.NoteObjects.ContainsKey(note.position))
             return;
 
-        var noteObject = model.NoteObjects[notePosition];
-
-        if (model.NoteObjects.ContainsKey(noteObject.prev))
-        {
-            model.NoteObjects[noteObject.prev].next = noteObject.next;
-        }
-
-        if (model.NoteObjects.ContainsKey(noteObject.next))
-        {
-            model.NoteObjects[noteObject.next].prev = noteObject.prev;
-        }
-
-        model.NoteObjects.Remove(notePosition);
+        var noteObject = model.NoteObjects[note.position];
+        model.NoteObjects.Remove(noteObject.notePosition);
         DestroyObject(noteObject.gameObject);
     }
 }

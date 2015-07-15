@@ -57,16 +57,13 @@ public class NoteObject : MonoBehaviour
             .Where(_ => model.ClosestNotePosition.Value.Equals(notePosition));
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Normal)
-            .Where(editType => editType == model.EditType.Value)
-            .Subscribe(_ => 
-                model.RemoveNoteObservable.OnNext(ToNote()));
+            .Where(editType => editType == noteType.Value)
+            .Subscribe(_ => model.RemoveNoteObservable.OnNext(ToNote()));
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Long)
-            .Subscribe(_ => 
-                (noteType.Value == NoteTypes.Normal
-                    ? model.ChangeNoteStateObservable
-                    : model.RemoveNoteObservable)
-                .OnNext(new Note(
+            .Where(editType => editType == noteType.Value)
+            .Do(_ => model.LongNoteTailPosition.Value = prev)
+            .Subscribe(_ => model.RemoveNoteObservable.OnNext(new Note(
                     notePosition,
                     model.EditType.Value,
                     next,

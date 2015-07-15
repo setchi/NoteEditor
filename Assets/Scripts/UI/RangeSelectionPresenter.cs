@@ -90,31 +90,33 @@ public class RangeSelectionPresenter : MonoBehaviour
                 var validNotes = copiedNotes.Where(note => note.position.Add(0, note.position.LPB * beatDiff, 0).ToSamples(model.Audio.clip.frequency, model.BPM.Value) < model.Audio.clip.samples)
                     .ToList();
 
+                copiedNotes.Clear();
+
                 validNotes.ToObservable()
+                    .Select(note =>
+                        note.type == NoteTypes.Normal
+                            ? new Note(note.position.Add(0, note.position.LPB * beatDiff, 0))
+                            : new Note(
+                                note.position.Add(0, note.position.LPB * beatDiff, 0),
+                                note.type,
+                                note.next.Add(0, note.next.LPB * beatDiff, 0),
+                                note.prev.Add(0, note.prev.LPB * beatDiff, 0)
+                            ))
+                    .Do(note => copiedNotes.Add(note))
                     .Subscribe(note =>
-                        (model.NoteObjects.ContainsKey(note.position.Add(0, note.position.LPB * beatDiff, 0))
+                        (model.NoteObjects.ContainsKey(note.position)
                             ? model.ChangeNoteStateObservable
                             : model.AddNoteObservable)
-                        .OnNext(
-                            note.type == NoteTypes.Normal
-                                ? new Note(note.position.Add(0, note.position.LPB * beatDiff, 0))
-                                : new Note(
-                                    note.position.Add(0, note.position.LPB * beatDiff, 0),
-                                    note.type,
-                                    note.next.Add(0, note.next.LPB * beatDiff, 0),
-                                    note.prev.Add(0, note.prev.LPB * beatDiff, 0)
-                                )));
+                        .OnNext(note));
 
                 Deselect();
-                copiedNotes.Clear();
 
                 validNotes.Select(obj => obj.position.Add(0, obj.position.LPB * beatDiff, 0))
                     .ToObservable()
                     .DelayFrame(1)
                     .Select(pastedPosition => model.NoteObjects[pastedPosition])
                     .Do(pastedObj => selectedNoteObjects.Set(pastedObj.notePosition, pastedObj))
-                    .Do(pastedObj => pastedObj.isSelected.Value = true)
-                    .Subscribe(pastedObj => copiedNotes.Add(pastedObj.ToNote()));
+                    .Subscribe(pastedObj => pastedObj.isSelected.Value = true);
             });
     }
 

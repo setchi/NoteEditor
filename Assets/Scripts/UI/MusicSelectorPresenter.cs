@@ -116,6 +116,7 @@ public class MusicSelectorPresenter : MonoBehaviour
     void InstantiateNotesData(MusicModel.NotesData notesData)
     {
         var editorModel = NotesEditorModel.Instance;
+        var notePresenter = NoteObjectsPresenter.Instance;
 
         editorModel.BPM.Value = notesData.BPM;
         editorModel.MaxBlock.Value = notesData.maxBlock;
@@ -125,12 +126,16 @@ public class MusicSelectorPresenter : MonoBehaviour
         {
             if (note.type == 1)
             {
-                InstantiateNoteObject(note);
+                notePresenter.AddNote(ToNote(note));
                 continue;
             }
 
             var longNoteObjects = new[] { note }.Concat(note.notes)
-                .Select(note_ => InstantiateNoteObject(note_))
+                .Select(note_ =>
+                {
+                    notePresenter.AddNote(ToNote(note_));
+                    return editorModel.NoteObjects[ToNote(note_).position];
+                })
                 .ToList();
 
             for (int i = 1; i < longNoteObjects.Count; i++)
@@ -141,13 +146,10 @@ public class MusicSelectorPresenter : MonoBehaviour
         }
     }
 
-    NoteObject InstantiateNoteObject(MusicModel.Note note)
+    Note ToNote(MusicModel.Note musicNote)
     {
-        var noteObject = (Instantiate(noteObjectPrefab) as GameObject).GetComponent<NoteObject>();
-        noteObject.notePosition = new NotePosition(note.LPB, note.num, note.block);
-        noteObject.noteType.Value = note.type == 2 ? NoteTypes.Long : NoteTypes.Normal;
-        noteObject.transform.SetParent(notesRegion.transform);
-        NotesEditorModel.Instance.NoteObjects.Add(noteObject.notePosition, noteObject);
-        return noteObject;
+        return new Note(
+            new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),
+            musicNote.type == 1 ? NoteTypes.Normal : NoteTypes.Long);
     }
 }
