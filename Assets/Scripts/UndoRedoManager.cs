@@ -38,7 +38,7 @@ public class UndoRedoManager : SingletonGameObject<UndoRedoManager>
 
     void Undo()
     {
-        if (Instance.undoStack.Count == 0)
+        if (undoStack.Count == 0)
             return;
 
         var command = undoStack.Pop();
@@ -48,7 +48,7 @@ public class UndoRedoManager : SingletonGameObject<UndoRedoManager>
 
     void Redo()
     {
-        if (Instance.redoStack.Count == 0)
+        if (redoStack.Count == 0)
             return;
 
         var command = redoStack.Pop();
