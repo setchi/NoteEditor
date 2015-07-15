@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class CanvasEvents : MonoBehaviour
 {
-    public Subject<Vector3> NotesRegionOnMouseUpObservable = new Subject<Vector3>();
-    public Subject<Vector3> NotesRegionOnMouseExitObservable = new Subject<Vector3>();
-    public Subject<Vector3> NotesRegionOnMouseDownObservable = new Subject<Vector3>();
-    public Subject<Vector3> NotesRegionOnMouseEnterObservable = new Subject<Vector3>();
-    public Subject<Vector3> VerticalLineOnMouseDownObservable = new Subject<Vector3>();
-    public Subject<Vector3> WaveformRegionOnMouseDownObservable = new Subject<Vector3>();
-    public Subject<Vector3> WaveformRegionOnMouseExitObservable = new Subject<Vector3>();
-    public Subject<Vector3> WaveformRegionOnMouseEnterObservable = new Subject<Vector3>();
-    public Subject<float> MouseScrollWheelObservable = new Subject<float>();
+    public readonly Subject<Vector3> NotesRegionOnMouseUpObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> NotesRegionOnMouseExitObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> NotesRegionOnMouseDownObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> NotesRegionOnMouseEnterObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> VerticalLineOnMouseDownObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> WaveformRegionOnMouseDownObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> WaveformRegionOnMouseExitObservable = new Subject<Vector3>();
+    public readonly Subject<Vector3> WaveformRegionOnMouseEnterObservable = new Subject<Vector3>();
+    public readonly Subject<float> MouseScrollWheelObservable = new Subject<float>();
 
     void Awake()
     {
@@ -22,13 +22,13 @@ public class CanvasEvents : MonoBehaviour
             .Subscribe(MouseScrollWheelObservable.OnNext);
 
         var model = NotesEditorModel.Instance;
-        model.IsMouseOverNotesRegion = NotesRegionOnMouseExitObservable.Select(_ => false)
+        NotesRegionOnMouseExitObservable.Select(_ => false)
             .Merge(NotesRegionOnMouseEnterObservable.Select(_ => true))
-            .ToReactiveProperty();
+            .Subscribe(isMouseOver => model.IsMouseOverNotesRegion.Value = isMouseOver);
 
-        model.IsMouseOverWaveformRegion = WaveformRegionOnMouseExitObservable.Select(_ => false)
+        WaveformRegionOnMouseExitObservable.Select(_ => false)
             .Merge(WaveformRegionOnMouseEnterObservable.Select(_ => true))
-            .ToReactiveProperty();
+            .Subscribe(isMouseOver => model.IsMouseOverWaveformRegion.Value = isMouseOver);
     }
 
     public void NotesRegionOnMouseUp() { NotesRegionOnMouseUpObservable.OnNext(Input.mousePosition); }

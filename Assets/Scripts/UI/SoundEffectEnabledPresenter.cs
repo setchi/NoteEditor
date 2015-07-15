@@ -10,6 +10,7 @@ public class SoundEffectEnabledPresenter : MonoBehaviour
     void Awake()
     {
         var model = NotesEditorModel.Instance;
-        model.PlaySoundEffectEnabled = soundEffectEnabledToggle.OnValueChangedAsObservable().ToReactiveProperty();
+        soundEffectEnabledToggle.OnValueChangedAsObservable()
+            .Subscribe(isEnabled => model.PlaySoundEffectEnabled.Value = isEnabled);
     }
 }

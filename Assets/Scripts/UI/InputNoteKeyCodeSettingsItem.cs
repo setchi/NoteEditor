@@ -3,7 +3,7 @@ using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class KeyCodeSettingsItem : MonoBehaviour
+public class InputNoteKeyCodeSettingsItem : MonoBehaviour
 {
     [SerializeField]
     Color selectedStateBackgroundColor;
@@ -40,7 +40,7 @@ public class KeyCodeSettingsItem : MonoBehaviour
             .Where(keyCode => keyCode != KeyCode.None)
             .Do(keyCode => this.keyCode.Value = keyCode)
             .Do(keyCode => model.NoteInputKeyCodes.Value[block] = keyCode)
-            .Subscribe(_ => model.ChangeInputKeyCodesObservable.OnNext(Unit.Default))
+            .Subscribe(_ => model.RequestForChangeInputNoteKeyCode.OnNext(Unit.Default))
             .AddTo(gameObject);
 
         this.keyCode.Select(keyCode => block + ": " + keyCode)

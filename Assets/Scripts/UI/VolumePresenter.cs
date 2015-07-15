@@ -25,7 +25,7 @@ public class VolumePresenter : MonoBehaviour
 
     void Init()
     {
-        model.Volume = volumeController.OnValueChangedAsObservable().ToReactiveProperty();
+        volumeController.OnValueChangedAsObservable().Subscribe(volume => model.Volume.Value = volume);
         model.Volume.DistinctUntilChanged().Subscribe(x => model.Audio.volume = x);
         model.Volume.Select(volume => Mathf.Approximately(volume, 0f) ? iconMute : volume < 0.6f ? iconSound : iconSound2)
             .DistinctUntilChanged()

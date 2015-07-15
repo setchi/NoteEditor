@@ -64,7 +64,7 @@ public class MusicSelectorPresenter : MonoBehaviour
             .SelectMany(fileNameList => fileNameList)
                 .Select(fileName => new { fileName, obj = Instantiate(fileItem) as GameObject })
                 .Do(elm => elm.obj.transform.SetParent(fileItemContainer.transform))
-                .Subscribe(elm => elm.obj.GetComponent<FileItem>().SetName(elm.fileName));
+                .Subscribe(elm => elm.obj.GetComponent<FileListItem>().SetName(elm.fileName));
 
 
         LoadButton.OnClickAsObservable()
@@ -108,15 +108,15 @@ public class MusicSelectorPresenter : MonoBehaviour
         if (File.Exists(filePath))
         {
             var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-            var notesData = JsonMapper.ToObject<MusicModel.NotesData>(json);
+            var notesData = JsonMapper.ToObject<SaveDataModel.NotesData>(json);
             InstantiateNotesData(notesData);
         }
     }
 
-    void InstantiateNotesData(MusicModel.NotesData notesData)
+    void InstantiateNotesData(SaveDataModel.NotesData notesData)
     {
         var editorModel = NotesEditorModel.Instance;
-        var notePresenter = NoteObjectsPresenter.Instance;
+        var notePresenter = EditNotesPresenter.Instance;
 
         editorModel.BPM.Value = notesData.BPM;
         editorModel.MaxBlock.Value = notesData.maxBlock;
@@ -146,7 +146,7 @@ public class MusicSelectorPresenter : MonoBehaviour
         }
     }
 
-    Note ToNote(MusicModel.Note musicNote)
+    Note ToNote(SaveDataModel.Note musicNote)
     {
         return new Note(
             new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UniRx;
-using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,31 +10,27 @@ public enum NoteTypes { Normal, Long }
 
 public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 {
-    public ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Normal);
-    public ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
-    public ReactiveProperty<int> MaxBlock = new ReactiveProperty<int>(5);
-    public ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
-    public ReactiveProperty<int> BPM = new ReactiveProperty<int>(0);
-    public ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
-    public ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
-    public ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
-    public ReactiveProperty<int> TimeSamples = new ReactiveProperty<int>();
-    public ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
-    public ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
-    public ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
-    public ReactiveProperty<bool> IsMouseOverNotesRegion = new ReactiveProperty<bool>();
-    public ReactiveProperty<bool> IsMouseOverWaveformRegion = new ReactiveProperty<bool>();
-    public ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>(false);
-    public ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
-    public ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
-    public ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
-    public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
-    public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
-    public Subject<int> OnLoadedMusicObservable = new Subject<int>();
-    public Subject<Note> EditNoteObservable = new Subject<Note>();
-    public Subject<Note> RemoveNoteObservable = new Subject<Note>();
-    public Subject<Note> AddNoteObservable = new Subject<Note>();
-    public Subject<Note> ChangeNoteStateObservable = new Subject<Note>();
+    public readonly ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Normal);
+    public readonly ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
+    public readonly ReactiveProperty<int> MaxBlock = new ReactiveProperty<int>(5);
+    public readonly ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
+    public readonly ReactiveProperty<int> BPM = new ReactiveProperty<int>(0);
+    public readonly ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
+    public readonly ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
+    public readonly ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
+    public readonly ReactiveProperty<int> TimeSamples = new ReactiveProperty<int>();
+    public readonly ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
+    public readonly ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
+    public readonly ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
+    public readonly ReactiveProperty<bool> IsMouseOverNotesRegion = new ReactiveProperty<bool>();
+    public readonly ReactiveProperty<bool> IsMouseOverWaveformRegion = new ReactiveProperty<bool>();
+    public readonly ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>(false);
+    public readonly ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
+    public readonly ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
+    public readonly ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
+    public readonly Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
+    public readonly ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
+    public readonly Subject<int> OnLoadedMusicObservable = new Subject<int>();
 
     [HideInInspector]
     public AudioSource Audio;
@@ -46,12 +41,10 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     void Awake()
     {
         Audio = gameObject.AddComponent<AudioSource>();
-
-        CanvasScaleFactor = this.UpdateAsObservable()
-            .Select(_ => Screen.width)
+        
+        this.ObserveEveryValueChanged(_ => Screen.width)
             .DistinctUntilChanged()
-            .Select(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w)
-            .ToReactiveProperty();
+            .Subscribe(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
 
         ClearNotesData();
     }
@@ -103,7 +96,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public string SerializeNotesData()
     {
-        var data = new MusicModel.NotesData();
+        var data = new SaveDataModel.NotesData();
         data.BPM = BPM.Value;
         data.maxBlock = MaxBlock.Value;
         data.offset = BeatOffsetSamples.Value;
@@ -113,7 +106,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
             .Where(note => !(note.noteType.Value == NoteTypes.Long && NoteObjects.ContainsKey(note.prev)))
             .OrderBy(note => note.notePosition.ToSamples(Audio.clip.frequency, BPM.Value));
 
-        data.notes = new List<MusicModel.Note>();
+        data.notes = new List<SaveDataModel.Note>();
 
         foreach (var noteObject in sortedNoteObjects)
         {
@@ -144,14 +137,14 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         return jsonWriter.ToString();
     }
 
-    public MusicModel.Note ConvertToNote(NoteObject noteObject)
+    public SaveDataModel.Note ConvertToNote(NoteObject noteObject)
     {
-        var note = new MusicModel.Note();
+        var note = new SaveDataModel.Note();
         note.num = noteObject.notePosition.num;
         note.block = noteObject.notePosition.block;
         note.LPB = noteObject.notePosition.LPB;
         note.type = noteObject.noteType.Value == NoteTypes.Long ? 2 : 1;
-        note.notes = new List<MusicModel.Note>();
+        note.notes = new List<SaveDataModel.Note>();
         return note;
     }
 }

@@ -13,12 +13,15 @@ public class RangeSelectionPresenter : MonoBehaviour
     Color selectionRectColor;
 
     NotesEditorModel model;
+    EditNotesPresenter editPresenter;
+
     Dictionary<NotePosition, NoteObject> selectedNoteObjects = new Dictionary<NotePosition, NoteObject>();
     List<Note> copiedNotes = new List<Note>();
 
     void Awake()
     {
         model = NotesEditorModel.Instance;
+        editPresenter = EditNotesPresenter.Instance;
 
 
         // Select by dragging
@@ -105,8 +108,8 @@ public class RangeSelectionPresenter : MonoBehaviour
                     .Do(note => copiedNotes.Add(note))
                     .Subscribe(note =>
                         (model.NoteObjects.ContainsKey(note.position)
-                            ? model.ChangeNoteStateObservable
-                            : model.AddNoteObservable)
+                            ? editPresenter.RequestForChangeNoteStatus
+                            : editPresenter.RequestForAddNote)
                         .OnNext(note));
 
                 Deselect();
@@ -157,7 +160,7 @@ public class RangeSelectionPresenter : MonoBehaviour
 
     void DeleteNotes(IEnumerable<NoteObject> notes)
     {
-        notes.ToList().ForEach(note => model.RemoveNoteObservable.OnNext(note.ToNote()));
+        notes.ToList().ForEach(note => editPresenter.RequestForRemoveNote.OnNext(note.ToNote()));
     }
 
     void Deselect()

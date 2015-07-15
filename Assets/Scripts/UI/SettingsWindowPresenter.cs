@@ -61,13 +61,13 @@ public class SettingsWindowPresenter : MonoBehaviour
                 var obj = Instantiate(itemPrefab) as GameObject;
                 obj.transform.SetParent(itemContentTransform);
 
-                var item = obj.GetComponent<KeyCodeSettingsItem>();
+                var item = obj.GetComponent<InputNoteKeyCodeSettingsItem>();
                 item.SetData(num, num < model.NoteInputKeyCodes.Value.Count ? model.NoteInputKeyCodes.Value[num] : KeyCode.None);
             });
 
 
         Observable.Merge(
-                 model.ChangeInputKeyCodesObservable.Select(_ => 0),
+                 model.RequestForChangeInputNoteKeyCode.Select(_ => 0),
                  NotesEditorModel.Instance.MaxBlock,
                  model.WorkSpaceDirectoryPath.Select(_ => 0))
              .Where(_ => model.IsViewing.Value)

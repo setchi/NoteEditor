@@ -6,14 +6,12 @@ using UnityEngine;
 
 public class NotesEditorSettingsModel : SingletonGameObject<NotesEditorSettingsModel>
 {
-    public ReactiveProperty<string> WorkSpaceDirectoryPath = new ReactiveProperty<string>();
-    public ReactiveProperty<List<KeyCode>> NoteInputKeyCodes = new ReactiveProperty<List<KeyCode>>();
-    public ReactiveProperty<int> SelectedBlock = new ReactiveProperty<int>();
-    public ReactiveProperty<bool> IsViewing = new ReactiveProperty<bool>(false);
-
+    public readonly ReactiveProperty<string> WorkSpaceDirectoryPath = new ReactiveProperty<string>();
+    public readonly ReactiveProperty<List<KeyCode>> NoteInputKeyCodes = new ReactiveProperty<List<KeyCode>>();
+    public readonly ReactiveProperty<int> SelectedBlock = new ReactiveProperty<int>();
+    public readonly ReactiveProperty<bool> IsViewing = new ReactiveProperty<bool>(false);
+    public readonly Subject<Unit> RequestForChangeInputNoteKeyCode = new Subject<Unit>();
     public int MaxBlock = 0;
-
-    public Subject<Unit> ChangeInputKeyCodesObservable = new Subject<Unit>();
 
     public void Apply(SettingsModel data)
     {

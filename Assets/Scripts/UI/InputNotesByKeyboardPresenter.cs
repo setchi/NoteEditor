@@ -5,10 +5,12 @@ using UnityEngine;
 public class InputNotesByKeyboardPresenter : MonoBehaviour
 {
     NotesEditorModel model;
+    EditNotesPresenter editPresenter;
 
     void Awake()
     {
         model = NotesEditorModel.Instance;
+        editPresenter = EditNotesPresenter.Instance;
         model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
     }
 
@@ -33,6 +35,6 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
         var timeSamples = model.Audio.timeSamples - model.BeatOffsetSamples.Value + (model.IsPlaying.Value ? offset : 0);
         var beats = Mathf.RoundToInt(timeSamples / unitBeatSamples);
 
-        model.EditNoteObservable.OnNext(new Note(new NotePosition(model.LPB.Value, beats, block), model.EditType.Value));
+        editPresenter.RequestForEditNote.OnNext(new Note(new NotePosition(model.LPB.Value, beats, block), model.EditType.Value));
     }
 }

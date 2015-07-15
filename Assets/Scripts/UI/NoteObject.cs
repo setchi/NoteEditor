@@ -36,6 +36,8 @@ public class NoteObject : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();
         rectTransform.localPosition = model.NoteToScreenPosition(notePosition);
 
+        var editPresenter = EditNotesPresenter.Instance;
+
 
         var image = GetComponent<Image>();
         noteType.Where(_ => !isSelected.Value)
@@ -58,12 +60,12 @@ public class NoteObject : MonoBehaviour
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Normal)
             .Where(editType => editType == noteType.Value)
-            .Subscribe(_ => model.RemoveNoteObservable.OnNext(ToNote()));
+            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(ToNote()));
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Long)
             .Where(editType => editType == noteType.Value)
             .Do(_ => model.LongNoteTailPosition.Value = prev)
-            .Subscribe(_ => model.RemoveNoteObservable.OnNext(new Note(
+            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(new Note(
                     notePosition,
                     model.EditType.Value,
                     next,

@@ -14,12 +14,13 @@ public class SoundEffectPlayer : MonoBehaviour
     void Awake()
     {
         var model = NotesEditorModel.Instance;
+        var editPresenter = EditNotesPresenter.Instance;
         var clapOffsetSamples = 1800;
 
         var editedDuringPlaybackObservable = Observable.Merge(
                 model.BeatOffsetSamples.Select(_ => false),
-                model.RemoveNoteObservable.Select(_ => false),
-                model.AddNoteObservable.Select(_ => false))
+                editPresenter.RequestForRemoveNote.Select(_ => false),
+                editPresenter.RequestForAddNote.Select(_ => false))
             .Where(_ => model.IsPlaying.Value);
 
         model.IsPlaying.Where(isPlaying => isPlaying)

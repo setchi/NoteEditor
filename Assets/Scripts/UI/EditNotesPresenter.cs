@@ -3,7 +3,7 @@ using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 
-public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
+public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
 {
     [SerializeField]
     GameObject notesRegion;
@@ -11,6 +11,11 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
     CanvasEvents canvasEvents;
     [SerializeField]
     GameObject notePrefab;
+
+    public readonly Subject<Note> RequestForEditNote = new Subject<Note>();
+    public readonly Subject<Note> RequestForRemoveNote = new Subject<Note>();
+    public readonly Subject<Note> RequestForAddNote = new Subject<Note>();
+    public readonly Subject<Note> RequestForChangeNoteStatus = new Subject<Note>();
 
     NotesEditorModel model;
 
@@ -28,7 +33,7 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
 
         closestNoteAreaOnMouseDownObservable
             .Where(_ => !KeyInput.ShiftKey())
-            .Subscribe(_ => model.EditNoteObservable.OnNext(
+            .Subscribe(_ => RequestForEditNote.OnNext(
                 new Note(
                     model.ClosestNotePosition.Value,
                     model.EditType.Value,
@@ -41,7 +46,7 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
             .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Where(_ => KeyInput.ShiftKey())
             .Do(notePosition => model.EditType.Value = NoteTypes.Long)
-            .Subscribe(_ => model.AddNoteObservable.OnNext(
+            .Subscribe(_ => RequestForAddNote.OnNext(
                 new Note(
                     model.ClosestNotePosition.Value,
                     NoteTypes.Long,
@@ -61,52 +66,52 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
         finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = NotePosition.None);
 
 
-        model.RemoveNoteObservable.Buffer(model.RemoveNoteObservable.ThrottleFrame(1))
+        RequestForRemoveNote.Buffer(RequestForRemoveNote.ThrottleFrame(1))
             .Select(b => b.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
                 new Command(
                     () => notes.ForEach(RemoveNote),
                     () => notes.ForEach(AddNote))));
 
-        model.AddNoteObservable.Buffer(model.AddNoteObservable.ThrottleFrame(1))
+        RequestForAddNote.Buffer(RequestForAddNote.ThrottleFrame(1))
             .Select(b => b.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
                 new Command(
                     () => notes.ForEach(AddNote),
                     () => notes.ForEach(RemoveNote))));
 
-        model.ChangeNoteStateObservable.Select(note => new { current = note, prev = model.NoteObjects[note.position].ToNote() })
-            .Buffer(model.ChangeNoteStateObservable.ThrottleFrame(1))
+        RequestForChangeNoteStatus.Select(note => new { current = note, prev = model.NoteObjects[note.position].ToNote() })
+            .Buffer(RequestForChangeNoteStatus.ThrottleFrame(1))
             .Select(b => b.OrderBy(note => note.current.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
                 new Command(
-                    () => notes.ForEach(x => ChangeNoteState(x.current)),
-                    () => notes.ForEach(x => ChangeNoteState(x.prev)))));
+                    () => notes.ForEach(x => ChangeNoteStates(x.current)),
+                    () => notes.ForEach(x => ChangeNoteStates(x.prev)))));
 
 
-        model.EditNoteObservable.Subscribe(note =>
+        RequestForEditNote.Subscribe(note =>
         {
             if (note.type == NoteTypes.Normal)
             {
                 if (!model.NoteObjects.ContainsKey(note.position))
                 {
-                    model.AddNoteObservable.OnNext(note);
+                    RequestForAddNote.OnNext(note);
                     return;
                 }
-                model.RemoveNoteObservable.OnNext(note);
+                RequestForRemoveNote.OnNext(note);
             }
             else if (note.type == NoteTypes.Long)
             {
                 if (!model.NoteObjects.ContainsKey(note.position))
                 {
-                    model.AddNoteObservable.OnNext(note);
+                    RequestForAddNote.OnNext(note);
                     return;
                 }
 
                 var noteObject = model.NoteObjects[note.position];
                 (noteObject.noteType.Value == NoteTypes.Long
-                    ? model.RemoveNoteObservable
-                    : model.ChangeNoteStateObservable)
+                    ? RequestForRemoveNote
+                    : RequestForChangeNoteStatus)
                 .OnNext(noteObject.ToNote());
             }
         });
@@ -116,7 +121,7 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
     {
         if (model.NoteObjects.ContainsKey(note.position))
         {
-            model.ChangeNoteStateObservable.OnNext(note);
+            RequestForChangeNoteStatus.OnNext(note);
             return;
         }
 
@@ -144,7 +149,7 @@ public class NoteObjectsPresenter : SingletonGameObject<NoteObjectsPresenter>
         }
     }
 
-    void ChangeNoteState(Note note)
+    void ChangeNoteStates(Note note)
     {
         if (!model.NoteObjects.ContainsKey(note.position) || model.NoteObjects[note.position].ToNote().Equals(note))
             return;

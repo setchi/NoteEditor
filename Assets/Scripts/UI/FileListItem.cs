@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UniRx;
 using UniRx.Triggers;
 
-public class FileItem : MonoBehaviour
+public class FileListItem : MonoBehaviour
 {
     [SerializeField]
     Color selectedStateBackgroundColor;

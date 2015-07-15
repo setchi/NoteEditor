@@ -16,11 +16,10 @@ public class SavePresenter : MonoBehaviour
     [SerializeField]
     Color savedStateButtonColor = Color.white;
 
-    NotesEditorModel model;
-
     void Awake()
     {
-        model = NotesEditorModel.Instance;
+        var model = NotesEditorModel.Instance;
+        var editPresenter = EditNotesPresenter.Instance;
 
         var saveActionObservable = this.UpdateAsObservable()
             .Where(_ => KeyInput.CtrlPlus(KeyCode.S))
@@ -29,8 +28,11 @@ public class SavePresenter : MonoBehaviour
         Observable.Merge(
                 model.BPM.Select(_ => true),
                 model.BeatOffsetSamples.Select(_ => true),
-                model.EditNoteObservable.Select(_ => true),
                 model.MaxBlock.Select(_ => true),
+                editPresenter.RequestForEditNote.Select(_ => true),
+                editPresenter.RequestForAddNote.Select(_ => true),
+                editPresenter.RequestForRemoveNote.Select(_ => true),
+                editPresenter.RequestForChangeNoteStatus.Select(_ => true),
                 model.OnLoadedMusicObservable.Select(_ => false),
                 saveActionObservable.Select(_ => false))
             .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))

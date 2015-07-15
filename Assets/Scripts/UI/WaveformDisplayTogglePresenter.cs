@@ -10,6 +10,7 @@ public class WaveformDisplayTogglePresenter : MonoBehaviour
     void Awake()
     {
         var model = NotesEditorModel.Instance;
-        model.WaveformDisplayEnabled = waveformDisplayToggle.OnValueChangedAsObservable().ToReactiveProperty();
+        waveformDisplayToggle.OnValueChangedAsObservable()
+            .Subscribe(x => model.WaveformDisplayEnabled.Value = x);
     }
 }

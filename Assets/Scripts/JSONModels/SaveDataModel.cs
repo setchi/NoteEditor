@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class MusicModel
+public class SaveDataModel
 {
     public class NotesData
     {
