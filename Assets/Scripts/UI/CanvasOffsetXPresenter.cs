@@ -16,7 +16,7 @@ public class CanvasOffsetXPresenter : MonoBehaviour
         // Initialize canvas offset x
         model.OnLoadedMusicObservable.Subscribe(_ => model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value);
 
-        this.UpdateAsObservable()
+        var operateCanvasOffsetXObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.VerticalLineOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .Select(_ => Input.mousePosition.x)
@@ -26,7 +26,17 @@ public class CanvasOffsetXPresenter : MonoBehaviour
             .Select(x => x + model.CanvasOffsetX.Value)
             .Select(x => new { x, max = Screen.width * 0.5f * 0.95f * model.CanvasScaleFactor.Value })
             .Select(v => Mathf.Clamp(v.x, -v.max, v.max))
-            .Subscribe(x => model.CanvasOffsetX.Value = x);
+            .DistinctUntilChanged();
+
+        operateCanvasOffsetXObservable.Subscribe(x => model.CanvasOffsetX.Value = x);
+
+        operateCanvasOffsetXObservable.Buffer(this.UpdateAsObservable().Where(_ => Input.GetMouseButtonUp(0)))
+            .Where(b => 2 <= b.Count)
+            .Select(x => new { current = x[x.Count - 1], prev = x[0] })
+            .Subscribe(x => UndoRedoManager.Do(
+                new Command(
+                    () => model.CanvasOffsetX.Value = x.current,
+                    () => model.CanvasOffsetX.Value = x.prev)));
 
         model.CanvasOffsetX.DistinctUntilChanged().Subscribe(x =>
         {

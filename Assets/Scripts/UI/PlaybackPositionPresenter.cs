@@ -89,20 +89,33 @@ public class PlaybackPositionPresenter : MonoBehaviour
             .Do(_ => model.IsOperatingPlaybackPositionDuringPlay.Value = false)
             .Subscribe(_ => model.IsPlaying.Value = true);
 
+        var isRedoUndoAction = false;
+
         // Input (slider)
         var operatePlayPositionSliderObservable = playbackPositionController.OnValueChangedAsObservable()
             .DistinctUntilChanged();
 
 
         // Input -> Audio timesamples
-        Observable.Merge(
+        var operatePlaybackPositionObservable = Observable.Merge(
                 operateArrowKeyObservable,
                 operateScrollPadObservable,
                 operateMouseScrollWheelObservable,
                 operatePlayPositionSliderObservable)
             .Select(timeSamples => Mathf.FloorToInt(timeSamples))
-            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1))
-            .Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
+            .Select(timeSamples => Mathf.Clamp(timeSamples, 0, model.Audio.clip.samples - 1));
+
+        operatePlaybackPositionObservable.Subscribe(timeSamples => model.Audio.timeSamples = timeSamples);
+
+        operatePlaybackPositionObservable.Buffer(operatePlaybackPositionObservable.ThrottleFrame(10))
+            .Where(_ => isRedoUndoAction ? (isRedoUndoAction = false) : true)
+            .Where(b => 2 <= b.Count)
+            .Select(x => new { current = x[x.Count - 1], prev = x[0] })
+            .Subscribe(x => UndoRedoManager.Do(
+                new Command(
+                    () => model.TimeSamples.Value = x.current,
+                    () => { isRedoUndoAction = true; model.TimeSamples.Value = x.prev; },
+                    () => { isRedoUndoAction = true; model.TimeSamples.Value = x.current; })));
 
 
         // Audio timesamples -> Model timesamples

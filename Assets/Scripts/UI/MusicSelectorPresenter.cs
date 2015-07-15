@@ -135,8 +135,8 @@ public class MusicSelectorPresenter : MonoBehaviour
 
             for (int i = 1; i < longNoteObjects.Count; i++)
             {
-                longNoteObjects[i].prev = longNoteObjects[i - 1];
-                longNoteObjects[i - 1].next = longNoteObjects[i];
+                longNoteObjects[i].prev = longNoteObjects[i - 1].notePosition;
+                longNoteObjects[i - 1].next = longNoteObjects[i].notePosition;
             }
         }
     }

@@ -32,13 +32,22 @@ public class BPMPresenter : MonoBehaviour
             .Merge(ChangeButtonsOnMouseDownObservable)
             .Select(delta => model.BPM.Value + delta);
 
+        bool isRedoUndoAction = false;
+
         BPMInputField.OnValueChangeAsObservable()
             .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
             .Select(x => int.Parse(x))
             .Merge(buttonOperateObservable)
             .Select(x => Mathf.Clamp(x, 1, 320))
-            .Subscribe(x => model.BPM.Value = x);
-
+            .DistinctUntilChanged()
+            .Select(x => new { current = x, prev = model.BPM.Value })
+            .Where(_ => isRedoUndoAction ? (isRedoUndoAction = false) : true)
+            .Subscribe(x => UndoRedoManager.Do(
+                new Command(
+                    () => model.BPM.Value = x.current,
+                    () => { isRedoUndoAction = true; model.BPM.Value = x.prev; },
+                    () => { isRedoUndoAction = true; model.BPM.Value = x.current; })));
+        
         model.BPM.DistinctUntilChanged()
             .Subscribe(x => BPMInputField.text = x.ToString());
     }

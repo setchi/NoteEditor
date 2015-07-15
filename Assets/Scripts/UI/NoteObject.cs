@@ -17,9 +17,9 @@ public class NoteObject : MonoBehaviour
     [HideInInspector]
     public NotePosition notePosition;
     [HideInInspector]
-    public NoteObject next;
+    public NotePosition next;
     [HideInInspector]
-    public NoteObject prev;
+    public NotePosition prev;
     [HideInInspector]
     public ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
     [HideInInspector]
@@ -56,28 +56,37 @@ public class NoteObject : MonoBehaviour
         var mouseDownObservable = onMouseDownObservable
             .Where(_ => model.ClosestNotePosition.Value.Equals(notePosition));
 
-        var editObservable = mouseDownObservable
-            .Where(editType => editType == NoteTypes.Normal)
-            .Where(editType => noteType.Value == editType)
-            .Merge(mouseDownObservable
-                .Where(editType => editType == NoteTypes.Long));
+        mouseDownObservable.Where(editType => editType == NoteTypes.Normal)
+            .Where(editType => editType == model.EditType.Value)
+            .Subscribe(_ => 
+                model.RemoveNoteObservable.OnNext(ToNote()));
 
-        editObservable.Subscribe(_ => model.EditNoteObservable.OnNext(ToNote()));
+        mouseDownObservable.Where(editType => editType == NoteTypes.Long)
+            .Subscribe(_ => 
+                (noteType.Value == NoteTypes.Normal
+                    ? model.ChangeNoteStateObservable
+                    : model.RemoveNoteObservable)
+                .OnNext(new Note(
+                    notePosition,
+                    model.EditType.Value,
+                    next,
+                    model.EditType.Value == NoteTypes.Long
+                        ? model.LongNoteTailPosition.Value
+                        : prev)));
 
 
         var longNoteLateUpdateObservable = this.LateUpdateAsObservable()
             .Where(_ => noteType.Value == NoteTypes.Long);
 
         longNoteLateUpdateObservable
-            .Where(_ => next != null)
-            .Select(_ => model.NoteToScreenPosition(next.notePosition))
+            .Where(_ => model.NoteObjects.ContainsKey(next))
+            .Select(_ => model.NoteToScreenPosition(next))
             .Merge(longNoteLateUpdateObservable
-                .Where(_ => next == null)
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
             .Select(nextPosition => new Line[] { new Line( model.NoteToScreenPosition(notePosition), nextPosition,
-                isSelected.Value || next != null && next.isSelected.Value ? selectedStateColor
+                isSelected.Value || model.NoteObjects.ContainsKey(next) && model.NoteObjects[next].isSelected.Value ? selectedStateColor
                     : 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? longStateColor : invalidStateColor) })
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.ToString(), lines));
     }
@@ -89,9 +98,6 @@ public class NoteObject : MonoBehaviour
 
     public Note ToNote()
     {
-        var note = new Note(notePosition, noteType.Value);
-        note.next = next == null || next.notePosition.num < 0 ? NotePosition.None : next.notePosition;
-        note.prev = prev == null || prev.notePosition.num < 0 ? NotePosition.None : prev.notePosition;
-        return note;
+        return new Note(notePosition, noteType.Value, next, prev);
     }
 }

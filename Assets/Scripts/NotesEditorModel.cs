@@ -31,9 +31,11 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
     public Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
-    public Subject<Note> EditNoteObservable = new Subject<Note>();
     public Subject<int> OnLoadedMusicObservable = new Subject<int>();
-    public Subject<NoteObject> AddedLongNoteObjectObservable = new Subject<NoteObject>();
+    public Subject<Note> EditNoteObservable = new Subject<Note>();
+    public Subject<Note> RemoveNoteObservable = new Subject<Note>();
+    public Subject<Note> AddNoteObservable = new Subject<Note>();
+    public Subject<Note> ChangeNoteStateObservable = new Subject<Note>();
 
     [HideInInspector]
     public AudioSource Audio;
@@ -108,7 +110,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         data.name = Path.GetFileNameWithoutExtension(MusicName.Value);
 
         var sortedNoteObjects = NoteObjects.Values
-            .Where(note => !(note.noteType.Value == NoteTypes.Long && note.prev != null))
+            .Where(note => !(note.noteType.Value == NoteTypes.Long && NoteObjects.ContainsKey(note.prev)))
             .OrderBy(note => note.notePosition.ToSamples(Audio.clip.frequency, BPM.Value));
 
         data.notes = new List<MusicModel.Note>();
@@ -124,10 +126,11 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
                 var current = noteObject;
                 var note = ConvertToNote(noteObject);
 
-                while (current.next != null)
+                while (NoteObjects.ContainsKey(current.next))
                 {
-                    note.notes.Add(ConvertToNote(current.next));
-                    current = current.next;
+                    var nextObj = NoteObjects[current.next];
+                    note.notes.Add(ConvertToNote(nextObj));
+                    current = nextObj;
                 }
 
                 data.notes.Add(note);

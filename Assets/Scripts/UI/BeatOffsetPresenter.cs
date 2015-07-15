@@ -27,12 +27,21 @@ public class BeatOffsetPresenter : MonoBehaviour
             .Merge(ChangeButtonsOnMouseDownObservable)
             .Select(delta => model.BeatOffsetSamples.Value + delta);
 
+        var isUndoRedoAction = false;
+
         beatOffsetInputField.OnValueChangeAsObservable()
             .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
             .Select(x => int.Parse(x))
             .Merge(buttonOperateObservable)
             .Select(x => Mathf.Clamp(x, 0, int.MaxValue))
-            .Subscribe(x => model.BeatOffsetSamples.Value = x);
+            .DistinctUntilChanged()
+            .Where(_ => isUndoRedoAction ? (isUndoRedoAction = false) : true)
+            .Select(x => new { current = x, prev = model.BeatOffsetSamples.Value })
+            .Subscribe(x => UndoRedoManager.Do(
+                new Command(
+                    () => model.BeatOffsetSamples.Value = x.current,
+                    () => { isUndoRedoAction = true; model.BeatOffsetSamples.Value = x.prev; },
+                    () => { isUndoRedoAction = true; model.BeatOffsetSamples.Value = x.current; })));
 
         model.BeatOffsetSamples.DistinctUntilChanged()
             .Subscribe(x => beatOffsetInputField.text = x.ToString());

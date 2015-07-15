@@ -28,7 +28,12 @@ public class LPBPresenter : MonoBehaviour
             .Merge(ChangeButtonsOnMouseDownObservable)
             .Select(delta => model.LPB.Value + delta)
             .Select(LPB => Mathf.Clamp(LPB, 2, 32))
-            .Subscribe(LPB => model.LPB.Value = LPB);
+            .DistinctUntilChanged()
+            .Select(x => new { current = x, prev = model.LPB.Value })
+            .Subscribe(x => UndoRedoManager.Do(
+                new Command(
+                    () => model.LPB.Value = x.current,
+                    () => model.LPB.Value = x.prev)));
     }
 
     public void IncreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(1); }

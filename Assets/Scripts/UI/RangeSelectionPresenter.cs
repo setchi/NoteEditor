@@ -54,7 +54,8 @@ public class RangeSelectionPresenter : MonoBehaviour
         // Cutting notes by Ctrl-X
         this.UpdateAsObservable()
             .Where(_ => KeyInput.CtrlPlus(KeyCode.X))
-            .Select(_ => selectedNoteObjects.Values)
+            .Select(_ => selectedNoteObjects.Values
+                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.notePosition)))
             .Do(notes => CopyNotes(notes))
             .Subscribe(notes => DeleteNotes(notes));
 
@@ -75,7 +76,7 @@ public class RangeSelectionPresenter : MonoBehaviour
             .Subscribe(notes => DeleteNotes(notes));
 
 
-        // Paste to next beat by mousedown
+        // Paste to next beat by Ctrl-V
         this.UpdateAsObservable()
             .Where(_ => KeyInput.CtrlPlus(KeyCode.V))
             .Where(_ => copiedNotes.Count > 0)
@@ -89,77 +90,42 @@ public class RangeSelectionPresenter : MonoBehaviour
                 var validNotes = copiedNotes.Where(note => note.position.Add(0, note.position.LPB * beatDiff, 0).ToSamples(model.Audio.clip.frequency, model.BPM.Value) < model.Audio.clip.samples)
                     .ToList();
 
-                validNotes.Where(note => note.type == NoteTypes.Long)
-                    .ToObservable()
-                    .Select(note => new Note(
-                        note.position.Add(0, note.position.LPB * beatDiff, 0),
-                        note.type,
-                        note.next.Add(0, note.next.LPB * beatDiff, 0),
-                        note.prev.Add(0, note.prev.LPB * beatDiff, 0)
-                    ))
-                    .Do(obj => {
-                        if (!model.NoteObjects.ContainsKey(obj.position))
-                            model.EditNoteObservable.OnNext(new Note(obj.position, NoteTypes.Normal));
-                    })
-                    .DelayFrame(1)
-                    .Subscribe(obj =>
-                    {
-                        var current = model.NoteObjects[obj.position];
-                        current.noteType.Value = NoteTypes.Long;
-
-                        current.next = model.NoteObjects.ContainsKey(obj.next) ? model.NoteObjects[obj.next] : null;
-                        current.prev = model.NoteObjects.ContainsKey(obj.prev) ? model.NoteObjects[obj.prev] : null;
-
-                        foreach (var noteObj in model.NoteObjects.Values
-                            .Where(noteObj => noteObj.next == current && noteObj != current.prev))
-                        {
-                            noteObj.next = null;
-                        }
-
-                        foreach (var noteObj in model.NoteObjects.Values
-                            .Where(noteObj => noteObj.prev == current && noteObj != current.next))
-                        {
-                            noteObj.prev = null;
-                        }
-                    });
-
-
-                validNotes.Where(note => note.type == NoteTypes.Normal)
-                    .Select(noteObj => noteObj.position.Add(0, noteObj.position.LPB * beatDiff, 0))
-                    .ToObservable()
-                    .Do(pastedPosition =>
-                    {
-                        if (!model.NoteObjects.ContainsKey(pastedPosition))
-                            model.EditNoteObservable.OnNext(new Note(pastedPosition, NoteTypes.Normal));
-                    })
-                    .Select(pastedPosition => model.NoteObjects[pastedPosition])
-                    .Do(pastedObj => pastedObj.next = pastedObj.prev = null)
-                    .Subscribe(pastedObj => pastedObj.noteType.Value = NoteTypes.Normal);
-
+                validNotes.ToObservable()
+                    .Subscribe(note =>
+                        (model.NoteObjects.ContainsKey(note.position.Add(0, note.position.LPB * beatDiff, 0))
+                            ? model.ChangeNoteStateObservable
+                            : model.AddNoteObservable)
+                        .OnNext(
+                            note.type == NoteTypes.Normal
+                                ? new Note(note.position.Add(0, note.position.LPB * beatDiff, 0))
+                                : new Note(
+                                    note.position.Add(0, note.position.LPB * beatDiff, 0),
+                                    note.type,
+                                    note.next.Add(0, note.next.LPB * beatDiff, 0),
+                                    note.prev.Add(0, note.prev.LPB * beatDiff, 0)
+                                )));
 
                 Deselect();
                 copiedNotes.Clear();
 
                 validNotes.Select(obj => obj.position.Add(0, obj.position.LPB * beatDiff, 0))
-                    .Select(pastedPosition => model.NoteObjects[pastedPosition])
                     .ToObservable()
+                    .DelayFrame(1)
+                    .Select(pastedPosition => model.NoteObjects[pastedPosition])
                     .Do(pastedObj => selectedNoteObjects.Set(pastedObj.notePosition, pastedObj))
                     .Do(pastedObj => pastedObj.isSelected.Value = true)
-                    .DelayFrame(1)
                     .Subscribe(pastedObj => copiedNotes.Add(pastedObj.ToNote()));
             });
     }
 
-    public NotePosition GetSelectedNextLongNote(NoteObject current, Func<NoteObject, NoteObject> accessor)
+    public NotePosition GetSelectedNextLongNote(NotePosition current, Func<NoteObject, NotePosition> accessor)
     {
-        while (current != null)
+        while (model.NoteObjects.ContainsKey(current))
         {
-            if (selectedNoteObjects.ContainsKey(current.notePosition))
-            {
-                return current.notePosition;
-            }
+            if (selectedNoteObjects.ContainsKey(current))
+                return current;
 
-            current = accessor(current);
+            current = accessor(model.NoteObjects[current]);
         }
 
         return NotePosition.None;
@@ -189,7 +155,7 @@ public class RangeSelectionPresenter : MonoBehaviour
 
     void DeleteNotes(IEnumerable<NoteObject> notes)
     {
-        notes.ToList().ForEach(note => model.EditNoteObservable.OnNext(note.ToNote()));
+        notes.ToList().ForEach(note => model.RemoveNoteObservable.OnNext(note.ToNote()));
     }
 
     void Deselect()
