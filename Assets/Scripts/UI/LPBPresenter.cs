@@ -37,7 +37,7 @@ public class LPBPresenter : MonoBehaviour
     }
 
     public void IncreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(1); }
-    public void IncreaseUpButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
+    public void IncreaseButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
     public void DecreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(-1); }
-    public void DecreaseDownButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
+    public void DecreaseButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
 }

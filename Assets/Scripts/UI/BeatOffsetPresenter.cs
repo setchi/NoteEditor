@@ -48,7 +48,7 @@ public class BeatOffsetPresenter : MonoBehaviour
     }
 
     public void IncreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(100); }
-    public void IncreaseUpButtonOnMouseUp() { ChangeButtosOnMouseUpObservable.OnNext(0); }
+    public void IncreaseButtonOnMouseUp() { ChangeButtosOnMouseUpObservable.OnNext(0); }
     public void DecreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(-100); }
-    public void DecreaseDownButtonOnMouseUp() { ChangeButtosOnMouseUpObservable.OnNext(0); }
+    public void DecreaseButtonOnMouseUp() { ChangeButtosOnMouseUpObservable.OnNext(0); }
 }
