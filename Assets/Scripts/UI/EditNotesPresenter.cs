@@ -22,7 +22,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
     void Awake()
     {
         model = NotesEditorModel.Instance;
-        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
+        model.OnLoadMusicObservable.First().Subscribe(_ => Init());
     }
 
     void Init()
@@ -32,7 +32,10 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             .Where(_ => 0 <= model.ClosestNotePosition.Value.num);
 
         closestNoteAreaOnMouseDownObservable
+            .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Where(_ => !KeyInput.ShiftKey())
+            .Merge(closestNoteAreaOnMouseDownObservable
+                .Where(_ => model.EditType.Value == NoteTypes.Long))
             .Subscribe(_ => RequestForEditNote.OnNext(
                 new Note(
                     model.ClosestNotePosition.Value,
@@ -93,12 +96,10 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
         {
             if (note.type == NoteTypes.Normal)
             {
-                if (!model.NoteObjects.ContainsKey(note.position))
-                {
-                    RequestForAddNote.OnNext(note);
-                    return;
-                }
-                RequestForRemoveNote.OnNext(note);
+                (model.NoteObjects.ContainsKey(note.position)
+                    ? RequestForRemoveNote
+                    : RequestForAddNote)
+                .OnNext(note);
             }
             else if (note.type == NoteTypes.Long)
             {
@@ -121,66 +122,24 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
     {
         if (model.NoteObjects.ContainsKey(note.position))
         {
-            RequestForChangeNoteStatus.OnNext(note);
+            if (!model.NoteObjects[note.position].ToNote().Equals(note))
+                RequestForChangeNoteStatus.OnNext(note);
+
             return;
         }
 
         var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
-        noteObject.notePosition = note.position;
-        noteObject.noteType.Value = note.type;
+        noteObject.SetState(note);
         noteObject.transform.SetParent(notesRegion.transform);
-        noteObject.next = note.next;
-        noteObject.prev = note.prev;
         model.NoteObjects.Add(note.position, noteObject);
-
-        if (model.NoteObjects.ContainsKey(note.prev))
-        {
-            model.NoteObjects[note.prev].next = noteObject.notePosition;
-        }
-
-        if (model.NoteObjects.ContainsKey(note.next))
-        {
-            model.NoteObjects[note.next].prev = noteObject.notePosition;
-        }
-
-        if (note.type == NoteTypes.Long)
-        {
-            UpdateLongNoteTailPosition(noteObject, note);
-        }
     }
 
     void ChangeNoteStates(Note note)
     {
-        if (!model.NoteObjects.ContainsKey(note.position) || model.NoteObjects[note.position].ToNote().Equals(note))
+        if (!model.NoteObjects.ContainsKey(note.position))
             return;
 
-        var noteObject = model.NoteObjects[note.position];
-        noteObject.notePosition = note.position;
-        noteObject.noteType.Value = note.type;
-        noteObject.next = note.next;
-        noteObject.prev = note.prev;
-
-        if (model.NoteObjects.ContainsKey(note.prev))
-        {
-            model.NoteObjects[note.prev].next = noteObject.notePosition;
-        }
-
-        if (model.NoteObjects.ContainsKey(note.next))
-        {
-            model.NoteObjects[note.next].prev = noteObject.notePosition;
-        }
-
-        if (note.type == NoteTypes.Long)
-        {
-            UpdateLongNoteTailPosition(noteObject, note);
-        }
-    }
-
-    void UpdateLongNoteTailPosition(NoteObject noteObject, Note note)
-    {
-        model.LongNoteTailPosition.Value = model.LongNoteTailPosition.Value.Equals(note.prev)
-            ? note.position
-            : NotePosition.None;
+        model.NoteObjects[note.position].SetState(note);
     }
 
     void RemoveNote(Note note)

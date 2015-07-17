@@ -9,22 +9,22 @@ public class BeatOffsetPresenter : MonoBehaviour
     [SerializeField]
     InputField beatOffsetInputField;
 
-    Subject<int> ChangeButtosOnMouseUpObservable = new Subject<int>();
-    Subject<int> ChangeButtonsOnMouseDownObservable = new Subject<int>();
+    Subject<int> ButtosOnMouseUpObservable = new Subject<int>();
+    Subject<int> ButtonsOnMouseDownObservable = new Subject<int>();
 
     void Awake()
     {
         var model = NotesEditorModel.Instance;
 
         var buttonOperateObservable = Observable.Merge(
-                ChangeButtonsOnMouseDownObservable,
-                ChangeButtosOnMouseUpObservable)
+                ButtonsOnMouseDownObservable,
+                ButtosOnMouseUpObservable)
             .Throttle(TimeSpan.FromMilliseconds(350))
             .Where(delta => delta != 0)
             .SelectMany(delta => Observable.Interval(TimeSpan.FromMilliseconds(50))
-                .TakeUntil(ChangeButtosOnMouseUpObservable)
+                .TakeUntil(ButtosOnMouseUpObservable)
                 .Select(_ => delta))
-            .Merge(ChangeButtonsOnMouseDownObservable)
+            .Merge(ButtonsOnMouseDownObservable)
             .Select(delta => model.BeatOffsetSamples.Value + delta);
 
         var isUndoRedoAction = false;
@@ -47,8 +47,8 @@ public class BeatOffsetPresenter : MonoBehaviour
             .Subscribe(x => beatOffsetInputField.text = x.ToString());
     }
 
-    public void IncreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(100); }
-    public void IncreaseButtonOnMouseUp() { ChangeButtosOnMouseUpObservable.OnNext(0); }
-    public void DecreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(-100); }
-    public void DecreaseButtonOnMouseUp() { ChangeButtosOnMouseUpObservable.OnNext(0); }
+    public void IncreaseButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(100); }
+    public void IncreaseButtonOnMouseUp() { ButtosOnMouseUpObservable.OnNext(0); }
+    public void DecreaseButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(-100); }
+    public void DecreaseButtonOnMouseUp() { ButtosOnMouseUpObservable.OnNext(0); }
 }

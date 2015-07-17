@@ -1,4 +1,5 @@
-﻿using UniRx;
+﻿using System.Linq;
+using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,12 +28,11 @@ public class NoteObject : MonoBehaviour
     [HideInInspector]
     public RectTransform rectTransform;
 
-    NotesEditorModel model;
     Subject<NoteTypes> onMouseDownObservable = new Subject<NoteTypes>();
 
     void Start()
     {
-        model = NotesEditorModel.Instance;
+        var model = NotesEditorModel.Instance;
         rectTransform = GetComponent<RectTransform>();
         rectTransform.localPosition = model.NoteToScreenPosition(notePosition);
 
@@ -54,6 +54,10 @@ public class NoteObject : MonoBehaviour
             .DistinctUntilChanged()
             .Subscribe(pos => rectTransform.localPosition = pos);
 
+        this.OnDestroyAsObservable()
+            .Where(_ => noteType.Value == NoteTypes.Long)
+            .Subscribe(_ => RemoveLink());
+
 
         var mouseDownObservable = onMouseDownObservable
             .Where(_ => model.ClosestNotePosition.Value.Equals(notePosition));
@@ -64,14 +68,8 @@ public class NoteObject : MonoBehaviour
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Long)
             .Where(editType => editType == noteType.Value)
-            .Do(_ => model.LongNoteTailPosition.Value = prev)
-            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(new Note(
-                    notePosition,
-                    model.EditType.Value,
-                    next,
-                    model.EditType.Value == NoteTypes.Long
-                        ? model.LongNoteTailPosition.Value
-                        : prev)));
+            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(
+                new Note(notePosition, model.EditType.Value, next, prev)));
 
 
         var longNoteLateUpdateObservable = this.LateUpdateAsObservable()
@@ -79,13 +77,12 @@ public class NoteObject : MonoBehaviour
 
         longNoteLateUpdateObservable
             .Where(_ => model.NoteObjects.ContainsKey(next))
-            .Where(_ => model.NoteObjects[next].noteType.Value == NoteTypes.Long)
             .Select(_ => model.NoteToScreenPosition(next))
             .Merge(longNoteLateUpdateObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(notePosition))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
-            .Select(nextPosition => new Line[] { new Line( model.NoteToScreenPosition(notePosition), nextPosition,
+            .Select(nextPosition => new Line[] { new Line(model.NoteToScreenPosition(notePosition), nextPosition,
                 isSelected.Value || model.NoteObjects.ContainsKey(next) && model.NoteObjects[next].isSelected.Value ? selectedStateColor
                     : 0 < nextPosition.x - model.NoteToScreenPosition(notePosition).x ? longStateColor : invalidStateColor) })
             .Subscribe(lines => GLLineRenderer.RenderLines(notePosition.ToString(), lines));
@@ -93,11 +90,56 @@ public class NoteObject : MonoBehaviour
 
     public void OnMouseDown()
     {
-        onMouseDownObservable.OnNext(model.EditType.Value);
+        onMouseDownObservable.OnNext(NotesEditorModel.Instance.EditType.Value);
     }
 
     public Note ToNote()
     {
         return new Note(notePosition, noteType.Value, next, prev);
+    }
+
+    void RemoveLink()
+    {
+        var model = NotesEditorModel.Instance;
+
+        if (model.NoteObjects.ContainsKey(prev))
+            model.NoteObjects[prev].next = next;
+
+        if (model.NoteObjects.ContainsKey(next))
+            model.NoteObjects[next].prev = prev;
+    }
+
+    void InsertLink(NotePosition position)
+    {
+        var model = NotesEditorModel.Instance;
+
+        if (model.NoteObjects.ContainsKey(prev))
+            model.NoteObjects[prev].next = position;
+
+        if (model.NoteObjects.ContainsKey(next))
+            model.NoteObjects[next].prev = position;
+    }
+
+    public void SetState(Note note)
+    {
+        var model = NotesEditorModel.Instance;
+
+        if (note.type == NoteTypes.Normal)
+        {
+            RemoveLink();
+        }
+
+        notePosition = note.position;
+        noteType.Value = note.type;
+        next = note.next;
+        prev = note.prev;
+
+        if (note.type == NoteTypes.Long)
+        {
+            InsertLink(notePosition);
+            model.LongNoteTailPosition.Value = model.LongNoteTailPosition.Value.Equals(note.prev)
+                ? note.position
+                : NotePosition.None;
+        }
     }
 }

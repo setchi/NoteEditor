@@ -18,7 +18,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
     void Awake()
     {
         model = NotesEditorModel.Instance;
-        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
+        model.OnLoadMusicObservable.First().Subscribe(_ => Init());
     }
 
     void Init()

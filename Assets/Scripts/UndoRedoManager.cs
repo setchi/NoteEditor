@@ -12,7 +12,7 @@ public class UndoRedoManager : SingletonGameObject<UndoRedoManager>
     void Awake()
     {
         var model = NotesEditorModel.Instance;
-        model.OnLoadedMusicObservable
+        model.OnLoadMusicObservable
             .DelayFrame(1)
             .Subscribe(_ =>
             {

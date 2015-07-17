@@ -14,7 +14,7 @@ public class CanvasOffsetXPresenter : MonoBehaviour
         var model = NotesEditorModel.Instance;
 
         // Initialize canvas offset x
-        model.OnLoadedMusicObservable.Subscribe(_ => model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value);
+        model.OnLoadMusicObservable.Subscribe(_ => model.CanvasOffsetX.Value = -Screen.width * 0.45f * model.CanvasScaleFactor.Value);
 
         var operateCanvasOffsetXObservable = this.UpdateAsObservable()
             .SkipUntil(canvasEvents.VerticalLineOnMouseDownObservable)

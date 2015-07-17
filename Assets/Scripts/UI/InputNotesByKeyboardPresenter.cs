@@ -11,7 +11,7 @@ public class InputNotesByKeyboardPresenter : MonoBehaviour
     {
         model = NotesEditorModel.Instance;
         editPresenter = EditNotesPresenter.Instance;
-        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
+        model.OnLoadMusicObservable.First().Subscribe(_ => Init());
     }
 
     void Init()

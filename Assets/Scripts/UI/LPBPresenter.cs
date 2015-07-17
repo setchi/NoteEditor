@@ -8,8 +8,8 @@ public class LPBPresenter : MonoBehaviour
     [SerializeField]
     Text LPBDisplayText;
 
-    Subject<int> ChangeButtonsOnMouseUpObservable = new Subject<int>();
-    Subject<int> ChangeButtonsOnMouseDownObservable = new Subject<int>();
+    Subject<int> ButtonsOnMouseUpObservable = new Subject<int>();
+    Subject<int> ButtonsOnMouseDownObservable = new Subject<int>();
 
     void Awake()
     {
@@ -18,14 +18,14 @@ public class LPBPresenter : MonoBehaviour
         model.LPB.DistinctUntilChanged().SubscribeToText(LPBDisplayText);
 
         Observable.Merge(
-                ChangeButtonsOnMouseDownObservable,
-                ChangeButtonsOnMouseUpObservable)
+                ButtonsOnMouseDownObservable,
+                ButtonsOnMouseUpObservable)
             .Throttle(TimeSpan.FromMilliseconds(350))
             .Where(delta => delta != 0)
             .SelectMany(delta => Observable.Interval(TimeSpan.FromMilliseconds(50))
-                .TakeUntil(ChangeButtonsOnMouseUpObservable)
+                .TakeUntil(ButtonsOnMouseUpObservable)
                 .Select(_ => delta))
-            .Merge(ChangeButtonsOnMouseDownObservable)
+            .Merge(ButtonsOnMouseDownObservable)
             .Select(delta => model.LPB.Value + delta)
             .Select(LPB => Mathf.Clamp(LPB, 2, 32))
             .DistinctUntilChanged()
@@ -36,8 +36,8 @@ public class LPBPresenter : MonoBehaviour
                     () => model.LPB.Value = x.prev)));
     }
 
-    public void IncreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(1); }
-    public void IncreaseButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
-    public void DecreaseButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(-1); }
-    public void DecreaseButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
+    public void IncreaseButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(1); }
+    public void IncreaseButtonOnMouseUp() { ButtonsOnMouseUpObservable.OnNext(0); }
+    public void DecreaseButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(-1); }
+    public void DecreaseButtonOnMouseUp() { ButtonsOnMouseUpObservable.OnNext(0); }
 }

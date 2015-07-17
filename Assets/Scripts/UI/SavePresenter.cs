@@ -33,9 +33,9 @@ public class SavePresenter : MonoBehaviour
                 editPresenter.RequestForAddNote.Select(_ => true),
                 editPresenter.RequestForRemoveNote.Select(_ => true),
                 editPresenter.RequestForChangeNoteStatus.Select(_ => true),
-                model.OnLoadedMusicObservable.Select(_ => false),
+                model.OnLoadMusicObservable.Select(_ => false),
                 saveActionObservable.Select(_ => false))
-            .SkipUntil(model.OnLoadedMusicObservable.DelayFrame(1))
+            .SkipUntil(model.OnLoadMusicObservable.DelayFrame(1))
             .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? unsavedStateButtonColor : savedStateButtonColor)
             .SubscribeToText(messageText, unsaved => unsaved ? "保存が必要な状態" : "");
 

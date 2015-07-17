@@ -10,26 +10,26 @@ public class BPMPresenter : MonoBehaviour
     InputField BPMInputField;
 
     NotesEditorModel model;
-    Subject<int> ChangeButtonsOnMouseUpObservable = new Subject<int>();
-    Subject<int> ChangeButtonsOnMouseDownObservable = new Subject<int>();
+    Subject<int> ButtonsOnMouseUpObservable = new Subject<int>();
+    Subject<int> ButtonsOnMouseDownObservable = new Subject<int>();
 
     void Awake()
     {
         model = NotesEditorModel.Instance;
-        model.OnLoadedMusicObservable.First().Subscribe(_ => Init());
+        model.OnLoadMusicObservable.First().Subscribe(_ => Init());
     }
 
     void Init()
     {
         var buttonOperateObservable = Observable.Merge(
-                ChangeButtonsOnMouseDownObservable,
-                ChangeButtonsOnMouseUpObservable)
+                ButtonsOnMouseDownObservable,
+                ButtonsOnMouseUpObservable)
             .Throttle(TimeSpan.FromMilliseconds(350))
             .Where(delta => delta != 0)
             .SelectMany(delta => Observable.Interval(TimeSpan.FromMilliseconds(50))
-                .TakeUntil(ChangeButtonsOnMouseUpObservable)
+                .TakeUntil(ButtonsOnMouseUpObservable)
                 .Select(_ => delta))
-            .Merge(ChangeButtonsOnMouseDownObservable)
+            .Merge(ButtonsOnMouseDownObservable)
             .Select(delta => model.BPM.Value + delta);
 
         bool isRedoUndoAction = false;
@@ -52,8 +52,8 @@ public class BPMPresenter : MonoBehaviour
             .Subscribe(x => BPMInputField.text = x.ToString());
     }
 
-    public void UpButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(1); }
-    public void UpButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
-    public void DownButtonOnMouseDown() { ChangeButtonsOnMouseDownObservable.OnNext(-1); }
-    public void DownButtonOnMouseUp() { ChangeButtonsOnMouseUpObservable.OnNext(0); }
+    public void UpButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(1); }
+    public void UpButtonOnMouseUp() { ButtonsOnMouseUpObservable.OnNext(0); }
+    public void DownButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(-1); }
+    public void DownButtonOnMouseUp() { ButtonsOnMouseUpObservable.OnNext(0); }
 }
