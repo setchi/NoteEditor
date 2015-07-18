@@ -11,6 +11,8 @@ public class NotesEditorSettingsModel : SingletonGameObject<NotesEditorSettingsM
     public readonly ReactiveProperty<int> SelectedBlock = new ReactiveProperty<int>();
     public readonly ReactiveProperty<bool> IsViewing = new ReactiveProperty<bool>(false);
     public readonly Subject<Unit> RequestForChangeInputNoteKeyCode = new Subject<Unit>();
+
+    [HideInInspector]
     public int MaxBlock = 0;
 
     public void Apply(SettingsModel data)

@@ -44,7 +44,8 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         
         this.ObserveEveryValueChanged(_ => Screen.width)
             .DistinctUntilChanged()
-            .Subscribe(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
+            .Subscribe(w => CanvasScaleFactor.Value = 1280f / w);
+            // .Subscribe(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
 
         ClearNotesData();
     }
@@ -58,6 +59,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         LPB.Value = 4;
         IsPlaying.Value = false;
         TimeSamples.Value = 0;
+        LongNoteTailPosition.Value = NotePosition.None;
 
         foreach (var noteObject in NoteObjects.Values)
         {
@@ -103,25 +105,25 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         data.name = Path.GetFileNameWithoutExtension(MusicName.Value);
 
         var sortedNoteObjects = NoteObjects.Values
-            .Where(note => !(note.noteType.Value == NoteTypes.Long && NoteObjects.ContainsKey(note.prev)))
-            .OrderBy(note => note.notePosition.ToSamples(Audio.clip.frequency, BPM.Value));
+            .Where(note => !(note.note.type == NoteTypes.Long && NoteObjects.ContainsKey(note.note.prev)))
+            .OrderBy(note => note.note.position.ToSamples(Audio.clip.frequency, BPM.Value));
 
         data.notes = new List<SaveDataModel.Note>();
 
         foreach (var noteObject in sortedNoteObjects)
         {
-            if (noteObject.noteType.Value == NoteTypes.Normal)
+            if (noteObject.note.type == NoteTypes.Normal)
             {
                 data.notes.Add(ConvertToNote(noteObject));
             }
-            else if (noteObject.noteType.Value == NoteTypes.Long)
+            else if (noteObject.note.type == NoteTypes.Long)
             {
                 var current = noteObject;
                 var note = ConvertToNote(noteObject);
 
-                while (NoteObjects.ContainsKey(current.next))
+                while (NoteObjects.ContainsKey(current.note.next))
                 {
-                    var nextObj = NoteObjects[current.next];
+                    var nextObj = NoteObjects[current.note.next];
                     note.notes.Add(ConvertToNote(nextObj));
                     current = nextObj;
                 }
@@ -140,10 +142,10 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public SaveDataModel.Note ConvertToNote(NoteObject noteObject)
     {
         var note = new SaveDataModel.Note();
-        note.num = noteObject.notePosition.num;
-        note.block = noteObject.notePosition.block;
-        note.LPB = noteObject.notePosition.LPB;
-        note.type = noteObject.noteType.Value == NoteTypes.Long ? 2 : 1;
+        note.num = noteObject.note.position.num;
+        note.block = noteObject.note.position.block;
+        note.LPB = noteObject.note.position.LPB;
+        note.type = noteObject.note.type == NoteTypes.Long ? 2 : 1;
         note.notes = new List<SaveDataModel.Note>();
         return note;
     }

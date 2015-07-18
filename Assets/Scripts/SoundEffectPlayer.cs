@@ -29,7 +29,7 @@ public class SoundEffectPlayer : MonoBehaviour
             .Select(_ =>
                 new Queue<int>(
                     model.NoteObjects.Values
-                        .Select(noteObject => noteObject.notePosition.ToSamples(model.Audio.clip.frequency, model.BPM.Value))
+                        .Select(noteObject => noteObject.note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value))
                         .Distinct()
                         .Select(samples => samples + model.BeatOffsetSamples.Value)
                         .Where(samples => model.Audio.timeSamples <= samples)

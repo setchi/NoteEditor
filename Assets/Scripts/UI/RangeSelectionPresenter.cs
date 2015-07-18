@@ -45,7 +45,7 @@ public class RangeSelectionPresenter : MonoBehaviour
             .Where(_ => KeyInput.CtrlPlus(KeyCode.A))
             .SelectMany(_ => model.NoteObjects.Values.ToList())
             .Do(noteObj => noteObj.isSelected.Value = true)
-            .Subscribe(noteObj => selectedNoteObjects.Set(noteObj.notePosition, noteObj));
+            .Subscribe(noteObj => selectedNoteObjects.Set(noteObj.note.position, noteObj));
 
 
         // Copy notes by Ctrl-C
@@ -58,7 +58,7 @@ public class RangeSelectionPresenter : MonoBehaviour
         this.UpdateAsObservable()
             .Where(_ => KeyInput.CtrlPlus(KeyCode.X))
             .Select(_ => selectedNoteObjects.Values
-                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.notePosition)))
+                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.note.position)))
             .Do(notes => CopyNotes(notes))
             .Subscribe(notes => DeleteNotes(notes));
 
@@ -74,7 +74,7 @@ public class RangeSelectionPresenter : MonoBehaviour
         this.UpdateAsObservable()
             .Where(_ => Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
             .Select(_ => selectedNoteObjects.Values
-                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.notePosition)).ToList())
+                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.note.position)).ToList())
             .Do(_ => selectedNoteObjects.Clear())
             .Subscribe(notes => DeleteNotes(notes));
 
@@ -118,7 +118,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                     .ToObservable()
                     .DelayFrame(1)
                     .Select(pastedPosition => model.NoteObjects[pastedPosition])
-                    .Do(pastedObj => selectedNoteObjects.Set(pastedObj.notePosition, pastedObj))
+                    .Do(pastedObj => selectedNoteObjects.Set(pastedObj.note.position, pastedObj))
                     .Subscribe(pastedObj => pastedObj.isSelected.Value = true);
             });
     }
@@ -147,11 +147,11 @@ public class RangeSelectionPresenter : MonoBehaviour
     {
         copiedNotes = notes.Select(noteObj =>
         {
-            var note = noteObj.ToNote();
-            if (noteObj.noteType.Value == NoteTypes.Long)
+            var note = noteObj.note;
+            if (noteObj.note.type == NoteTypes.Long)
             {
-                note.next = GetSelectedNextLongNote(noteObj.next, c => c.next);
-                note.prev = GetSelectedNextLongNote(noteObj.prev, c => c.prev);
+                note.next = GetSelectedNextLongNote(noteObj.note.next, c => c.note.next);
+                note.prev = GetSelectedNextLongNote(noteObj.note.prev, c => c.note.prev);
             }
             return note;
         })
@@ -160,13 +160,13 @@ public class RangeSelectionPresenter : MonoBehaviour
 
     void DeleteNotes(IEnumerable<NoteObject> notes)
     {
-        notes.ToList().ForEach(note => editPresenter.RequestForRemoveNote.OnNext(note.ToNote()));
+        notes.ToList().ForEach(note => editPresenter.RequestForRemoveNote.OnNext(note.note));
     }
 
     void Deselect()
     {
         selectedNoteObjects.Values
-            .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.notePosition))
+            .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.note.position))
             .ToList()
             .ForEach(note => note.isSelected.Value = false);
 

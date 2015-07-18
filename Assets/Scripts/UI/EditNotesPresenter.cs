@@ -83,7 +83,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
                     () => notes.ForEach(AddNote),
                     () => notes.ForEach(RemoveNote))));
 
-        RequestForChangeNoteStatus.Select(note => new { current = note, prev = model.NoteObjects[note.position].ToNote() })
+        RequestForChangeNoteStatus.Select(note => new { current = note, prev = model.NoteObjects[note.position].note })
             .Buffer(RequestForChangeNoteStatus.ThrottleFrame(1))
             .Select(b => b.OrderBy(note => note.current.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
             .Subscribe(notes => UndoRedoManager.Do(
@@ -110,10 +110,10 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
                 }
 
                 var noteObject = model.NoteObjects[note.position];
-                (noteObject.noteType.Value == NoteTypes.Long
+                (noteObject.note.type == NoteTypes.Long
                     ? RequestForRemoveNote
                     : RequestForChangeNoteStatus)
-                .OnNext(noteObject.ToNote());
+                .OnNext(noteObject.note);
             }
         });
     }
@@ -122,7 +122,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
     {
         if (model.NoteObjects.ContainsKey(note.position))
         {
-            if (!model.NoteObjects[note.position].ToNote().Equals(note))
+            if (!model.NoteObjects[note.position].note.Equals(note))
                 RequestForChangeNoteStatus.OnNext(note);
 
             return;
@@ -148,7 +148,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             return;
 
         var noteObject = model.NoteObjects[note.position];
-        model.NoteObjects.Remove(noteObject.notePosition);
+        model.NoteObjects.Remove(noteObject.note.position);
         DestroyObject(noteObject.gameObject);
     }
 }
