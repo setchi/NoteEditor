@@ -64,8 +64,26 @@ public class NoteObject : MonoBehaviour
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Long)
             .Where(editType => editType == noteType.Value)
-            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(
-                new Note(note.position, model.EditType.Value, note.next, note.prev)));
+            .Subscribe(_ =>
+            {
+                if (model.NoteObjects.ContainsKey(model.LongNoteTailPosition.Value) && note.prev.Equals(NotePosition.None))
+                {
+                    var currentTailNote = new Note(model.NoteObjects[model.LongNoteTailPosition.Value].note);
+                    currentTailNote.next = note.position;
+                    editPresenter.RequestForChangeNoteStatus.OnNext(currentTailNote);
+
+                    var selfNote = new Note(note);
+                    selfNote.prev = currentTailNote.position;
+                    editPresenter.RequestForChangeNoteStatus.OnNext(selfNote);
+                }
+                else
+                {
+                    if (model.NoteObjects.ContainsKey(note.prev) && !model.NoteObjects.ContainsKey(note.next))
+                        model.LongNoteTailPosition.Value = note.prev;
+
+                    editPresenter.RequestForRemoveNote.OnNext(new Note(note.position, model.EditType.Value, note.next, note.prev));
+                }
+            });
 
 
         var longNoteLateUpdateObservable = this.LateUpdateAsObservable()

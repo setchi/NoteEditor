@@ -2,8 +2,8 @@
 {
     public NotePosition position = NotePosition.None;
     public NoteTypes type = NoteTypes.Normal;
-    public NotePosition next;
-    public NotePosition prev;
+    public NotePosition next = NotePosition.None;
+    public NotePosition prev = NotePosition.None;
 
     public Note(NotePosition position, NoteTypes type, NotePosition next, NotePosition prev)
     {
@@ -22,6 +22,14 @@
     public Note(NotePosition position)
     {
         this.position = position;
+    }
+
+    public Note(Note note)
+    {
+        this.position = note.position;
+        this.type = note.type;
+        this.next = note.next;
+        this.prev = note.prev;
     }
 
     public Note() { }
