@@ -50,10 +50,6 @@ public class NoteObject : MonoBehaviour
             .DistinctUntilChanged()
             .Subscribe(pos => rectTransform.localPosition = pos);
 
-        this.OnDestroyAsObservable()
-            .Where(_ => noteType.Value == NoteTypes.Long)
-            .Subscribe(_ => RemoveLink());
-
 
         var mouseDownObservable = onMouseDownObservable
             .Where(_ => model.ClosestNotePosition.Value.Equals(note.position));
@@ -82,6 +78,7 @@ public class NoteObject : MonoBehaviour
                         model.LongNoteTailPosition.Value = note.prev;
 
                     editPresenter.RequestForRemoveNote.OnNext(new Note(note.position, model.EditType.Value, note.next, note.prev));
+                    RemoveLink();
                 }
             });
 

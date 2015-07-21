@@ -59,6 +59,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         LPB.Value = 4;
         IsPlaying.Value = false;
         TimeSamples.Value = 0;
+        EditType.Value = NoteTypes.Normal;
         LongNoteTailPosition.Value = NotePosition.None;
 
         foreach (var noteObject in NoteObjects.Values)

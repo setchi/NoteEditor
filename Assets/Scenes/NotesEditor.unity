@@ -2696,7 +2696,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 32780995}
-          m_MethodName: DecreaseDownButtonOnMouseUp
+          m_MethodName: DecreaseButtonOnMouseUp
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -4283,7 +4283,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 1910481098}
-          m_MethodName: IncreaseUpButtonOnMouseUp
+          m_MethodName: IncreaseButtonOnMouseUp
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -5904,7 +5904,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 32780995}
-          m_MethodName: IncreaseUpButtonOnMouseUp
+          m_MethodName: IncreaseButtonOnMouseUp
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -9434,7 +9434,7 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls:
         - m_Target: {fileID: 1910481098}
-          m_MethodName: DecreaseDownButtonOnMouseUp
+          m_MethodName: DecreaseButtonOnMouseUp
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}

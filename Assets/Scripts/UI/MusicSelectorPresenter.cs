@@ -143,6 +143,8 @@ public class MusicSelectorPresenter : MonoBehaviour
                 longNoteObjects[i].note.prev = longNoteObjects[i - 1].note.position;
                 longNoteObjects[i - 1].note.next = longNoteObjects[i].note.position;
             }
+
+            editorModel.LongNoteTailPosition.Value = NotePosition.None;
         }
     }
 

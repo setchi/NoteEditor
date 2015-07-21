@@ -48,7 +48,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
         closestNoteAreaOnMouseDownObservable
             .Where(_ => model.EditType.Value == NoteTypes.Normal)
             .Where(_ => KeyInput.ShiftKey())
-            .Do(notePosition => model.EditType.Value = NoteTypes.Long)
+            .Do(_ => model.EditType.Value = NoteTypes.Long)
             .Subscribe(_ => RequestForAddNote.OnNext(
                 new Note(
                     model.ClosestNotePosition.Value,
