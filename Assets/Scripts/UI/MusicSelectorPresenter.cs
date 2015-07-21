@@ -35,8 +35,7 @@ public class MusicSelectorPresenter : MonoBehaviour
         directoryPathInputField.OnValueChangeAsObservable()
             .Subscribe(path => model.DirectoryPath.Value = path);
 
-        model.DirectoryPath.DistinctUntilChanged()
-            .Subscribe(path => directoryPathInputField.text = path);
+        model.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
 
         model.DirectoryPath.Value = NotesEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
 

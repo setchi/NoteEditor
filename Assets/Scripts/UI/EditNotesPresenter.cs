@@ -63,8 +63,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             .Where(_ => Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
             .Subscribe(_ => model.EditType.Value = NoteTypes.Normal);
 
-        var finishEditLongNoteObservable = model.EditType.DistinctUntilChanged()
-            .Where(editType => editType == NoteTypes.Normal);
+        var finishEditLongNoteObservable = model.EditType.Where(editType => editType == NoteTypes.Normal);
 
         finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = NotePosition.None);
 

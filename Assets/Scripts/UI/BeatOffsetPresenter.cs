@@ -43,8 +43,7 @@ public class BeatOffsetPresenter : MonoBehaviour
                     () => { isUndoRedoAction = true; model.BeatOffsetSamples.Value = x.prev; },
                     () => { isUndoRedoAction = true; model.BeatOffsetSamples.Value = x.current; })));
 
-        model.BeatOffsetSamples.DistinctUntilChanged()
-            .Subscribe(x => beatOffsetInputField.text = x.ToString());
+        model.BeatOffsetSamples.Subscribe(x => beatOffsetInputField.text = x.ToString());
     }
 
     public void IncreaseButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(100); }

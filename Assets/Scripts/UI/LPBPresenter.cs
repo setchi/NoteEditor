@@ -15,7 +15,7 @@ public class LPBPresenter : MonoBehaviour
     {
         var model = NotesEditorModel.Instance;
 
-        model.LPB.DistinctUntilChanged().SubscribeToText(LPBDisplayText);
+        model.LPB.SubscribeToText(LPBDisplayText);
 
         Observable.Merge(
                 ButtonsOnMouseDownObservable,

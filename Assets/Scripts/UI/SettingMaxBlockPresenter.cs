@@ -15,7 +15,7 @@ public class SettingMaxBlockPresenter : MonoBehaviour
     {
         var model = NotesEditorModel.Instance;
 
-        model.MaxBlock.DistinctUntilChanged().SubscribeToText(MaxBlockDisplaytext);
+        model.MaxBlock.SubscribeToText(MaxBlockDisplaytext);
 
         Observable.Merge(
                 ChangeButtonsOnMouseDownObservable,

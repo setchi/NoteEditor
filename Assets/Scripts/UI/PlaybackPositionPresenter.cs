@@ -129,12 +129,10 @@ public class PlaybackPositionPresenter : MonoBehaviour
 
 
         // Model timesamples -> UI(slider)
-        model.TimeSamples.DistinctUntilChanged()
-            .Subscribe(timeSamples => playbackPositionController.value = timeSamples);
+        model.TimeSamples.Subscribe(timeSamples => playbackPositionController.value = timeSamples);
 
         // Model timesamples -> UI(text)
-        model.TimeSamples.DistinctUntilChanged()
-            .Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
+        model.TimeSamples.Select(timeSamples => timeSamples / (float)model.Audio.clip.samples)
             .Select(per =>
                 TimeSpan.FromSeconds(model.Audio.time).ToString().Substring(3, 5)
                 + " / "

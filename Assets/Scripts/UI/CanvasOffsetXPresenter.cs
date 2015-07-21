@@ -38,7 +38,7 @@ public class CanvasOffsetXPresenter : MonoBehaviour
                     () => model.CanvasOffsetX.Value = x.current,
                     () => model.CanvasOffsetX.Value = x.prev)));
 
-        model.CanvasOffsetX.DistinctUntilChanged().Subscribe(x =>
+        model.CanvasOffsetX.Subscribe(x =>
         {
             var pos = verticalLineRect.localPosition;
             pos.x = x;

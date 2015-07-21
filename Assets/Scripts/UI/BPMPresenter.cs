@@ -47,9 +47,8 @@ public class BPMPresenter : MonoBehaviour
                     () => model.BPM.Value = x.current,
                     () => { isRedoUndoAction = true; model.BPM.Value = x.prev; },
                     () => { isRedoUndoAction = true; model.BPM.Value = x.current; })));
-        
-        model.BPM.DistinctUntilChanged()
-            .Subscribe(x => BPMInputField.text = x.ToString());
+
+        model.BPM.Subscribe(x => BPMInputField.text = x.ToString());
     }
 
     public void UpButtonOnMouseDown() { ButtonsOnMouseDownObservable.OnNext(1); }

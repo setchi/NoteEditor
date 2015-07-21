@@ -27,7 +27,7 @@ public class TogglePlayPausePresenter : MonoBehaviour
             .Merge(togglePlayPauseButton.OnClickAsObservable())
             .Subscribe(_ => model.IsPlaying.Value = !model.IsPlaying.Value);
 
-        model.IsPlaying.DistinctUntilChanged().Subscribe(playing =>
+        model.IsPlaying.Subscribe(playing =>
         {
             var playButtonImage = togglePlayPauseButton.GetComponent<Image>();
 
