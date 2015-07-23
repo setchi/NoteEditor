@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
@@ -110,7 +111,7 @@ public class PlaybackPositionPresenter : MonoBehaviour
         operatePlaybackPositionObservable.Buffer(operatePlaybackPositionObservable.ThrottleFrame(10))
             .Where(_ => isRedoUndoAction ? (isRedoUndoAction = false) : true)
             .Where(b => 2 <= b.Count)
-            .Select(x => new { current = x[x.Count - 1], prev = x[0] })
+            .Select(x => new { current = x.Last(), prev = x.First() })
             .Subscribe(x => UndoRedoManager.Do(
                 new Command(
                     () => model.TimeSamples.Value = x.current,

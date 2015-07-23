@@ -1,4 +1,5 @@
-﻿using UniRx;
+﻿using System.Linq;
+using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 using UnityEngine.UI;
@@ -36,7 +37,7 @@ public class CanvasWidthScalePresenter : MonoBehaviour
 
         operateCanvasScaleObservable.Buffer(operateCanvasScaleObservable.ThrottleFrame(2))
             .Where(b => 2 <= b.Count)
-            .Select(x => new { current = x[x.Count - 1], prev = x[0] })
+            .Select(x => new { current = x.Last(), prev = x.First() })
             .Subscribe(x => UndoRedoManager.Do(
                 new Command(
                     () => model.CanvasWidth.Value = x.current,
