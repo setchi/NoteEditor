@@ -73,6 +73,6 @@ public abstract class SpinBoxPresenterBase : MonoBehaviour
                     () => { isUndoRedoAction = true; property.Value = x.prev; },
                     () => { isUndoRedoAction = true; property.Value = x.current; })));
 
-        GetProperty().Subscribe(x => inputField.text = x.ToString());
+        property.Subscribe(x => inputField.text = x.ToString());
     }
 }
