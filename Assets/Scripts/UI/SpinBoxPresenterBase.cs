@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 using UniRx;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -29,22 +28,12 @@ public abstract class SpinBoxPresenterBase : MonoBehaviour
 
     protected abstract ReactiveProperty<int> GetReactiveProperty();
 
-    EventTrigger.Entry InstantiateEntry(EventTriggerType eventID, UnityAction<BaseEventData> callback)
-    {
-        var entry = new EventTrigger.Entry();
-        entry.eventID = eventID;
-        entry.callback.AddListener(callback);
-        return entry;
-    }
-
     void Awake()
     {
-        var increaseButtonEventTriggers = (increaseButton.GetComponent<EventTrigger>() ?? increaseButton.gameObject.AddComponent<EventTrigger>()).triggers;
-        var decreaseButtonEventTriggers = (decreaseButton.GetComponent<EventTrigger>() ?? decreaseButton.gameObject.AddComponent<EventTrigger>()).triggers;
-        increaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerDown, (e) => _operateSpinButtonObservable.OnNext(valueChangeCoefficient)));
-        increaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerUp, (e) => _operateSpinButtonObservable.OnNext(0)));
-        decreaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerDown, (e) => _operateSpinButtonObservable.OnNext(-valueChangeCoefficient)));
-        decreaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerUp, (e) => _operateSpinButtonObservable.OnNext(0)));
+        increaseButton.AddListener(EventTriggerType.PointerUp, e => _operateSpinButtonObservable.OnNext(0));
+        decreaseButton.AddListener(EventTriggerType.PointerUp, e => _operateSpinButtonObservable.OnNext(0));
+        increaseButton.AddListener(EventTriggerType.PointerDown, e => _operateSpinButtonObservable.OnNext(valueChangeCoefficient));
+        decreaseButton.AddListener(EventTriggerType.PointerDown, e => _operateSpinButtonObservable.OnNext(-valueChangeCoefficient));
 
         var property = GetReactiveProperty();
 
