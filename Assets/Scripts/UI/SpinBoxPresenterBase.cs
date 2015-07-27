@@ -25,9 +25,9 @@ public abstract class SpinBoxPresenterBase : MonoBehaviour
     [SerializeField]
     int continuousPressIntervalMilliseconds;
 
-    Subject<int> _operateButtonStream = new Subject<int>();
+    Subject<int> _operateSpinButtonObservable = new Subject<int>();
 
-    protected abstract ReactiveProperty<int> GetProperty();
+    protected abstract ReactiveProperty<int> GetReactiveProperty();
 
     EventTrigger.Entry InstantiateEntry(EventTriggerType eventID, UnityAction<BaseEventData> callback)
     {
@@ -41,28 +41,33 @@ public abstract class SpinBoxPresenterBase : MonoBehaviour
     {
         var increaseButtonEventTriggers = (increaseButton.GetComponent<EventTrigger>() ?? increaseButton.gameObject.AddComponent<EventTrigger>()).triggers;
         var decreaseButtonEventTriggers = (decreaseButton.GetComponent<EventTrigger>() ?? decreaseButton.gameObject.AddComponent<EventTrigger>()).triggers;
-        increaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerDown, (e) => _operateButtonStream.OnNext(valueChangeCoefficient)));
-        increaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerUp, (e) => _operateButtonStream.OnNext(0)));
-        decreaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerDown, (e) => _operateButtonStream.OnNext(-valueChangeCoefficient)));
-        decreaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerUp, (e) => _operateButtonStream.OnNext(0)));
+        increaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerDown, (e) => _operateSpinButtonObservable.OnNext(valueChangeCoefficient)));
+        increaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerUp, (e) => _operateSpinButtonObservable.OnNext(0)));
+        decreaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerDown, (e) => _operateSpinButtonObservable.OnNext(-valueChangeCoefficient)));
+        decreaseButtonEventTriggers.Add(InstantiateEntry(EventTriggerType.PointerUp, (e) => _operateSpinButtonObservable.OnNext(0)));
 
-        var property = GetProperty();
+        var property = GetReactiveProperty();
 
-        var operateButtonObservable = _operateButtonStream
+        property.Subscribe(x => inputField.text = x.ToString());
+
+        var updateValueFromInputFieldStream = inputField.OnValueChangeAsObservable()
+            .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
+            .Select(x => int.Parse(x));
+
+        var updateValueFromSpinButtonStream = _operateSpinButtonObservable
             .Throttle(TimeSpan.FromMilliseconds(longPressTriggerMilliseconds))
             .Where(delta => delta != 0)
             .SelectMany(delta => Observable.Interval(TimeSpan.FromMilliseconds(continuousPressIntervalMilliseconds))
-                .TakeUntil(_operateButtonStream.Where(d => d == 0))
+                .TakeUntil(_operateSpinButtonObservable.Where(d => d == 0))
                 .Select(_ => delta))
-            .Merge(_operateButtonStream.Where(d => d != 0))
+            .Merge(_operateSpinButtonObservable.Where(d => d != 0))
             .Select(delta => property.Value + delta);
 
         var isUndoRedoAction = false;
 
-        inputField.OnValueChangeAsObservable()
-            .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
-            .Select(x => int.Parse(x))
-            .Merge(operateButtonObservable)
+        Observable.Merge(
+                updateValueFromSpinButtonStream,
+                updateValueFromInputFieldStream)
             .Select(x => Mathf.Clamp(x, minValue, maxValue))
             .DistinctUntilChanged()
             .Where(_ => isUndoRedoAction ? (isUndoRedoAction = false) : true)
@@ -71,8 +76,7 @@ public abstract class SpinBoxPresenterBase : MonoBehaviour
                 new Command(
                     () => property.Value = x.current,
                     () => { isUndoRedoAction = true; property.Value = x.prev; },
-                    () => { isUndoRedoAction = true; property.Value = x.current; })));
-
-        property.Subscribe(x => inputField.text = x.ToString());
+                    () => { isUndoRedoAction = true; property.Value = x.current; })))
+            .AddTo(this);
     }
 }

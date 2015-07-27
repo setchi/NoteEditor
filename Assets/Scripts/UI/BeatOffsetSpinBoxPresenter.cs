@@ -2,7 +2,7 @@
 
 public class BeatOffsetSpinBoxPresenter : SpinBoxPresenterBase
 {
-    protected override ReactiveProperty<int> GetProperty()
+    protected override ReactiveProperty<int> GetReactiveProperty()
     {
         return NotesEditorModel.Instance.BeatOffsetSamples;
     }
