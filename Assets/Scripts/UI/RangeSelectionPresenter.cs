@@ -36,7 +36,7 @@ public class RangeSelectionPresenter : MonoBehaviour
             .Do(rect => GLLineRenderer.RenderLines("selectionRect", ToLines(rect, selectionRectColor)))
             .Do(_ => { if (!model.IsPlaying.Value) Deselect(); })
             .SelectMany(rect => GetNotesWithin(rect))
-            .Do(kv => selectedNoteObjects.Set(kv))
+            .Do(kv => selectedNoteObjects[kv.Key] = kv.Value)
             .Subscribe(kv => kv.Value.isSelected.Value = true);
 
 
@@ -45,7 +45,7 @@ public class RangeSelectionPresenter : MonoBehaviour
             .Where(_ => KeyInput.CtrlPlus(KeyCode.A))
             .SelectMany(_ => model.NoteObjects.Values.ToList())
             .Do(noteObj => noteObj.isSelected.Value = true)
-            .Subscribe(noteObj => selectedNoteObjects.Set(noteObj.note.position, noteObj));
+            .Subscribe(noteObj => selectedNoteObjects[noteObj.note.position] = noteObj);
 
 
         // Copy notes by Ctrl-C
@@ -118,7 +118,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                     .ToObservable()
                     .DelayFrame(1)
                     .Select(pastedPosition => model.NoteObjects[pastedPosition])
-                    .Do(pastedObj => selectedNoteObjects.Set(pastedObj.note.position, pastedObj))
+                    .Do(pastedObj => selectedNoteObjects[pastedObj.note.position] = pastedObj)
                     .Subscribe(pastedObj => pastedObj.isSelected.Value = true);
             });
     }
