@@ -29,7 +29,7 @@ public class NoteObject : MonoBehaviour
     {
         var model = NotesEditorModel.Instance;
         rectTransform = GetComponent<RectTransform>();
-        rectTransform.localPosition = model.NoteToScreenPosition(note.position);
+        rectTransform.localPosition = model.NoteToCanvasPosition(note.position);
 
         var editPresenter = EditNotesPresenter.Instance;
 
@@ -46,7 +46,7 @@ public class NoteObject : MonoBehaviour
 
 
         this.UpdateAsObservable()
-            .Select(_ => model.NoteToScreenPosition(note.position))
+            .Select(_ => model.NoteToCanvasPosition(note.position))
             .DistinctUntilChanged()
             .Subscribe(pos => rectTransform.localPosition = pos);
 
@@ -88,15 +88,15 @@ public class NoteObject : MonoBehaviour
 
         longNoteLateUpdateObservable
             .Where(_ => model.NoteObjects.ContainsKey(note.next))
-            .Select(_ => model.NoteToScreenPosition(note.next))
+            .Select(_ => model.NoteToCanvasPosition(note.next))
             .Merge(longNoteLateUpdateObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(note.position))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
-            .Select(nextPosition => new Line[] { new Line(model.NoteToScreenPosition(note.position), nextPosition,
+            .Select(nextPosition => new Line[] { new Line(model.NoteToCanvasPosition(note.position), nextPosition,
                 isSelected.Value || model.NoteObjects.ContainsKey(note.next) && model.NoteObjects[note.next].isSelected.Value ? selectedStateColor
-                    : 0 < nextPosition.x - model.NoteToScreenPosition(note.position).x ? longStateColor : invalidStateColor) })
-            .Subscribe(lines => GLLineRenderer.RenderLines(note.position.ToString(), lines));
+                    : 0 < nextPosition.x - model.NoteToCanvasPosition(note.position).x ? longStateColor : invalidStateColor) })
+            .Subscribe(lines => GLLineRenderer.Render(note.position.ToString(), lines));
     }
 
     public void OnMouseDown()

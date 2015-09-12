@@ -33,7 +33,7 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
         handler.AddListener(
             EventTriggerType.PointerDown,
             (e) => {
-                handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToScreenPositionX(currentSamples.Value));
+                handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToCanvasPositionX(currentSamples.Value));
             });
 
         var operateXObservable = this.UpdateAsObservable()
@@ -41,7 +41,7 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .RepeatSafe()
             .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
-            .Select(canvasPos => model.ScreenPositionXToSamples(canvasPos.x))
+            .Select(canvasPos => model.CanvasPositionXToSamples(canvasPos.x))
             .Select(samples => Mathf.Clamp(samples, 0, model.Audio.clip.samples))
             .DistinctUntilChanged();
 
@@ -65,7 +65,7 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
             .Subscribe(x =>
             {
                 var pos = lineRect.localPosition;
-                pos.x = model.SamplesToScreenPositionX(x);
+                pos.x = model.SamplesToCanvasPositionX(x);
                 lineRect.localPosition = pos;
             });
     }

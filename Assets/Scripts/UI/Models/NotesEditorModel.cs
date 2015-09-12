@@ -70,32 +70,32 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         NoteObjects.Clear();
     }
 
-    public int ScreenPositionXToSamples(float x)
+    public int CanvasPositionXToSamples(float x)
     {
-        var zeroSampleScreenPositionX = SamplesToScreenPositionX(0);
-        var per = (x - zeroSampleScreenPositionX) / (SamplesToScreenPositionX(Audio.clip.samples) - zeroSampleScreenPositionX);
+        var zeroSampleScreenPositionX = SamplesToCanvasPositionX(0);
+        var per = (x - zeroSampleScreenPositionX) / (SamplesToCanvasPositionX(Audio.clip.samples) - zeroSampleScreenPositionX);
         return Mathf.RoundToInt(Audio.clip.samples * per);
     }
 
-    public float SamplesToScreenPositionX(int samples)
+    public float SamplesToCanvasPositionX(int samples)
     {
         return (samples - Audio.timeSamples + BeatOffsetSamples.Value)
             * CanvasWidth.Value / Audio.clip.samples
             + CanvasOffsetX.Value;
     }
 
-    public float BlockNumToScreenPositionY(int blockNum)
+    public float BlockNumToCanvasPositionY(int blockNum)
     {
         var height = 240f;
         var maxIndex = MaxBlock.Value - 1;
         return ((maxIndex - blockNum) * height / maxIndex - height / 2) / CanvasScaleFactor.Value;
     }
 
-    public Vector3 NoteToScreenPosition(NotePosition notePosition)
+    public Vector3 NoteToCanvasPosition(NotePosition notePosition)
     {
         return new Vector3(
-            SamplesToScreenPositionX(notePosition.ToSamples(Audio.clip.frequency, BPM.Value)),
-            BlockNumToScreenPositionY(notePosition.block) * CanvasScaleFactor.Value,
+            SamplesToCanvasPositionX(notePosition.ToSamples(Audio.clip.frequency, BPM.Value)),
+            BlockNumToCanvasPositionY(notePosition.block) * CanvasScaleFactor.Value,
             0);
     }
 

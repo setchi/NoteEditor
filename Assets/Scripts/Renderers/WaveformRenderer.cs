@@ -37,7 +37,7 @@ public class WaveformRenderer : MonoBehaviour
                     lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
                 }
 
-                GLLineRenderer.RenderLines("waveform", lines);
+                GLLineRenderer.Render("waveform", lines);
             });
     }
 }
