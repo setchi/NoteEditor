@@ -722,7 +722,7 @@ GameObject:
   - 222: {fileID: 107512840}
   - 114: {fileID: 107512839}
   m_Layer: 5
-  m_Name: MusicSelectorView
+  m_Name: MusicSelector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2607,6 +2607,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 779236361}
+  - {fileID: 560029587}
   m_Father: {fileID: 798471444}
   m_RootOrder: 4
   m_AnchorMin: {x: .5, y: .5}
@@ -3376,8 +3377,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_Father: {fileID: 426613607}
+  m_RootOrder: 1
 --- !u!1 &583665939
 GameObject:
   m_ObjectHideFlags: 0
@@ -6846,7 +6847,7 @@ GameObject:
   - 224: {fileID: 1253846482}
   - 222: {fileID: 1253846483}
   m_Layer: 5
-  m_Name: NotesView
+  m_Name: NoteCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8441,7 +8442,7 @@ GameObject:
   - 224: {fileID: 1618441183}
   - 222: {fileID: 1618441185}
   m_Layer: 5
-  m_Name: MusicPlayerView
+  m_Name: MusicPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8484,7 +8485,7 @@ GameObject:
   - 222: {fileID: 1632617253}
   - 114: {fileID: 1632617252}
   m_Layer: 5
-  m_Name: ControlPanelView
+  m_Name: ControlPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
