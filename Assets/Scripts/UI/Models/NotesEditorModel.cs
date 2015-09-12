@@ -41,12 +41,12 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     void Awake()
     {
         Audio = gameObject.AddComponent<AudioSource>();
-        
+
         this.ObserveEveryValueChanged(_ => Screen.width)
             .DistinctUntilChanged()
             .Subscribe(w => CanvasScaleFactor.Value = 1280f / w);
             // .Subscribe(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
-
+        
         ClearNotesData();
     }
 
@@ -68,6 +68,13 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         }
 
         NoteObjects.Clear();
+    }
+
+    public int ScreenPositionXToSamples(float x)
+    {
+        var zeroSampleScreenPositionX = SamplesToScreenPositionX(0);
+        var per = (x - zeroSampleScreenPositionX) / (SamplesToScreenPositionX(Audio.clip.samples) - zeroSampleScreenPositionX);
+        return Mathf.RoundToInt(Audio.clip.samples * per);
     }
 
     public float SamplesToScreenPositionX(int samples)
