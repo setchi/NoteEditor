@@ -5,12 +5,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class EditMarkerHandlerPresenter : MonoBehaviour
+public class EditMarkerHandlePresenter : MonoBehaviour
 {
     [SerializeField]
-    Image handler;
+    Image handleImage;
     [SerializeField]
-    RectTransform lineRect;
+    RectTransform lineRectTransform;
 
     NotesEditorModel model;
     ReactiveProperty<int> CurrentSamples = new ReactiveProperty<int>(0);
@@ -22,7 +22,7 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
     }
     public RectTransform HandleRectTransform
     {
-        get { return handleRectTransform_ ?? (handleRectTransform_ = handler.GetComponent<RectTransform>()); }
+        get { return handleRectTransform_ ?? (handleRectTransform_ = handleImage.GetComponent<RectTransform>()); }
     }
     RectTransform handleRectTransform_;
 
@@ -31,14 +31,14 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
         model = NotesEditorModel.Instance;
         model.OnLoadMusicObservable.Subscribe(_ => Init());
 
-        position_ = lineRect.ObserveEveryValueChanged(rect => rect.localPosition.x).ToReactiveProperty();
+        position_ = lineRectTransform.ObserveEveryValueChanged(rect => rect.localPosition.x).ToReactiveProperty();
     }
 
     void Init()
     {
         var handlerOnMouseDownObservable = new Subject<Vector3>();
 
-        handler.AddListener(
+        handleImage.AddListener(
             EventTriggerType.PointerDown,
             (e) => {
                 handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToCanvasPositionX(CurrentSamples.Value));
@@ -72,9 +72,9 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
             .Select(_ => CurrentSamples.Value)
             .Subscribe(x =>
             {
-                var pos = lineRect.localPosition;
+                var pos = lineRectTransform.localPosition;
                 pos.x = model.SamplesToCanvasPositionX(x);
-                lineRect.localPosition = pos;
+                lineRectTransform.localPosition = pos;
             });
     }
 }

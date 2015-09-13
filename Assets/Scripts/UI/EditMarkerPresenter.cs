@@ -7,9 +7,9 @@ public class EditMarkerPresenter : MonoBehaviour
     [SerializeField]
     RectTransform markerRect;
     [SerializeField]
-    EditMarkerHandlerPresenter point1;
+    EditMarkerHandlePresenter point1;
     [SerializeField]
-    EditMarkerHandlerPresenter point2;
+    EditMarkerHandlePresenter point2;
     [SerializeField]
     RectTransform playbackPositionSliderRectTransform;
     [SerializeField]

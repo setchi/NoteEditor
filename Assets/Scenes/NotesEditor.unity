@@ -2003,8 +2003,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44ae964af4135b04aac91ef6e8da26e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handler: {fileID: 73336108}
-  lineRect: {fileID: 313718077}
+  handleImage: {fileID: 73336108}
+  lineRectTransform: {fileID: 313718077}
 --- !u!114 &313718079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6314,8 +6314,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44ae964af4135b04aac91ef6e8da26e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handler: {fileID: 1444633024}
-  lineRect: {fileID: 1021158903}
+  handleImage: {fileID: 1444633024}
+  lineRectTransform: {fileID: 1021158903}
 --- !u!114 &1021158905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9693,7 +9693,7 @@ GameObject:
   - 114: {fileID: 1839165343}
   - 114: {fileID: 1839165345}
   m_Layer: 5
-  m_Name: Handlebar
+  m_Name: Handle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
