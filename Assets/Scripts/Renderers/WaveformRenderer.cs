@@ -19,6 +19,7 @@ public class WaveformRenderer : MonoBehaviour
 
 
         this.LateUpdateAsObservable()
+            .Where(_ => model.GLRenderingEnabled.Value)
             .Where(_ => model.WaveformDisplayEnabled.Value)
             .SkipWhile(_ => model.Audio.clip == null)
             .Subscribe(_ =>

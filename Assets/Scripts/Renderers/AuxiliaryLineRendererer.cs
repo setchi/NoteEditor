@@ -28,6 +28,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         var cachedCanvasWidth = 0f;
 
         this.LateUpdateAsObservable()
+            .Where(_ => model.GLRenderingEnabled.Value)
             .Where(_ => model.Audio != null && model.Audio.clip != null)
             .Subscribe(_ => {
 
