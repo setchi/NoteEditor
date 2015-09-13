@@ -72,8 +72,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public int CanvasPositionXToSamples(float x)
     {
-        var zeroSampleScreenPositionX = SamplesToCanvasPositionX(0);
-        var per = (x - zeroSampleScreenPositionX) / (SamplesToCanvasPositionX(Audio.clip.samples) - zeroSampleScreenPositionX);
+        var per = (x - SamplesToCanvasPositionX(0)) / CanvasWidth.Value;
         return Mathf.RoundToInt(Audio.clip.samples * per);
     }
 

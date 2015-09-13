@@ -13,10 +13,18 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
     RectTransform lineRect;
 
     NotesEditorModel model;
-    ReactiveProperty<int> currentSamples = new ReactiveProperty<int>(0);
+    ReactiveProperty<int> CurrentSamples = new ReactiveProperty<int>(0);
     ReactiveProperty<float> position_ = new ReactiveProperty<float>();
 
-    public ReactiveProperty<float> Position { get { return position_; } }
+    public ReactiveProperty<float> Position
+    {
+        get { return position_; }
+    }
+    public RectTransform HandleRectTransform
+    {
+        get { return handleRectTransform_ ?? (handleRectTransform_ = handler.GetComponent<RectTransform>()); }
+    }
+    RectTransform handleRectTransform_;
 
     void Start()
     {
@@ -33,7 +41,7 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
         handler.AddListener(
             EventTriggerType.PointerDown,
             (e) => {
-                handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToCanvasPositionX(currentSamples.Value));
+                handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToCanvasPositionX(CurrentSamples.Value));
             });
 
         var operateXObservable = this.UpdateAsObservable()
@@ -45,23 +53,23 @@ public class EditMarkerHandlerPresenter : MonoBehaviour
             .Select(samples => Mathf.Clamp(samples, 0, model.Audio.clip.samples))
             .DistinctUntilChanged();
 
-        operateXObservable.Subscribe(samples => currentSamples.Value = samples);
+        operateXObservable.Subscribe(samples => CurrentSamples.Value = samples);
 
         operateXObservable.Buffer(this.UpdateAsObservable().Where(_ => Input.GetMouseButtonUp(0)))
             .Where(b => 2 <= b.Count)
             .Select(x => new { current = x.Last(), prev = x.First() })
             .Subscribe(x => UndoRedoManager.Do(
                 new Command(
-                    () => currentSamples.Value = x.current,
-                    () => currentSamples.Value = x.prev)));
+                    () => CurrentSamples.Value = x.current,
+                    () => CurrentSamples.Value = x.prev)));
 
         Observable.Merge(
-                currentSamples.Select(_ => Unit.Default),
+                CurrentSamples.Select(_ => Unit.Default),
                 model.CanvasOffsetX.Select(_ => Unit.Default),
                 model.TimeSamples.Select(_ => Unit.Default),
                 model.CanvasWidth.Select(_ => Unit.Default),
                 model.BeatOffsetSamples.Select(_ => Unit.Default))
-            .Select(_ => currentSamples.Value)
+            .Select(_ => CurrentSamples.Value)
             .Subscribe(x =>
             {
                 var pos = lineRect.localPosition;
