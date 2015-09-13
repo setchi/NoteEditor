@@ -35,7 +35,7 @@ public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
         }
     }
 
-    public static void RenderLines(string key, Line[] lines)
+    public static void Render(string key, Line[] lines)
     {
         if (Instance.drawLines.ContainsKey(key))
         {

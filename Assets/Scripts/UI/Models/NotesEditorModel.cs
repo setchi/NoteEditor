@@ -41,12 +41,12 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     void Awake()
     {
         Audio = gameObject.AddComponent<AudioSource>();
-        
+
         this.ObserveEveryValueChanged(_ => Screen.width)
             .DistinctUntilChanged()
             .Subscribe(w => CanvasScaleFactor.Value = 1280f / w);
             // .Subscribe(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
-
+        
         ClearNotesData();
     }
 
@@ -70,25 +70,31 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         NoteObjects.Clear();
     }
 
-    public float SamplesToScreenPositionX(int samples)
+    public int CanvasPositionXToSamples(float x)
+    {
+        var per = (x - SamplesToCanvasPositionX(0)) / CanvasWidth.Value;
+        return Mathf.RoundToInt(Audio.clip.samples * per);
+    }
+
+    public float SamplesToCanvasPositionX(int samples)
     {
         return (samples - Audio.timeSamples + BeatOffsetSamples.Value)
             * CanvasWidth.Value / Audio.clip.samples
             + CanvasOffsetX.Value;
     }
 
-    public float BlockNumToScreenPositionY(int blockNum)
+    public float BlockNumToCanvasPositionY(int blockNum)
     {
         var height = 240f;
         var maxIndex = MaxBlock.Value - 1;
         return ((maxIndex - blockNum) * height / maxIndex - height / 2) / CanvasScaleFactor.Value;
     }
 
-    public Vector3 NoteToScreenPosition(NotePosition notePosition)
+    public Vector3 NoteToCanvasPosition(NotePosition notePosition)
     {
         return new Vector3(
-            SamplesToScreenPositionX(notePosition.ToSamples(Audio.clip.frequency, BPM.Value)),
-            BlockNumToScreenPositionY(notePosition.block) * CanvasScaleFactor.Value,
+            SamplesToCanvasPositionX(notePosition.ToSamples(Audio.clip.frequency, BPM.Value)),
+            BlockNumToCanvasPositionY(notePosition.block) * CanvasScaleFactor.Value,
             0);
     }
 
