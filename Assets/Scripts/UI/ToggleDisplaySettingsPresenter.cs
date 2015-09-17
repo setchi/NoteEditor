@@ -28,7 +28,7 @@ public class ToggleDisplaySettingsPresenter : MonoBehaviour
                     .Where(_ => !isMouseOverOnSettingsWindow && Input.GetMouseButtonDown(0)))
             .Subscribe(_ => model.IsViewing.Value = false);
 
-        model.IsViewing.Select(isViewing => isViewing ? Vector3.up * 258 : Vector3.up * 100000)
+        model.IsViewing.Select(isViewing => isViewing ? Vector3.zero : Vector3.up * 100000)
             .Subscribe(pos => settingsWindowTransform.localPosition = pos);
 
         model.IsViewing.Subscribe(_ => model.SelectedBlock.Value = -1);

@@ -104,6 +104,11 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * CanvasScaleFactor.Value;
     }
 
+    public Vector3 CanvasToScreenPosition(Vector3 canvasPosition)
+    {
+        return (canvasPosition / CanvasScaleFactor.Value + new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0));
+    }
+
     public string SerializeNotesData()
     {
         var data = new SaveDataModel.NotesData();

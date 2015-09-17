@@ -51,11 +51,18 @@ public class EditMarkerPresenter : MonoBehaviour
                 var halfScreenHeight = Screen.height / 2f;
                 var halfHeight = markerRect.sizeDelta.y / model.CanvasScaleFactor.Value / 2;
 
-                GLRectRenderer.Render(
+                var min = new Vector2(startPos, halfScreenHeight - halfHeight);
+                var max = new Vector2(startPos + markerCanvasWidth / model.CanvasScaleFactor.Value, halfScreenHeight + halfHeight);
+
+                GLPolygonRenderer.Render(
                     "EditMarker",
-                    new[] { new ColoringRect(
-                        new Vector2(startPos, halfScreenHeight - halfHeight),
-                        new Vector2(startPos + markerCanvasWidth / model.CanvasScaleFactor.Value, halfScreenHeight + halfHeight),
+                    new[] { new Polygon(
+                        new[] {
+                            new Vector3(min.x, max.y, 0),
+                            new Vector3(max.x, max.y, 0),
+                            new Vector3(max.x, min.y, 0),
+                            new Vector3(min.x, min.y, 0)
+                        },
                         markerColor) });
 
                 var sliderMarkerSize = sliderMarker.sizeDelta;

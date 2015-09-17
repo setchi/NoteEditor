@@ -5,34 +5,29 @@ using UnityEngine;
 public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
 {
     [SerializeField]
-    Material lineMaterial;
+    Material mat;
     Dictionary<string, Line[]> drawLines = new Dictionary<string, Line[]>();
 
-    IEnumerator Start()
+    void OnRenderObject()
     {
-        lineMaterial.hideFlags = HideFlags.HideAndDontSave;
-        lineMaterial.shader.hideFlags = HideFlags.HideAndDontSave;
+        GL.PushMatrix();
+        mat.SetPass(0);
+        GL.LoadPixelMatrix();
+        GL.Begin(GL.LINES);
 
-        while (true)
+        foreach (var lines in drawLines.Values)
         {
-            yield return new WaitForEndOfFrame();
-
-            lineMaterial.SetPass(0);
-            GL.Begin(GL.LINES);
-
-            foreach (var lines in drawLines.Values)
+            foreach (var l in lines)
             {
-                foreach (var l in lines)
-                {
-                    GL.Color(l.color);
-                    GL.Vertex3(l.start.x, l.start.y, l.start.z);
-                    GL.Vertex3(l.end.x, l.end.y, l.end.z);
-                }
+                GL.Color(l.color);
+                GL.Vertex3(l.start.x, l.start.y, 0);
+                GL.Vertex3(l.end.x, l.end.y, 0);
             }
-
-            GL.End();
-            drawLines.Clear();
         }
+
+        GL.End();
+        GL.PopMatrix();
+        drawLines.Clear();
     }
 
     public static void Render(string key, Line[] lines)

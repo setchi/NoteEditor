@@ -28,7 +28,6 @@ public class AuxiliaryLineRendererer : MonoBehaviour
         var cachedCanvasWidth = 0f;
 
         this.LateUpdateAsObservable()
-            .Where(_ => model.GLRenderingEnabled.Value)
             .Where(_ => model.Audio != null && model.Audio.clip != null)
             .Subscribe(_ => {
 
@@ -45,8 +44,8 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                     beatLines = beatSamples
                         .Select(x => model.SamplesToCanvasPositionX(x))
                         .Select((x, i) => new Line(
-                            new Vector3(x, 140, 0),
-                            new Vector3(x, -140, 0),
+                            model.CanvasToScreenPosition(new Vector3(x, 140, 0)),
+                            model.CanvasToScreenPosition(new Vector3(x, -140, 0)),
                             i % model.LPB.Value == 0 ? mainBeatLineColor : subBeatLineColor))
                         .ToArray();
 
@@ -55,7 +54,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                 }
                 else
                 {
-                    float currentX = model.SamplesToCanvasPositionX(0);
+                    float currentX = model.CanvasToScreenPosition(Vector3.right * model.SamplesToCanvasPositionX(0)).x;
                     float diffX = currentX - cachedZeroSamplePosX;
 
                     for (int i = 0; i < beatNum; i++)
@@ -74,8 +73,8 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                         .Select(i => model.BlockNumToCanvasPositionY(i))
                         .Select(i => i + Screen.height * 0.5f)
                         .Select((y, i) => new Line(
-                            model.ScreenToCanvasPosition(new Vector3(0, y, 0)),
-                            model.ScreenToCanvasPosition(new Vector3(Screen.width, y, 0)),
+                            new Vector3(0, y, 0),
+                            new Vector3(Screen.width, y, 0),
                             blockLineColor))
                         .ToArray();
                 }
@@ -91,11 +90,11 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                 // Highlighting closest line to mouse pointer
                 if (model.IsMouseOverNotesRegion.Value)
                 {
-                    var mouseX = model.ScreenToCanvasPosition(Input.mousePosition).x;
+                    var mouseX = Input.mousePosition.x;
                     var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouseX));
                     var closestBeatLine = beatLines[closestLineIndex];
 
-                    var mouseY = model.ScreenToCanvasPosition(Input.mousePosition).y;
+                    var mouseY = Input.mousePosition.y;
                     var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
                     var closestBlockLine = blockLines[closestBlockLindex];
 

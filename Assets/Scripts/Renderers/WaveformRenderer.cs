@@ -19,7 +19,6 @@ public class WaveformRenderer : MonoBehaviour
 
 
         this.LateUpdateAsObservable()
-            .Where(_ => model.GLRenderingEnabled.Value)
             .Where(_ => model.WaveformDisplayEnabled.Value)
             .SkipWhile(_ => model.Audio.clip == null)
             .Subscribe(_ =>
@@ -28,7 +27,7 @@ public class WaveformRenderer : MonoBehaviour
                 model.Audio.clip.GetData(waveData, timeSamples);
 
                 var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
-                var offsetX = model.CanvasOffsetX.Value;
+                var offsetX = model.CanvasOffsetX.Value / model.CanvasScaleFactor.Value;
                 var offsetY = 200;
 
                 for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
@@ -36,6 +35,8 @@ public class WaveformRenderer : MonoBehaviour
                     lines[li].start.x = lines[li].end.x = wi * x + offsetX;
                     lines[li].end.y = waveData[wi] * 45 - offsetY;
                     lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
+                    lines[li].start = model.CanvasToScreenPosition(lines[li].start);
+                    lines[li].end = model.CanvasToScreenPosition(lines[li].end);
                 }
 
                 GLLineRenderer.Render("waveform", lines);
