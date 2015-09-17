@@ -83,13 +83,13 @@ public class NoteObject : MonoBehaviour
             });
 
 
-        var longNoteLateUpdateObservable = this.LateUpdateAsObservable()
+        var longNoteUpdateObservable = this.UpdateAsObservable()
             .Where(_ => noteType.Value == NoteTypes.Long);
 
-        longNoteLateUpdateObservable
+        longNoteUpdateObservable
             .Where(_ => model.NoteObjects.ContainsKey(note.next))
             .Select(_ => model.NoteToCanvasPosition(note.next))
-            .Merge(longNoteLateUpdateObservable
+            .Merge(longNoteUpdateObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(note.position))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))

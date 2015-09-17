@@ -27,7 +27,7 @@ public class WaveformRenderer : MonoBehaviour
                 model.Audio.clip.GetData(waveData, timeSamples);
 
                 var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
-                var offsetX = model.CanvasOffsetX.Value / model.CanvasScaleFactor.Value;
+                var offsetX = model.CanvasOffsetX.Value;
                 var offsetY = 200;
 
                 for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
