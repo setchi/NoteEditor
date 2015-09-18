@@ -54,9 +54,9 @@ public class EditMarkerPresenter : MonoBehaviour
                 var min = new Vector2(startPos, halfScreenHeight - halfHeight);
                 var max = new Vector2(startPos + markerCanvasWidth / model.CanvasScaleFactor.Value, halfScreenHeight + halfHeight);
 
-                GLPolygonRenderer.Render(
+                GLQuadRenderer.Render(
                     "EditMarker",
-                    new[] { new Polygon(
+                    new[] { new Geometry(
                         new[] {
                             new Vector3(min.x, max.y, 0),
                             new Vector3(max.x, max.y, 0),
