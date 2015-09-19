@@ -3963,7 +3963,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 120452562}
   m_HandleRect: {fileID: 120452561}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -12351,6 +12351,7 @@ GameObject:
   m_Component:
   - 4: {fileID: 2137253337}
   - 114: {fileID: 2137253336}
+  - 114: {fileID: 2137253338}
   m_Layer: 0
   m_Name: NotesEditorModel
   m_TagString: Untagged
@@ -12383,3 +12384,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
+--- !u!114 &2137253338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2137253335}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0f5f3dab062bc0408231096a54f1b72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

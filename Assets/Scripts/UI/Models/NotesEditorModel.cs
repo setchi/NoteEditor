@@ -29,6 +29,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public readonly ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
     public readonly ReactiveProperty<bool> GLRenderingEnabled = new ReactiveProperty<bool>(true);
     public readonly ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
+    public readonly ReactiveProperty<float> SmoothedTimeSamples = new ReactiveProperty<float>(0);
     public readonly Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public readonly ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
     public readonly Subject<int> OnLoadMusicObservable = new Subject<int>();
@@ -79,7 +80,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
     public float SamplesToCanvasPositionX(int samples)
     {
-        return (samples - Audio.timeSamples + BeatOffsetSamples.Value)
+        return (samples - SmoothedTimeSamples.Value + BeatOffsetSamples.Value)
             * CanvasWidth.Value / Audio.clip.samples
             + CanvasOffsetX.Value;
     }

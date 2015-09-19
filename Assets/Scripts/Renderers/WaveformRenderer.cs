@@ -23,8 +23,8 @@ public class WaveformRenderer : MonoBehaviour
             .SkipWhile(_ => model.Audio.clip == null)
             .Subscribe(_ =>
             {
-                var timeSamples = Mathf.Min(model.Audio.timeSamples, model.Audio.clip.samples - 1);
-                model.Audio.clip.GetData(waveData, timeSamples);
+                var timeSamples = Mathf.Min(model.SmoothedTimeSamples.Value, model.Audio.clip.samples - 1);
+                model.Audio.clip.GetData(waveData, Mathf.RoundToInt(timeSamples));
 
                 var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
                 var offsetX = model.CanvasOffsetX.Value;

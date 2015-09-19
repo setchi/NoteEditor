@@ -44,7 +44,7 @@ public class EditMarkerHandlePresenter : MonoBehaviour
                 handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToCanvasPositionX(CurrentSamples.Value));
             });
 
-        var operateXObservable = this.UpdateAsObservable()
+        var operateHandleObservable = this.UpdateAsObservable()
             .SkipUntil(handlerOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .RepeatSafe()
@@ -53,9 +53,9 @@ public class EditMarkerHandlePresenter : MonoBehaviour
             .Select(samples => Mathf.Clamp(samples, 0, model.Audio.clip.samples))
             .DistinctUntilChanged();
 
-        operateXObservable.Subscribe(samples => CurrentSamples.Value = samples);
+        operateHandleObservable.Subscribe(samples => CurrentSamples.Value = samples);
 
-        operateXObservable.Buffer(this.UpdateAsObservable().Where(_ => Input.GetMouseButtonUp(0)))
+        operateHandleObservable.Buffer(this.UpdateAsObservable().Where(_ => Input.GetMouseButtonUp(0)))
             .Where(b => 2 <= b.Count)
             .Select(x => new { current = x.Last(), prev = x.First() })
             .Subscribe(x => UndoRedoManager.Do(
@@ -66,7 +66,7 @@ public class EditMarkerHandlePresenter : MonoBehaviour
         Observable.Merge(
                 CurrentSamples.Select(_ => Unit.Default),
                 model.CanvasOffsetX.Select(_ => Unit.Default),
-                model.TimeSamples.Select(_ => Unit.Default),
+                model.SmoothedTimeSamples.Select(_ => Unit.Default),
                 model.CanvasWidth.Select(_ => Unit.Default),
                 model.BeatOffsetSamples.Select(_ => Unit.Default))
             .Select(_ => CurrentSamples.Value)

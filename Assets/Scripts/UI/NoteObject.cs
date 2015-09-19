@@ -45,7 +45,7 @@ public class NoteObject : MonoBehaviour
             .Subscribe(_ => image.color = selectedStateColor);
 
 
-        this.UpdateAsObservable()
+        this.LateUpdateAsObservable()
             .Select(_ => model.NoteToCanvasPosition(note.position))
             .DistinctUntilChanged()
             .Subscribe(pos => rectTransform.localPosition = pos);
@@ -83,7 +83,7 @@ public class NoteObject : MonoBehaviour
             });
 
 
-        var longNoteUpdateObservable = this.UpdateAsObservable()
+        var longNoteUpdateObservable = this.LateUpdateAsObservable()
             .Where(_ => noteType.Value == NoteTypes.Long);
 
         longNoteUpdateObservable
