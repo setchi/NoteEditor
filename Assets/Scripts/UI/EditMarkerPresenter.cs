@@ -18,6 +18,7 @@ public class EditMarkerPresenter : MonoBehaviour
     Color markerColor;
 
     NotesEditorModel model;
+    Geometry drawData = new Geometry(Enumerable.Range(0, 4).Select(_ => Vector3.zero).ToArray(), Color.clear);
 
     void Awake()
     {
@@ -54,16 +55,14 @@ public class EditMarkerPresenter : MonoBehaviour
                 var min = new Vector2(startPos, halfScreenHeight - halfHeight);
                 var max = new Vector2(startPos + markerCanvasWidth / model.CanvasScaleFactor.Value, halfScreenHeight + halfHeight);
 
-                GLQuadRenderer.Render(
-                    "EditMarker",
-                    new[] { new Geometry(
-                        new[] {
-                            new Vector3(min.x, max.y, 0),
-                            new Vector3(max.x, max.y, 0),
-                            new Vector3(max.x, min.y, 0),
-                            new Vector3(min.x, min.y, 0)
-                        },
-                        markerColor) });
+                drawData = new Geometry(
+                    new[] {
+                        new Vector3(min.x, max.y, 0),
+                        new Vector3(max.x, max.y, 0),
+                        new Vector3(max.x, min.y, 0),
+                        new Vector3(min.x, min.y, 0)
+                    },
+                    markerColor);
 
                 var sliderMarkerSize = sliderMarker.sizeDelta;
                 sliderMarkerSize.x = sliderWidth * markerCanvasWidth / model.CanvasWidth.Value;
@@ -77,5 +76,10 @@ public class EditMarkerPresenter : MonoBehaviour
                     sliderMarker.localPosition = sliderMarkerPos;
                 }
             });
+    }
+
+    void LateUpdate()
+    {
+        GLQuadRenderer.Render(drawData);
     }
 }

@@ -1,57 +1,38 @@
 ﻿using System.Linq;
 using UniRx;
-using UniRx.Triggers;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class NoteObject : MonoBehaviour
+public class NoteObject
 {
-    [SerializeField]
-    Color selectedStateColor;
-    [SerializeField]
-    Color normalStateColor;
-    [SerializeField]
-    Color longStateColor;
-    [SerializeField]
-    Color invalidStateColor;
-
-    [HideInInspector]
     public Note note = new Note();
-    [HideInInspector]
     public ReactiveProperty<bool> isSelected = new ReactiveProperty<bool>();
-    [HideInInspector]
-    public RectTransform rectTransform;
+    public Subject<Unit> LateUpdateObservable = new Subject<Unit>();
+    public Subject<Unit> OnClickObservable = new Subject<Unit>();
+    public Color NoteColor { get { return noteColor_.Value; } }
+    ReactiveProperty<Color> noteColor_ = new ReactiveProperty<Color>();
 
-    Subject<NoteTypes> onMouseDownObservable = new Subject<NoteTypes>();
-    ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
+    Color selectedStateColor = new Color(255 / 255f, 0 / 255f, 255 / 255f);
+    Color normalStateColor = new Color(175 / 255f, 255 / 255f, 78 / 255f);
+    Color longStateColor = new Color(0 / 255f, 255 / 255f, 255 / 255f);
+    Color invalidStateColor = new Color(255 / 255f, 0 / 255f, 0 / 255f);
 
-    void Start()
+    public void Init()
     {
         var model = NotesEditorModel.Instance;
-        rectTransform = GetComponent<RectTransform>();
-        rectTransform.localPosition = model.NoteToCanvasPosition(note.position);
-
         var editPresenter = EditNotesPresenter.Instance;
+        var noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
 
-        noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
-
-        var image = GetComponent<Image>();
         noteType.Where(_ => !isSelected.Value)
             .Merge(isSelected.Select(_ => noteType.Value))
             .Select(type => type == NoteTypes.Long)
-            .Subscribe(isLongNote => image.color = isLongNote ? longStateColor : normalStateColor);
+            .Subscribe(isLongNote => noteColor_.Value = isLongNote ? longStateColor : normalStateColor);
 
         isSelected.Where(selected => selected)
-            .Subscribe(_ => image.color = selectedStateColor);
+            .Subscribe(_ => noteColor_.Value = selectedStateColor);
 
 
-        this.LateUpdateAsObservable()
-            .Select(_ => model.NoteToCanvasPosition(note.position))
-            .DistinctUntilChanged()
-            .Subscribe(pos => rectTransform.localPosition = pos);
-
-
-        var mouseDownObservable = onMouseDownObservable
+        var mouseDownObservable = OnClickObservable
+            .Select(_ => model.EditType.Value)
             .Where(_ => model.ClosestNotePosition.Value.Equals(note.position));
 
         mouseDownObservable.Where(editType => editType == NoteTypes.Normal)
@@ -83,7 +64,7 @@ public class NoteObject : MonoBehaviour
             });
 
 
-        var longNoteUpdateObservable = this.LateUpdateAsObservable()
+        var longNoteUpdateObservable = LateUpdateObservable
             .Where(_ => noteType.Value == NoteTypes.Long);
 
         longNoteUpdateObservable
@@ -93,17 +74,12 @@ public class NoteObject : MonoBehaviour
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(note.position))
                 .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
-            .Select(nextPosition => new Line[] { new Line(
+            .Select(nextPosition => new Line(
                 model.CanvasToScreenPosition(model.NoteToCanvasPosition(note.position)),
                 model.CanvasToScreenPosition(nextPosition),
                 isSelected.Value || model.NoteObjects.ContainsKey(note.next) && model.NoteObjects[note.next].isSelected.Value ? selectedStateColor
-                    : 0 < nextPosition.x - model.NoteToCanvasPosition(note.position).x ? longStateColor : invalidStateColor) })
-            .Subscribe(lines => GLLineRenderer.Render(note.position.ToString(), lines));
-    }
-
-    public void OnMouseDown()
-    {
-        onMouseDownObservable.OnNext(NotesEditorModel.Instance.EditType.Value);
+                    : 0 < nextPosition.x - model.NoteToCanvasPosition(note.position).x ? longStateColor : invalidStateColor))
+            .Subscribe(line => GLLineRenderer.Render(line));
     }
 
     void RemoveLink()

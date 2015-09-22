@@ -30,6 +30,9 @@ public class WaveformRenderer : MonoBehaviour
                 var offsetX = model.CanvasOffsetX.Value;
                 var offsetY = 200;
 
+                var min = model.CanvasOffsetX.Value;
+                var max = Screen.width / model.CanvasScaleFactor.Value * 1.3f;
+
                 for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
                 {
                     lines[li].start.x = lines[li].end.x = wi * x + offsetX;
@@ -37,9 +40,13 @@ public class WaveformRenderer : MonoBehaviour
                     lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
                     lines[li].start = model.CanvasToScreenPosition(lines[li].start);
                     lines[li].end = model.CanvasToScreenPosition(lines[li].end);
-                }
 
-                GLLineRenderer.Render("waveform", lines);
+                    var posX = lines[li].start.x;
+                    if (min < posX && posX < max)
+                    {
+                        GLLineRenderer.Render(lines[li]);
+                    }
+                }
             });
     }
 }

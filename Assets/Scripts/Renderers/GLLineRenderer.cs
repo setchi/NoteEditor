@@ -5,7 +5,10 @@ public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
 {
     [SerializeField]
     Material mat;
-    Dictionary<string, Line[]> drawData = new Dictionary<string, Line[]>();
+    List<Line> drawData = new List<Line>();
+
+    static int size = 0;
+    static int maxSize = 0;
 
     void OnRenderObject()
     {
@@ -14,23 +17,44 @@ public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
         GL.LoadPixelMatrix();
         GL.Begin(GL.LINES);
 
-        foreach (var lines in drawData.Values)
+        if (size * 2 < maxSize)
         {
-            foreach (var line in lines)
-            {
-                GL.Color(line.color);
-                GL.Vertex(line.start);
-                GL.Vertex(line.end);
-            }
+            drawData.RemoveRange(size - 1, maxSize - size);
+            maxSize = size;
         }
+
+        drawData.ForEach(line =>
+        {
+            GL.Color(line.color);
+            GL.Vertex(line.start);
+            GL.Vertex(line.end);
+        });
 
         GL.End();
         GL.PopMatrix();
-        drawData.Clear();
+        size = 0;
     }
 
-    public static void Render(string key, Line[] drawData)
+    public static void Render(Line[] lines)
     {
-        Instance.drawData[key] = drawData;
+        foreach (var line in lines)
+        {
+            Render(line);
+        }
+    }
+
+    public static void Render(Line line)
+    {
+        if (size < maxSize)
+        {
+            Instance.drawData[size] = line;
+        }
+        else
+        {
+            Instance.drawData.Add(line);
+            maxSize++;
+        }
+
+        size++;
     }
 }

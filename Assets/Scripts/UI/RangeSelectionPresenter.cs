@@ -33,7 +33,7 @@ public class RangeSelectionPresenter : MonoBehaviour
                 .Where(_ => model.IsMouseOverNotesRegion.Value)
                 .Select(_ => Input.mousePosition)
                 .Select(currentPos => new Rect(startPos, currentPos - startPos)))
-            .Do(rect => GLLineRenderer.Render("selectionRect", ToLines(rect, selectionRectColor)))
+            .Do(rect => GLLineRenderer.Render(ToLines(rect, selectionRectColor)))
             .Do(_ => { if (!model.IsPlaying.Value) Deselect(); })
             .SelectMany(rect => GetNotesWithin(rect))
             .Do(kv => selectedNoteObjects[kv.Key] = kv.Value)
@@ -139,7 +139,7 @@ public class RangeSelectionPresenter : MonoBehaviour
     Dictionary<NotePosition, NoteObject> GetNotesWithin(Rect rect)
     {
         return model.NoteObjects
-            .Where(kv => rect.Contains(model.CanvasToScreenPosition(kv.Value.rectTransform.localPosition), true))
+            .Where(kv => rect.Contains(model.CanvasToScreenPosition(model.NoteToCanvasPosition(kv.Value.note.position)), true))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
     }
 

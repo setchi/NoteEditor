@@ -36,12 +36,21 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             .Where(_ => !KeyInput.ShiftKey())
             .Merge(closestNoteAreaOnMouseDownObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long))
-            .Subscribe(_ => RequestForEditNote.OnNext(
-                new Note(
-                    model.ClosestNotePosition.Value,
-                    model.EditType.Value,
-                    NotePosition.None,
-                    model.LongNoteTailPosition.Value)));
+            .Subscribe(_ => {
+                if (model.NoteObjects.ContainsKey(model.ClosestNotePosition.Value))
+                {
+                    model.NoteObjects[model.ClosestNotePosition.Value].OnClickObservable.OnNext(Unit.Default);
+                }
+                else
+                {
+                    RequestForEditNote.OnNext(
+                       new Note(
+                           model.ClosestNotePosition.Value,
+                           model.EditType.Value,
+                           NotePosition.None,
+                           model.LongNoteTailPosition.Value));
+                }
+            });
 
 
         // Start editing of long note
@@ -127,9 +136,9 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             return;
         }
 
-        var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
+        var noteObject = new NoteObject();
         noteObject.SetState(note);
-        noteObject.transform.SetParent(notesRegion.transform);
+        noteObject.Init();
         model.NoteObjects.Add(note.position, noteObject);
     }
 
@@ -148,6 +157,5 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
 
         var noteObject = model.NoteObjects[note.position];
         model.NoteObjects.Remove(noteObject.note.position);
-        DestroyObject(noteObject.gameObject);
     }
 }

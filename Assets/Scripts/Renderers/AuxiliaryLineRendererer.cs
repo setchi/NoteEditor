@@ -118,9 +118,8 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                     }
                 }
 
-                GLLineRenderer.Render("beats", beatLines);
-                GLLineRenderer.Render("blocks", blockLines);
-
+                GLLineRenderer.Render(beatLines);
+                GLLineRenderer.Render(blockLines);
             });
     }
 

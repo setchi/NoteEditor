@@ -64,11 +64,6 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         EditType.Value = NoteTypes.Normal;
         LongNoteTailPosition.Value = NotePosition.None;
 
-        foreach (var noteObject in NoteObjects.Values)
-        {
-            DestroyObject(noteObject.gameObject);
-        }
-
         NoteObjects.Clear();
     }
 
