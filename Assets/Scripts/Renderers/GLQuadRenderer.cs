@@ -19,23 +19,18 @@ public class GLQuadRenderer : SingletonGameObject<GLQuadRenderer>
 
         if (size * 2 < maxSize)
         {
-            drawData.RemoveRange(size - 1, maxSize - size);
+            drawData.RemoveRange(size, maxSize - size);
             maxSize = size;
         }
 
-        drawData.ForEach(quad =>
+        for (int i = 0; i < size; i++)
         {
-            GL.Color(quad.color);
+            GL.Color(drawData[i].color);
 
-            foreach (var vertex in quad.vertices)
+            foreach (var vertex in drawData[i].vertices)
             {
                 GL.Vertex(vertex);
             }
-        });
-
-        for (int i = 0; i < size; i++)
-        {
-            var quad = drawData[i];
         }
 
         GL.End();

@@ -19,16 +19,17 @@ public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
 
         if (size * 2 < maxSize)
         {
-            drawData.RemoveRange(size - 1, maxSize - size);
+            drawData.RemoveRange(size, maxSize - size);
             maxSize = size;
         }
 
-        drawData.ForEach(line =>
+        for (int i = 0; i < size; i++)
         {
+            var line = drawData[i];
             GL.Color(line.color);
             GL.Vertex(line.start);
             GL.Vertex(line.end);
-        });
+        }
 
         GL.End();
         GL.PopMatrix();
