@@ -17,7 +17,7 @@ public class GLLineRenderer : SingletonGameObject<GLLineRenderer>
         GL.LoadPixelMatrix();
         GL.Begin(GL.LINES);
 
-        if (size < maxSize)
+        if (size * 2 < maxSize)
         {
             drawData.RemoveRange(size - 1, maxSize - size);
             maxSize = size;

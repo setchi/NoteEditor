@@ -4,27 +4,17 @@ using UnityEngine;
 
 public class NoteObject
 {
-    [SerializeField]
-    Color selectedStateColor = new Color(255 / 255f, 0 / 255f, 255 / 255f);
-    [SerializeField]
-    Color normalStateColor = new Color(175 / 255f, 255 / 255f, 78 / 255f);
-    [SerializeField]
-    Color longStateColor = new Color(0 / 255f, 255 / 255f, 255 / 255f);
-    [SerializeField]
-    Color invalidStateColor = new Color(255 / 255f, 0 / 255f, 0 / 255f);
-
-    [HideInInspector]
     public Note note = new Note();
-    [HideInInspector]
     public ReactiveProperty<bool> isSelected = new ReactiveProperty<bool>();
+    public Subject<Unit> LateUpdateObservable = new Subject<Unit>();
+    public Subject<Unit> OnClickObservable = new Subject<Unit>();
+    public Color NoteColor { get { return noteColor_.Value; } }
     ReactiveProperty<Color> noteColor_ = new ReactiveProperty<Color>();
 
-    [HideInInspector]
-    public Subject<Unit> LateUpdateObservable = new Subject<Unit>();
-    [HideInInspector]
-    public Subject<Unit> OnClickObservable = new Subject<Unit>();
-    [HideInInspector]
-    public Color NoteColor { get { return noteColor_.Value; } }
+    Color selectedStateColor = new Color(255 / 255f, 0 / 255f, 255 / 255f);
+    Color normalStateColor = new Color(175 / 255f, 255 / 255f, 78 / 255f);
+    Color longStateColor = new Color(0 / 255f, 255 / 255f, 255 / 255f);
+    Color invalidStateColor = new Color(255 / 255f, 0 / 255f, 0 / 255f);
 
     public void Init()
     {

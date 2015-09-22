@@ -17,7 +17,7 @@ public class GLQuadRenderer : SingletonGameObject<GLQuadRenderer>
         GL.LoadPixelMatrix();
         GL.Begin(GL.QUADS);
 
-        if (size < maxSize)
+        if (size * 2 < maxSize)
         {
             drawData.RemoveRange(size - 1, maxSize - size);
             maxSize = size;
