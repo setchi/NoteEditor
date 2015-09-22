@@ -5,7 +5,10 @@ public class GLQuadRenderer : SingletonGameObject<GLQuadRenderer>
 {
     [SerializeField]
     Material mat;
-    public Dictionary<string, Geometry[]> drawData = new Dictionary<string, Geometry[]>();
+    List<Geometry> drawData = new List<Geometry>();
+
+    static int size = 0;
+    static int maxSize = 0;
 
     void OnRenderObject()
     {
@@ -14,25 +17,52 @@ public class GLQuadRenderer : SingletonGameObject<GLQuadRenderer>
         GL.LoadPixelMatrix();
         GL.Begin(GL.QUADS);
 
-        foreach (var quads in drawData.Values)
+        if (size < maxSize)
         {
-            foreach (var quad in quads)
-            {
-                GL.Color(quad.color);
+            drawData.RemoveRange(size - 1, maxSize - size);
+            maxSize = size;
+        }
 
-                foreach (var vertex in quad.vertices)
-                {
-                    GL.Vertex(vertex);
-                }
+        drawData.ForEach(quad =>
+        {
+            GL.Color(quad.color);
+
+            foreach (var vertex in quad.vertices)
+            {
+                GL.Vertex(vertex);
             }
+        });
+
+        for (int i = 0; i < size; i++)
+        {
+            var quad = drawData[i];
         }
 
         GL.End();
         GL.PopMatrix();
+        size = 0;
     }
 
-    public static void Render(string key, Geometry[] drawData)
+    public static void Render(Geometry[] quads)
     {
-        Instance.drawData[key] = drawData;
+        foreach (var quad in quads)
+        {
+            Render(quad);
+        }
+    }
+
+    public static void Render(Geometry quad)
+    {
+        if (size < maxSize)
+        {
+            Instance.drawData[size] = quad;
+        }
+        else
+        {
+            Instance.drawData.Add(quad);
+            maxSize++;
+        }
+
+        size++;
     }
 }

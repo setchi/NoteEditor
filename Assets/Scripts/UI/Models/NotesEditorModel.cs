@@ -52,14 +52,6 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         ClearNotesData();
     }
 
-    void LateUpdate()
-    {
-        foreach (var noteObj in NoteObjects.Values)
-        {
-            noteObj.LateUpdateObservable.OnNext(Unit.Default);
-        }
-    }
-
     public void ClearNotesData()
     {
         BPM.Value = 120;
