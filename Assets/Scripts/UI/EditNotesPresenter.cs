@@ -127,9 +127,9 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             return;
         }
 
-        var noteObject = (Instantiate(notePrefab) as GameObject).GetComponent<NoteObject>();
+        var noteObject = new NoteObject();
         noteObject.SetState(note);
-        noteObject.transform.SetParent(notesRegion.transform);
+        noteObject.Init();
         model.NoteObjects.Add(note.position, noteObject);
     }
 
@@ -148,6 +148,6 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
 
         var noteObject = model.NoteObjects[note.position];
         model.NoteObjects.Remove(noteObject.note.position);
-        DestroyObject(noteObject.gameObject);
+        GLQuadRenderer.Instance.drawData.Remove(note.position.ToString());
     }
 }

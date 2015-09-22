@@ -5,7 +5,7 @@ public class GLQuadRenderer : SingletonGameObject<GLQuadRenderer>
 {
     [SerializeField]
     Material mat;
-    Dictionary<string, Geometry[]> drawData = new Dictionary<string, Geometry[]>();
+    public Dictionary<string, Geometry[]> drawData = new Dictionary<string, Geometry[]>();
 
     void OnRenderObject()
     {

@@ -139,7 +139,7 @@ public class RangeSelectionPresenter : MonoBehaviour
     Dictionary<NotePosition, NoteObject> GetNotesWithin(Rect rect)
     {
         return model.NoteObjects
-            .Where(kv => rect.Contains(model.CanvasToScreenPosition(kv.Value.rectTransform.localPosition), true))
+            .Where(kv => rect.Contains(model.CanvasToScreenPosition(model.NoteToCanvasPosition(kv.Value.note.position)), true))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
     }
 
