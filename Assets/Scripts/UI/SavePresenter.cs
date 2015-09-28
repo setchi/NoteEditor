@@ -72,7 +72,7 @@ public class SavePresenter : MonoBehaviour
 
         dialogCancelButton.AddListener(
             EventTriggerType.PointerClick,
-            (e) => { saveDialog.SetActive(false); model.GLRenderingEnabled.Value = true; });
+            (e) => { saveDialog.SetActive(false); });
 
     }
 
@@ -80,7 +80,6 @@ public class SavePresenter : MonoBehaviour
     {
         if (mustBeSaved.Value)
         {
-            model.GLRenderingEnabled.Value = false;
             dialogMessageText.text = "Do you want to save the changes you made in the note '" + model.MusicName.Value + "' ?"
                 + System.Environment.NewLine + "Your changes will be lost if you don't save them.";
             saveDialog.SetActive(true);

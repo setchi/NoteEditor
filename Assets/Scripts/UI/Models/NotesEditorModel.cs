@@ -27,7 +27,6 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public readonly ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>(false);
     public readonly ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
     public readonly ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
-    public readonly ReactiveProperty<bool> GLRenderingEnabled = new ReactiveProperty<bool>(true);
     public readonly ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
     public readonly ReactiveProperty<float> SmoothedTimeSamples = new ReactiveProperty<float>(0);
     public readonly Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
