@@ -38,8 +38,8 @@ public class WaveformRenderer : MonoBehaviour
                     lines[li].start.x = lines[li].end.x = wi * x + offsetX;
                     lines[li].end.y = waveData[wi] * 45 - offsetY;
                     lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
-                    lines[li].start = model.CanvasToScreenPosition(lines[li].start);
-                    lines[li].end = model.CanvasToScreenPosition(lines[li].end);
+                    lines[li].start = ConvertUtils.CanvasToScreenPosition(lines[li].start);
+                    lines[li].end = ConvertUtils.CanvasToScreenPosition(lines[li].end);
 
                     var posX = lines[li].start.x;
                     if (min < posX && posX < max)

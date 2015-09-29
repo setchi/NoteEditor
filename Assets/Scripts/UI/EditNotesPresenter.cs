@@ -32,7 +32,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             .Where(_ => 0 <= model.ClosestNotePosition.Value.num);
 
         closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypes.Normal)
+            .Where(_ => model.EditType.Value == NoteTypes.Single)
             .Where(_ => !KeyInput.ShiftKey())
             .Merge(closestNoteAreaOnMouseDownObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long))
@@ -55,7 +55,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
 
         // Start editing of long note
         closestNoteAreaOnMouseDownObservable
-            .Where(_ => model.EditType.Value == NoteTypes.Normal)
+            .Where(_ => model.EditType.Value == NoteTypes.Single)
             .Where(_ => KeyInput.ShiftKey())
             .Do(_ => model.EditType.Value = NoteTypes.Long)
             .Subscribe(_ => RequestForAddNote.OnNext(
@@ -70,9 +70,9 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
         this.UpdateAsObservable()
             .Where(_ => model.EditType.Value == NoteTypes.Long)
             .Where(_ => Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
-            .Subscribe(_ => model.EditType.Value = NoteTypes.Normal);
+            .Subscribe(_ => model.EditType.Value = NoteTypes.Single);
 
-        var finishEditLongNoteObservable = model.EditType.Where(editType => editType == NoteTypes.Normal);
+        var finishEditLongNoteObservable = model.EditType.Where(editType => editType == NoteTypes.Single);
 
         finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = NotePosition.None);
 
@@ -102,7 +102,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
 
         RequestForEditNote.Subscribe(note =>
         {
-            if (note.type == NoteTypes.Normal)
+            if (note.type == NoteTypes.Single)
             {
                 (model.NoteObjects.ContainsKey(note.position)
                     ? RequestForRemoveNote

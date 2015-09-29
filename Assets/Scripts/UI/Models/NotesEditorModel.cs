@@ -6,11 +6,11 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum NoteTypes { Normal, Long }
+public enum NoteTypes { Single, Long }
 
 public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 {
-    public readonly ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Normal);
+    public readonly ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Single);
     public readonly ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
     public readonly ReactiveProperty<int> MaxBlock = new ReactiveProperty<int>(5);
     public readonly ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
@@ -27,7 +27,6 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public readonly ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>(false);
     public readonly ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
     public readonly ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
-    public readonly ReactiveProperty<bool> GLRenderingEnabled = new ReactiveProperty<bool>(true);
     public readonly ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
     public readonly ReactiveProperty<float> SmoothedTimeSamples = new ReactiveProperty<float>(0);
     public readonly Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
@@ -61,51 +60,13 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         LPB.Value = 4;
         IsPlaying.Value = false;
         TimeSamples.Value = 0;
-        EditType.Value = NoteTypes.Normal;
+        EditType.Value = NoteTypes.Single;
         LongNoteTailPosition.Value = NotePosition.None;
         Audio.clip = null;
 
         NoteObjects.Clear();
 
         Resources.UnloadUnusedAssets();
-    }
-
-    public int CanvasPositionXToSamples(float x)
-    {
-        var per = (x - SamplesToCanvasPositionX(0)) / CanvasWidth.Value;
-        return Mathf.RoundToInt(Audio.clip.samples * per);
-    }
-
-    public float SamplesToCanvasPositionX(int samples)
-    {
-        return (samples - SmoothedTimeSamples.Value + BeatOffsetSamples.Value)
-            * CanvasWidth.Value / Audio.clip.samples
-            + CanvasOffsetX.Value;
-    }
-
-    public float BlockNumToCanvasPositionY(int blockNum)
-    {
-        var height = 240f;
-        var maxIndex = MaxBlock.Value - 1;
-        return ((maxIndex - blockNum) * height / maxIndex - height / 2) / CanvasScaleFactor.Value;
-    }
-
-    public Vector3 NoteToCanvasPosition(NotePosition notePosition)
-    {
-        return new Vector3(
-            SamplesToCanvasPositionX(notePosition.ToSamples(Audio.clip.frequency, BPM.Value)),
-            BlockNumToCanvasPositionY(notePosition.block) * CanvasScaleFactor.Value,
-            0);
-    }
-
-    public Vector3 ScreenToCanvasPosition(Vector3 screenPosition)
-    {
-        return (screenPosition - new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0)) * CanvasScaleFactor.Value;
-    }
-
-    public Vector3 CanvasToScreenPosition(Vector3 canvasPosition)
-    {
-        return (canvasPosition / CanvasScaleFactor.Value + new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0));
     }
 
     public string SerializeNotesData()
@@ -124,7 +85,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
 
         foreach (var noteObject in sortedNoteObjects)
         {
-            if (noteObject.note.type == NoteTypes.Normal)
+            if (noteObject.note.type == NoteTypes.Single)
             {
                 data.notes.Add(ConvertToNote(noteObject));
             }

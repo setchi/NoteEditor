@@ -97,7 +97,7 @@ public class RangeSelectionPresenter : MonoBehaviour
 
                 validNotes.ToObservable()
                     .Select(note =>
-                        note.type == NoteTypes.Normal
+                        note.type == NoteTypes.Single
                             ? new Note(note.position.Add(0, note.position.LPB * beatDiff, 0))
                             : new Note(
                                 note.position.Add(0, note.position.LPB * beatDiff, 0),
@@ -139,7 +139,7 @@ public class RangeSelectionPresenter : MonoBehaviour
     Dictionary<NotePosition, NoteObject> GetNotesWithin(Rect rect)
     {
         return model.NoteObjects
-            .Where(kv => rect.Contains(model.CanvasToScreenPosition(model.NoteToCanvasPosition(kv.Value.note.position)), true))
+            .Where(kv => rect.Contains(ConvertUtils.CanvasToScreenPosition(ConvertUtils.NoteToCanvasPosition(kv.Value.note.position)), true))
             .ToDictionary(kv => kv.Key, kv => kv.Value);
     }
 

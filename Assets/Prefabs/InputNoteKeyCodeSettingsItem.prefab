@@ -50,9 +50,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   selectedStateBackgroundColor: {r: .0666666701, g: .0745098069, b: .0627451017, a: 1}
-  normalBackgroundColor: {r: .188235298, g: .192156866, b: .184313729, a: 1}
+  defaultBackgroundColor: {r: .188235298, g: .192156866, b: .184313729, a: 1}
   selectedTextColor: {r: .992156863, g: 1, b: .984313726, a: 1}
-  normalTextColor: {r: .572549045, g: .580392182, b: .56078434, a: 1}
+  defaultTextColor: {r: .572549045, g: .580392182, b: .56078434, a: 1}
 --- !u!114 &11460554
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -66,6 +66,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: .572549045, g: .580392182, b: .56078434, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 14
@@ -163,6 +169,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: .188235298, g: .192156866, b: .184313729, a: 1}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_Sprite: {fileID: 0}
   m_Type: 1
   m_PreserveAspect: 0
@@ -250,6 +262,38 @@ Prefab:
     - target: {fileID: 0}
       propertyPath: m_Delegates.Array.data[0].callback.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: OnMouseDown
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultBackgroundColor.r
+      value: .188235298
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultBackgroundColor.g
+      value: .192156866
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultBackgroundColor.b
+      value: .184313729
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultTextColor.r
+      value: .572549045
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultTextColor.g
+      value: .580392182
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultTextColor.b
+      value: .56078434
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultTextColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: defaultBackgroundColor.a
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}

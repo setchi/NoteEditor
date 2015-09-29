@@ -8,11 +8,11 @@ public class FileListItem : MonoBehaviour
     [SerializeField]
     Color selectedStateBackgroundColor;
     [SerializeField]
-    Color normalBackgroundColor;
+    Color defaultBackgroundColor;
     [SerializeField]
     Color selectedTextColor;
     [SerializeField]
-    Color normalTextColor;
+    Color defaultTextColor;
 
     string fileName;
     MusicSelectorModel model;
@@ -28,8 +28,8 @@ public class FileListItem : MonoBehaviour
         this.UpdateAsObservable()
             .Select(_ => fileName == model.SelectedFileName.Value)
             .DistinctUntilChanged()
-            .Do(selected => image.color = selected ? selectedStateBackgroundColor : normalBackgroundColor)
-            .Subscribe(selected => text.color = selected ? selectedTextColor : normalTextColor);
+            .Do(selected => image.color = selected ? selectedStateBackgroundColor : defaultBackgroundColor)
+            .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor);
     }
 
     public void SetName(string name)

@@ -12,8 +12,8 @@ public class NoteObject
     ReactiveProperty<Color> noteColor_ = new ReactiveProperty<Color>();
 
     Color selectedStateColor = new Color(255 / 255f, 0 / 255f, 255 / 255f);
-    Color normalStateColor = new Color(175 / 255f, 255 / 255f, 78 / 255f);
-    Color longStateColor = new Color(0 / 255f, 255 / 255f, 255 / 255f);
+    Color singleNoteColor = new Color(175 / 255f, 255 / 255f, 78 / 255f);
+    Color longNoteColor = new Color(0 / 255f, 255 / 255f, 255 / 255f);
     Color invalidStateColor = new Color(255 / 255f, 0 / 255f, 0 / 255f);
 
     public void Init()
@@ -25,7 +25,7 @@ public class NoteObject
         noteType.Where(_ => !isSelected.Value)
             .Merge(isSelected.Select(_ => noteType.Value))
             .Select(type => type == NoteTypes.Long)
-            .Subscribe(isLongNote => noteColor_.Value = isLongNote ? longStateColor : normalStateColor);
+            .Subscribe(isLongNote => noteColor_.Value = isLongNote ? longNoteColor : singleNoteColor);
 
         isSelected.Where(selected => selected)
             .Subscribe(_ => noteColor_.Value = selectedStateColor);
@@ -35,7 +35,7 @@ public class NoteObject
             .Select(_ => model.EditType.Value)
             .Where(_ => model.ClosestNotePosition.Value.Equals(note.position));
 
-        mouseDownObservable.Where(editType => editType == NoteTypes.Normal)
+        mouseDownObservable.Where(editType => editType == NoteTypes.Single)
             .Where(editType => editType == noteType.Value)
             .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(note));
 
@@ -69,16 +69,16 @@ public class NoteObject
 
         longNoteUpdateObservable
             .Where(_ => model.NoteObjects.ContainsKey(note.next))
-            .Select(_ => model.NoteToCanvasPosition(note.next))
+            .Select(_ => ConvertUtils.NoteToCanvasPosition(note.next))
             .Merge(longNoteUpdateObservable
                 .Where(_ => model.EditType.Value == NoteTypes.Long)
                 .Where(_ => model.LongNoteTailPosition.Value.Equals(note.position))
-                .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition)))
+                .Select(_ => ConvertUtils.ScreenToCanvasPosition(Input.mousePosition)))
             .Select(nextPosition => new Line(
-                model.CanvasToScreenPosition(model.NoteToCanvasPosition(note.position)),
-                model.CanvasToScreenPosition(nextPosition),
+                ConvertUtils.CanvasToScreenPosition(ConvertUtils.NoteToCanvasPosition(note.position)),
+                ConvertUtils.CanvasToScreenPosition(nextPosition),
                 isSelected.Value || model.NoteObjects.ContainsKey(note.next) && model.NoteObjects[note.next].isSelected.Value ? selectedStateColor
-                    : 0 < nextPosition.x - model.NoteToCanvasPosition(note.position).x ? longStateColor : invalidStateColor))
+                    : 0 < nextPosition.x - ConvertUtils.NoteToCanvasPosition(note.position).x ? longNoteColor : invalidStateColor))
             .Subscribe(line => GLLineRenderer.Render(line));
     }
 
@@ -108,7 +108,7 @@ public class NoteObject
     {
         var model = NotesEditorModel.Instance;
 
-        if (note.type == NoteTypes.Normal)
+        if (note.type == NoteTypes.Single)
         {
             RemoveLink();
         }

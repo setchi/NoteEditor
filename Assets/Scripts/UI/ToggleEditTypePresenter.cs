@@ -10,11 +10,11 @@ public class ToggleEditTypePresenter : MonoBehaviour
     [SerializeField]
     Sprite iconLongNotes;
     [SerializeField]
-    Sprite iconNormalNotes;
+    Sprite iconSingleNotes;
     [SerializeField]
     Color longTypeStateButtonColor;
     [SerializeField]
-    Color normalTypeStateButtonColor;
+    Color singleTypeStateButtonColor;
 
     void Awake()
     {
@@ -22,15 +22,15 @@ public class ToggleEditTypePresenter : MonoBehaviour
 
         editTypeToggleButton.OnClickAsObservable()
             .Merge(this.UpdateAsObservable().Where(_ => KeyInput.AltKeyDown()))
-            .Select(_ => model.EditType.Value == NoteTypes.Normal ? NoteTypes.Long : NoteTypes.Normal)
+            .Select(_ => model.EditType.Value == NoteTypes.Single ? NoteTypes.Long : NoteTypes.Single)
             .Subscribe(editType => model.EditType.Value = editType);
 
         var buttonImage = editTypeToggleButton.GetComponent<Image>();
 
         model.EditType.Select(_ => model.EditType.Value == NoteTypes.Long)
             .Subscribe(isLongType => {
-                buttonImage.sprite = isLongType ? iconLongNotes : iconNormalNotes;
-                buttonImage.color = isLongType ? longTypeStateButtonColor : normalTypeStateButtonColor;
+                buttonImage.sprite = isLongType ? iconLongNotes : iconSingleNotes;
+                buttonImage.color = isLongType ? longTypeStateButtonColor : singleTypeStateButtonColor;
             });
     }
 }

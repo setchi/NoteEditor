@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class EditMarkerHandlePresenter : MonoBehaviour
+public class EditSectionHandlePresenter : MonoBehaviour
 {
     [SerializeField]
     Image handleImage;
@@ -41,15 +41,15 @@ public class EditMarkerHandlePresenter : MonoBehaviour
         handleImage.AddListener(
             EventTriggerType.PointerDown,
             (e) => {
-                handlerOnMouseDownObservable.OnNext(Vector3.right * model.SamplesToCanvasPositionX(CurrentSamples.Value));
+                handlerOnMouseDownObservable.OnNext(Vector3.right * ConvertUtils.SamplesToCanvasPositionX(CurrentSamples.Value));
             });
 
         var operateHandleObservable = this.UpdateAsObservable()
             .SkipUntil(handlerOnMouseDownObservable)
             .TakeWhile(_ => !Input.GetMouseButtonUp(0))
             .RepeatSafe()
-            .Select(_ => model.ScreenToCanvasPosition(Input.mousePosition))
-            .Select(canvasPos => model.CanvasPositionXToSamples(canvasPos.x))
+            .Select(_ => ConvertUtils.ScreenToCanvasPosition(Input.mousePosition))
+            .Select(canvasPos => ConvertUtils.CanvasPositionXToSamples(canvasPos.x))
             .Select(samples => Mathf.Clamp(samples, 0, model.Audio.clip.samples))
             .DistinctUntilChanged();
 
@@ -73,7 +73,7 @@ public class EditMarkerHandlePresenter : MonoBehaviour
             .Subscribe(x =>
             {
                 var pos = lineRectTransform.localPosition;
-                pos.x = model.SamplesToCanvasPositionX(x);
+                pos.x = ConvertUtils.SamplesToCanvasPositionX(x);
                 lineRectTransform.localPosition = pos;
             });
     }

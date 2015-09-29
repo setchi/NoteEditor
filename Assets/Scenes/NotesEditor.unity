@@ -2062,9 +2062,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   editTypeToggleButton: {fileID: 302783611}
   iconLongNotes: {fileID: 21300000, guid: dc0ac44e1ae7c794e93c66fc6cc35d1c, type: 3}
-  iconNormalNotes: {fileID: 21300000, guid: c7bbcbe30d240c34d90236e947e1b1c5, type: 3}
+  iconSingleNotes: {fileID: 21300000, guid: 93f5daa36b8b4164589efa6c72e56c0d, type: 3}
   longTypeStateButtonColor: {r: 0, g: 1, b: 1, a: 1}
-  normalTypeStateButtonColor: {r: .75686276, g: .764705896, b: .752941191, a: 1}
+  singleTypeStateButtonColor: {r: .75686276, g: .764705896, b: .752941191, a: 1}
 --- !u!1 &304772956
 GameObject:
   m_ObjectHideFlags: 0
@@ -4835,7 +4835,7 @@ GameObject:
   m_Component:
   - 224: {fileID: 729710304}
   m_Layer: 5
-  m_Name: EditMarkers
+  m_Name: EditSections
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5956,7 +5956,7 @@ GameObject:
   - 224: {fileID: 895721879}
   - 114: {fileID: 895721880}
   m_Layer: 5
-  m_Name: EditMarker
+  m_Name: EditSection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

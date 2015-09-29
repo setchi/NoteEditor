@@ -42,10 +42,10 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                         .ToArray();
 
                     beatLines = beatSamples
-                        .Select(x => model.SamplesToCanvasPositionX(x))
+                        .Select(x => ConvertUtils.SamplesToCanvasPositionX(x))
                         .Select((x, i) => new Line(
-                            model.CanvasToScreenPosition(new Vector3(x, 140, 0)),
-                            model.CanvasToScreenPosition(new Vector3(x, -140, 0)),
+                            ConvertUtils.CanvasToScreenPosition(new Vector3(x, 140, 0)),
+                            ConvertUtils.CanvasToScreenPosition(new Vector3(x, -140, 0)),
                             i % model.LPB.Value == 0 ? mainBeatLineColor : subBeatLineColor))
                         .ToArray();
 
@@ -54,7 +54,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                 }
                 else
                 {
-                    float currentX = model.CanvasToScreenPosition(Vector3.right * model.SamplesToCanvasPositionX(0)).x;
+                    float currentX = ConvertUtils.CanvasToScreenPosition(Vector3.right * ConvertUtils.SamplesToCanvasPositionX(0)).x;
                     float diffX = currentX - cachedZeroSamplePosX;
 
                     for (int i = 0; i < beatNum; i++)
@@ -70,7 +70,7 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                 if (blockLines.Length != model.MaxBlock.Value)
                 {
                     blockLines = Enumerable.Range(0, model.MaxBlock.Value)
-                        .Select(i => model.BlockNumToCanvasPositionY(i))
+                        .Select(i => ConvertUtils.BlockNumToCanvasPositionY(i))
                         .Select(i => i + Screen.height * 0.5f)
                         .Select((y, i) => new Line(
                             new Vector3(0, y, 0),
@@ -103,8 +103,8 @@ public class AuxiliaryLineRendererer : MonoBehaviour
                         new Vector2(mouseX, mouseY));
 
                     var threshold = Mathf.Min(
-                        Mathf.Abs(model.BlockNumToCanvasPositionY(0) - model.BlockNumToCanvasPositionY(1)),
-                        Mathf.Abs(model.SamplesToCanvasPositionX(beatSamples[0]) - model.SamplesToCanvasPositionX(beatSamples[1]))) / 3f;
+                        Mathf.Abs(ConvertUtils.BlockNumToCanvasPositionY(0) - ConvertUtils.BlockNumToCanvasPositionY(1)),
+                        Mathf.Abs(ConvertUtils.SamplesToCanvasPositionX(beatSamples[0]) - ConvertUtils.SamplesToCanvasPositionX(beatSamples[1]))) / 3f;
 
                     if (distance < threshold)
                     {
