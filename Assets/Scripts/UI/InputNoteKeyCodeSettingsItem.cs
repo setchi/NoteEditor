@@ -8,11 +8,11 @@ public class InputNoteKeyCodeSettingsItem : MonoBehaviour
     [SerializeField]
     Color selectedStateBackgroundColor;
     [SerializeField]
-    Color normalBackgroundColor;
+    Color defaultBackgroundColor;
     [SerializeField]
     Color selectedTextColor;
     [SerializeField]
-    Color normalTextColor;
+    Color defaultTextColor;
 
     ReactiveProperty<KeyCode> keyCode = new ReactiveProperty<KeyCode>();
     int block;
@@ -28,8 +28,8 @@ public class InputNoteKeyCodeSettingsItem : MonoBehaviour
 
         model.SelectedBlock
             .Select(selectedBlock => block == selectedBlock)
-            .Do(selected => image.color = selected ? selectedStateBackgroundColor : normalBackgroundColor)
-            .Subscribe(selected => text.color = selected ? selectedTextColor : normalTextColor)
+            .Do(selected => image.color = selected ? selectedStateBackgroundColor : defaultBackgroundColor)
+            .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor)
             .AddTo(gameObject);
 
         this.UpdateAsObservable()

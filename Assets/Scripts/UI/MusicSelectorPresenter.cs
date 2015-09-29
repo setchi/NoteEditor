@@ -151,6 +151,6 @@ public class MusicSelectorPresenter : MonoBehaviour
     {
         return new Note(
             new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),
-            musicNote.type == 1 ? NoteTypes.Normal : NoteTypes.Long);
+            musicNote.type == 1 ? NoteTypes.Single : NoteTypes.Long);
     }
 }

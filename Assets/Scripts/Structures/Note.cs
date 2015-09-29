@@ -1,7 +1,7 @@
 ﻿public class Note
 {
     public NotePosition position = NotePosition.None;
-    public NoteTypes type = NoteTypes.Normal;
+    public NoteTypes type = NoteTypes.Single;
     public NotePosition next = NotePosition.None;
     public NotePosition prev = NotePosition.None;
 

@@ -2,14 +2,14 @@
 using UniRx;
 using UnityEngine;
 
-public class EditMarkerPresenter : MonoBehaviour
+public class EditSectionPresenter : MonoBehaviour
 {
     [SerializeField]
     RectTransform markerRect;
     [SerializeField]
-    EditMarkerHandlePresenter point1;
+    EditSectionHandlePresenter point1;
     [SerializeField]
-    EditMarkerHandlePresenter point2;
+    EditSectionHandlePresenter point2;
     [SerializeField]
     RectTransform playbackPositionSliderRectTransform;
     [SerializeField]
@@ -70,7 +70,7 @@ public class EditMarkerPresenter : MonoBehaviour
 
                 if (model.CanvasWidth.Value > 0)
                 {
-                    var startPer = (start.Position.Value - model.SamplesToCanvasPositionX(0)) / model.CanvasWidth.Value;
+                    var startPer = (start.Position.Value - ConvertUtils.SamplesToCanvasPositionX(0)) / model.CanvasWidth.Value;
                     var sliderMarkerPos = sliderMarker.localPosition;
                     sliderMarkerPos.x = sliderWidth * startPer - sliderWidth / 2f;
                     sliderMarker.localPosition = sliderMarkerPos;
