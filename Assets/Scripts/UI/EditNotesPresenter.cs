@@ -139,7 +139,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
         var noteObject = new NoteObject();
         noteObject.SetState(note);
         noteObject.Init();
-        model.NoteObjects.Add(note.position, noteObject);
+        model.NoteObjects.Add(noteObject.note.position, noteObject);
     }
 
     void ChangeNoteStates(Note note)
@@ -156,6 +156,7 @@ public class EditNotesPresenter : SingletonGameObject<EditNotesPresenter>
             return;
 
         var noteObject = model.NoteObjects[note.position];
+        noteObject.Dispose();
         model.NoteObjects.Remove(noteObject.note.position);
     }
 }

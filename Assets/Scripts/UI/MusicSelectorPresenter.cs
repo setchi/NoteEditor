@@ -79,22 +79,19 @@ public class MusicSelectorPresenter : MonoBehaviour
 
     IEnumerator LoadMusic(string fileName)
     {
+        UndoRedoManager.Clear();
+
+        var editorModel = NotesEditorModel.Instance;
+        editorModel.ClearNotesData();
+
         using (var www = new WWW("file:///" + model.DirectoryPath.Value + fileName))
         {
-            while (!www.isDone)
-            {
-                yield return 0;
-            }
+            yield return www;
 
-            var editorModel = NotesEditorModel.Instance;
-            editorModel.ClearNotesData();
-
-            // Apply music data
             editorModel.Audio.clip = www.audioClip;
 
             if (editorModel.Audio.clip == null)
             {
-                // selectedFileNameText.text = fileName + " は音楽ファイルじゃない件!!!!!!!!!!!!!";
             }
             else
             {

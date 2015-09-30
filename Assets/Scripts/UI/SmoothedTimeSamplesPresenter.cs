@@ -19,6 +19,7 @@ public class SmoothedTimeSamplesPresenter : MonoBehaviour
         var counter = 0;
 
         this.UpdateAsObservable()
+            .Where(_ => model.Audio.clip != null)
             .Where(_ => model.IsPlaying.Value)
             .Subscribe(_ => {
                 var deltaSamples = counter == 0
@@ -32,6 +33,7 @@ public class SmoothedTimeSamplesPresenter : MonoBehaviour
             });
 
         model.TimeSamples
+            .Where(_ => model.Audio.clip != null)
             .Where(_ => !model.IsPlaying.Value)
             .Subscribe(timeSamples => {
                 counter = 0;

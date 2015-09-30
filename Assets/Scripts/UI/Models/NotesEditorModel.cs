@@ -64,6 +64,11 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         LongNoteTailPosition.Value = NotePosition.None;
         Audio.clip = null;
 
+        foreach (var note in NoteObjects.Values)
+        {
+            note.Dispose();
+        }
+
         NoteObjects.Clear();
 
         Resources.UnloadUnusedAssets();

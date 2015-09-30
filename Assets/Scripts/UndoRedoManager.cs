@@ -36,6 +36,12 @@ public class UndoRedoManager : SingletonGameObject<UndoRedoManager>
         Instance.redoStack.Clear();
     }
 
+    static public void Clear()
+    {
+        Instance.undoStack.Clear();
+        Instance.redoStack.Clear();
+    }
+
     void Undo()
     {
         if (undoStack.Count == 0)

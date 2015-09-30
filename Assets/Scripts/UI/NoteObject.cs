@@ -2,7 +2,7 @@
 using UniRx;
 using UnityEngine;
 
-public class NoteObject
+public class NoteObject : DisposableHolder
 {
     public Note note = new Note();
     public ReactiveProperty<bool> isSelected = new ReactiveProperty<bool>();
@@ -16,30 +16,38 @@ public class NoteObject
     Color longNoteColor = new Color(0 / 255f, 255 / 255f, 255 / 255f);
     Color invalidStateColor = new Color(255 / 255f, 0 / 255f, 0 / 255f);
 
+    ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
+
     public void Init()
     {
+        Disposable(
+            isSelected,
+            LateUpdateObservable,
+            OnClickObservable,
+            noteColor_,
+            noteType);
+
         var model = NotesEditorModel.Instance;
         var editPresenter = EditNotesPresenter.Instance;
-        var noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
+        noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
 
-        noteType.Where(_ => !isSelected.Value)
+        Disposable(noteType.Where(_ => !isSelected.Value)
             .Merge(isSelected.Select(_ => noteType.Value))
             .Select(type => type == NoteTypes.Long)
-            .Subscribe(isLongNote => noteColor_.Value = isLongNote ? longNoteColor : singleNoteColor);
+            .Subscribe(isLongNote => noteColor_.Value = isLongNote ? longNoteColor : singleNoteColor));
 
-        isSelected.Where(selected => selected)
-            .Subscribe(_ => noteColor_.Value = selectedStateColor);
-
+        Disposable(isSelected.Where(selected => selected)
+            .Subscribe(_ => noteColor_.Value = selectedStateColor));
 
         var mouseDownObservable = OnClickObservable
             .Select(_ => model.EditType.Value)
             .Where(_ => model.ClosestNotePosition.Value.Equals(note.position));
 
-        mouseDownObservable.Where(editType => editType == NoteTypes.Single)
+        Disposable(mouseDownObservable.Where(editType => editType == NoteTypes.Single)
             .Where(editType => editType == noteType.Value)
-            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(note));
+            .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(note)));
 
-        mouseDownObservable.Where(editType => editType == NoteTypes.Long)
+        Disposable(mouseDownObservable.Where(editType => editType == NoteTypes.Long)
             .Where(editType => editType == noteType.Value)
             .Subscribe(_ =>
             {
@@ -61,13 +69,12 @@ public class NoteObject
                     editPresenter.RequestForRemoveNote.OnNext(new Note(note.position, model.EditType.Value, note.next, note.prev));
                     RemoveLink();
                 }
-            });
-
+            }));
 
         var longNoteUpdateObservable = LateUpdateObservable
             .Where(_ => noteType.Value == NoteTypes.Long);
 
-        longNoteUpdateObservable
+        Disposable(longNoteUpdateObservable
             .Where(_ => model.NoteObjects.ContainsKey(note.next))
             .Select(_ => ConvertUtils.NoteToCanvasPosition(note.next))
             .Merge(longNoteUpdateObservable
@@ -79,7 +86,7 @@ public class NoteObject
                 ConvertUtils.CanvasToScreenPosition(nextPosition),
                 isSelected.Value || model.NoteObjects.ContainsKey(note.next) && model.NoteObjects[note.next].isSelected.Value ? selectedStateColor
                     : 0 < nextPosition.x - ConvertUtils.NoteToCanvasPosition(note.position).x ? longNoteColor : invalidStateColor))
-            .Subscribe(line => GLLineRenderer.Render(line));
+            .Subscribe(line => GLLineRenderer.Render(line)));
     }
 
     void RemoveLink()

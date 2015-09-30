@@ -13,6 +13,9 @@ public class NoteRenderer : MonoBehaviour
 
     void LateUpdate()
     {
+        if (model.Audio.clip == null)
+            return;
+
         foreach (var noteObj in model.NoteObjects.Values)
         {
             var canvasPosOfNote = ConvertUtils.NoteToCanvasPosition(noteObj.note.position);

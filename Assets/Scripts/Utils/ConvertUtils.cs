@@ -17,6 +17,9 @@ public class ConvertUtils : SingletonGameObject<ConvertUtils>
 
     public static float SamplesToCanvasPositionX(int samples)
     {
+        if (Instance.model.Audio.clip == null)
+            return 0;
+
         return (samples - Instance.model.SmoothedTimeSamples.Value + Instance.model.BeatOffsetSamples.Value)
             * Instance.model.CanvasWidth.Value / Instance.model.Audio.clip.samples
             + Instance.model.CanvasOffsetX.Value;

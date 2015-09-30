@@ -20,7 +20,7 @@ public class WaveformRenderer : MonoBehaviour
 
         this.LateUpdateAsObservable()
             .Where(_ => model.WaveformDisplayEnabled.Value)
-            .SkipWhile(_ => model.Audio.clip == null)
+            .Where(_ => model.Audio.clip != null)
             .Subscribe(_ =>
             {
                 var timeSamples = Mathf.Min(model.SmoothedTimeSamples.Value, model.Audio.clip.samples - 1);
