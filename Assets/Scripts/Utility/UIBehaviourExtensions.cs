@@ -4,26 +4,29 @@
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public static partial class UIBehaviourExtensions
+namespace NoteEditor.Utility
 {
-    public static void AddListener(this UIBehaviour uiBehaviour, EventTriggerType eventID, UnityAction<BaseEventData> callback)
+    public static partial class UIBehaviourExtensions
     {
-        var entry = new EventTrigger.Entry();
-        entry.eventID = eventID;
-        entry.callback.AddListener(callback);
+        public static void AddListener(this UIBehaviour uiBehaviour, EventTriggerType eventID, UnityAction<BaseEventData> callback)
+        {
+            var entry = new EventTrigger.Entry();
+            entry.eventID = eventID;
+            entry.callback.AddListener(callback);
 
-        var eventTriggers = (uiBehaviour.GetComponent<EventTrigger>() ?? uiBehaviour.gameObject.AddComponent<EventTrigger>()).triggers;
-        eventTriggers.Add(entry);
-    }
+            var eventTriggers = (uiBehaviour.GetComponent<EventTrigger>() ?? uiBehaviour.gameObject.AddComponent<EventTrigger>()).triggers;
+            eventTriggers.Add(entry);
+        }
 
-    public static void RemoveAllListeners(this UIBehaviour uiBehaviour, EventTriggerType eventID)
-    {
-        var eventTrigger = uiBehaviour.GetComponent<EventTrigger>();
+        public static void RemoveAllListeners(this UIBehaviour uiBehaviour, EventTriggerType eventID)
+        {
+            var eventTrigger = uiBehaviour.GetComponent<EventTrigger>();
 
-        if (eventTrigger == null)
-            return;
+            if (eventTrigger == null)
+                return;
 
-        eventTrigger.triggers.RemoveAll(listener => listener.eventID == eventID);
+            eventTrigger.triggers.RemoveAll(listener => listener.eventID == eventID);
+        }
     }
 }
 

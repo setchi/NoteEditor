@@ -1,4 +1,5 @@
 ﻿using NoteEditor.Common;
+using NoteEditor.Utility;
 using System;
 using System.Text.RegularExpressions;
 using UniRx;

@@ -1,5 +1,6 @@
 ﻿using LitJson;
 using NoteEditor.JSONModel;
+using NoteEditor.Utility;
 using System.Collections.Generic;
 using System.Linq;
 using UniRx;

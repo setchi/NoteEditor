@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public class DisposableHolder : IDisposable
+namespace NoteEditor.Utility
 {
-    protected List<IDisposable> disposables = new List<IDisposable>();
-
-    protected void Disposable(params IDisposable[] disposables)
+    public class DisposableHolder : IDisposable
     {
-        this.disposables.AddRange(disposables);
-    }
+        protected List<IDisposable> disposables = new List<IDisposable>();
 
-    public void Dispose()
-    {
-        disposables.ForEach(disposable => disposable.Dispose());
-        disposables.Clear();
+        protected void Disposable(params IDisposable[] disposables)
+        {
+            this.disposables.AddRange(disposables);
+        }
+
+        public void Dispose()
+        {
+            disposables.ForEach(disposable => disposable.Dispose());
+            disposables.Clear();
+        }
     }
 }

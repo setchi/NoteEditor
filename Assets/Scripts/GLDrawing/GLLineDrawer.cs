@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using NoteEditor.Utility;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NoteEditor.GLDrawing

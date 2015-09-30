@@ -2,6 +2,7 @@
 using NoteEditor.JSONModel;
 using NoteEditor.Notes;
 using NoteEditor.UI.Presenter;
+using NoteEditor.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

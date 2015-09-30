@@ -1,18 +1,21 @@
 ﻿using UnityEngine;
 
-public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
+namespace NoteEditor.Utility
 {
-    static T instance_;
-    public static T Instance
+    public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
     {
-        get
+        static T instance_;
+        public static T Instance
         {
-            if (instance_ == null)
+            get
             {
-                instance_ = FindObjectOfType<T>();
-            }
+                if (instance_ == null)
+                {
+                    instance_ = FindObjectOfType<T>();
+                }
 
-            return instance_ ?? new GameObject(typeof(T).FullName).AddComponent<T>();
+                return instance_ ?? new GameObject(typeof(T).FullName).AddComponent<T>();
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using NoteEditor.GLDrawing;
 using NoteEditor.Notes;
 using NoteEditor.UI.Model;
+using NoteEditor.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
