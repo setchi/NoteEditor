@@ -8,19 +8,19 @@ namespace NoteEditor.UI.Presenter
 {
     public class InputNotesByKeyboardPresenter : MonoBehaviour
     {
-        NotesEditorModel model;
+        NoteEditorModel model;
         EditNotesPresenter editPresenter;
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             editPresenter = EditNotesPresenter.Instance;
             model.OnLoadMusicObservable.First().Subscribe(_ => Init());
         }
 
         void Init()
         {
-            var settingsModel = NotesEditorSettingsModel.Instance;
+            var settingsModel = NoteEditorSettingsModel.Instance;
 
             this.UpdateAsObservable()
                 .Where(_ => !settingsModel.IsViewing.Value)

@@ -16,7 +16,7 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         RectTransform lineRectTransform;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
         ReactiveProperty<int> CurrentSamples = new ReactiveProperty<int>(0);
         ReactiveProperty<float> position_ = new ReactiveProperty<float>();
 
@@ -32,7 +32,7 @@ namespace NoteEditor.UI.Presenter
 
         void Start()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             model.OnLoadMusicObservable.First().Subscribe(_ => Init());
 
             position_ = lineRectTransform.ObserveEveryValueChanged(rect => rect.localPosition.x).ToReactiveProperty();

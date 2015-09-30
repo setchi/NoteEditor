@@ -14,7 +14,7 @@ namespace NoteEditor.Common
 
         void Awake()
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
             model.OnLoadMusicObservable
                 .DelayFrame(1)
                 .Subscribe(_ =>

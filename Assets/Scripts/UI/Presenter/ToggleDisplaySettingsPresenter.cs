@@ -17,7 +17,7 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NotesEditorSettingsModel.Instance;
+            var model = NoteEditorSettingsModel.Instance;
 
             toggleDisplaySettingsButton.OnClickAsObservable()
                 .Subscribe(_ => model.IsViewing.Value = !model.IsViewing.Value);

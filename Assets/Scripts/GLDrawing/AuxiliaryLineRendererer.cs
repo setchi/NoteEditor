@@ -19,11 +19,11 @@ namespace NoteEditor.GLDrawing
         [SerializeField]
         Color blockLineColor;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
 
             var beatSamples = new int[1];
             var beatLines = new Line[1];

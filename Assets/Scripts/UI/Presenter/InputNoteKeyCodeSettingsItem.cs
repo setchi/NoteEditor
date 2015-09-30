@@ -19,12 +19,12 @@ namespace NoteEditor.UI.Presenter
 
         ReactiveProperty<KeyCode> keyCode = new ReactiveProperty<KeyCode>();
         int block;
-        NotesEditorSettingsModel model;
+        NoteEditorSettingsModel model;
 
         void Start()
         {
             GetComponent<RectTransform>().localScale = Vector3.one;
-            model = NotesEditorSettingsModel.Instance;
+            model = NoteEditorSettingsModel.Instance;
 
             var text = GetComponentInChildren<Text>();
             var image = GetComponent<Image>();

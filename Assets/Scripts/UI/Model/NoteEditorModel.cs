@@ -13,7 +13,7 @@ public enum NoteTypes { Single, Long }
 
 namespace NoteEditor.UI.Model
 {
-    public class NotesEditorModel : SingletonMonoBehaviour<NotesEditorModel>
+    public class NoteEditorModel : SingletonMonoBehaviour<NoteEditorModel>
     {
         public readonly ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Single);
         public readonly ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
@@ -60,8 +60,8 @@ namespace NoteEditor.UI.Model
         {
             BPM.Value = 120;
             BeatOffsetSamples.Value = 0;
-            MusicName.Value = "Notes Editor";
-            MaxBlock.Value = NotesEditorSettingsModel.Instance.MaxBlock;
+            MusicName.Value = "Note Editor";
+            MaxBlock.Value = NoteEditorSettingsModel.Instance.MaxBlock;
             LPB.Value = 4;
             IsPlaying.Value = false;
             TimeSamples.Value = 0;

@@ -19,7 +19,7 @@ namespace NoteEditor.UI.Presenter
         static string fileName = "settings.json";
         static string filePath = directoryPath + fileName;
 
-        SettingsModel LoadSettings(NotesEditorSettingsModel model)
+        SettingsModel LoadSettings(NoteEditorSettingsModel model)
         {
             if (!Directory.Exists(directoryPath))
             {
@@ -36,18 +36,18 @@ namespace NoteEditor.UI.Presenter
             return JsonMapper.ToObject<SettingsModel>(json);
         }
 
-        void SaveSettings(NotesEditorSettingsModel model)
+        void SaveSettings(NoteEditorSettingsModel model)
         {
             File.WriteAllText(filePath, model.SerializeSettings(), System.Text.Encoding.UTF8);
         }
 
         void Awake()
         {
-            var model = NotesEditorSettingsModel.Instance;
+            var model = NoteEditorSettingsModel.Instance;
             model.Apply(LoadSettings(model));
 
 
-            NotesEditorModel.Instance.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
+            NoteEditorModel.Instance.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
                     .Select(i => itemContentTransform.GetChild(i))
                     .ToList()
                     .ForEach(child => DestroyObject(child.gameObject)))
@@ -73,7 +73,7 @@ namespace NoteEditor.UI.Presenter
 
             Observable.Merge(
                      model.RequestForChangeInputNoteKeyCode.Select(_ => 0),
-                     NotesEditorModel.Instance.MaxBlock,
+                     NoteEditorModel.Instance.MaxBlock,
                      model.WorkSpaceDirectoryPath.Select(_ => 0))
                  .Where(_ => model.IsViewing.Value)
                  .DelayFrame(1)

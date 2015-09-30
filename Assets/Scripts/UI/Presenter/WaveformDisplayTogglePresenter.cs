@@ -12,7 +12,7 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
             waveformDisplayToggle.OnValueChangedAsObservable()
                 .Subscribe(x => model.WaveformDisplayEnabled.Value = x);
         }

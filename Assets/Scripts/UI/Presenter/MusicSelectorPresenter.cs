@@ -46,7 +46,7 @@ namespace NoteEditor.UI.Presenter
 
             model.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
 
-            model.DirectoryPath.Value = NotesEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
+            model.DirectoryPath.Value = NoteEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
 
 
             if (!Directory.Exists(model.DirectoryPath.Value))
@@ -91,7 +91,7 @@ namespace NoteEditor.UI.Presenter
 
                 UndoRedoManager.Clear();
 
-                var editorModel = NotesEditorModel.Instance;
+                var editorModel = NoteEditorModel.Instance;
                 editorModel.ClearNotesData();
 
                 editorModel.Audio.clip = www.audioClip;
@@ -110,7 +110,7 @@ namespace NoteEditor.UI.Presenter
 
         void LoadNotesData()
         {
-            var editorModel = NotesEditorModel.Instance;
+            var editorModel = NoteEditorModel.Instance;
 
             var fileName = Path.GetFileNameWithoutExtension(editorModel.MusicName.Value) + ".json";
             var directoryPath = Application.persistentDataPath + "/Notes/";
@@ -126,7 +126,7 @@ namespace NoteEditor.UI.Presenter
 
         void InstantiateNotesData(SaveDataModel.NotesData notesData)
         {
-            var editorModel = NotesEditorModel.Instance;
+            var editorModel = NoteEditorModel.Instance;
             var notePresenter = EditNotesPresenter.Instance;
 
             editorModel.BPM.Value = notesData.BPM;

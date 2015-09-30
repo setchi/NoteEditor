@@ -19,7 +19,7 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NotesEditorSettingsModel.Instance;
+            var model = NoteEditorSettingsModel.Instance;
 
             workSpacePathInputField.OnValueChangeAsObservable()
                 .Select(path => Directory.Exists(path))

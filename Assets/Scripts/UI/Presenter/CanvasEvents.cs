@@ -24,7 +24,7 @@ namespace NoteEditor.UI.Presenter
                 .Where(delta => delta != 0)
                 .Subscribe(MouseScrollWheelObservable.OnNext);
 
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
             NotesRegionOnMouseExitObservable.Select(_ => false)
                 .Merge(NotesRegionOnMouseEnterObservable.Select(_ => true))
                 .Subscribe(isMouseOver => model.IsMouseOverNotesRegion.Value = isMouseOver);

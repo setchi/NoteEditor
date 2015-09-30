@@ -17,7 +17,7 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Color selectionRectColor;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
         EditNotesPresenter editPresenter;
 
         Dictionary<NotePosition, NoteObject> selectedNoteObjects = new Dictionary<NotePosition, NoteObject>();
@@ -25,7 +25,7 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             editPresenter = EditNotesPresenter.Instance;
 
 

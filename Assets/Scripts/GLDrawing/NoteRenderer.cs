@@ -6,11 +6,11 @@ namespace NoteEditor.GLDrawing
 {
     public class NoteRenderer : MonoBehaviour
     {
-        NotesEditorModel model;
+        NoteEditorModel model;
 
         void Start()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
         }
 
         void LateUpdate()

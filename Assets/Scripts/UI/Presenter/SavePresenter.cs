@@ -31,12 +31,12 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Text dialogMessageText;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
         ReactiveProperty<bool> mustBeSaved = new ReactiveProperty<bool>();
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             var editPresenter = EditNotesPresenter.Instance;
 
             this.UpdateAsObservable()
@@ -107,7 +107,7 @@ namespace NoteEditor.UI.Presenter
         public void Save()
         {
             var fileName = Path.GetFileNameWithoutExtension(model.MusicName.Value) + ".json";
-            var directoryPath = NotesEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Notes/";
+            var directoryPath = NoteEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Notes/";
             var filePath = directoryPath + fileName;
             var json = model.SerializeNotesData();
 

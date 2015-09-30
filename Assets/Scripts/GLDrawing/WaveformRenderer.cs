@@ -13,7 +13,7 @@ namespace NoteEditor.GLDrawing
 
         void Awake()
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
             var waveData = new float[500000];
             var skipSamples = 50;
             var lines = Enumerable.Range(0, waveData.Length / skipSamples)

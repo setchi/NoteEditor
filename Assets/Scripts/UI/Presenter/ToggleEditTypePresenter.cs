@@ -21,7 +21,7 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
 
             editTypeToggleButton.OnClickAsObservable()
                 .Merge(this.UpdateAsObservable().Where(_ => KeyInput.AltKeyDown()))

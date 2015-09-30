@@ -15,11 +15,11 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Slider canvasWidthScaleController;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             model.OnLoadMusicObservable.First().Subscribe(_ => Init());
         }
 

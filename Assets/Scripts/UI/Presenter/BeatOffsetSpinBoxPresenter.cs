@@ -7,7 +7,7 @@ namespace NoteEditor.UI.Presenter
     {
         protected override ReactiveProperty<int> GetReactiveProperty()
         {
-            return NotesEditorModel.Instance.BeatOffsetSamples;
+            return NoteEditorModel.Instance.BeatOffsetSamples;
         }
     }
 }

@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class ConvertUtils : SingletonMonoBehaviour<ConvertUtils>
 {
-    NotesEditorModel model;
+    NoteEditorModel model;
 
     void Awake()
     {
-        model = NotesEditorModel.Instance;
+        model = NoteEditorModel.Instance;
     }
 
     public static int CanvasPositionXToSamples(float x)

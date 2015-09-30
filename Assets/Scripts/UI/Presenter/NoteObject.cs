@@ -32,7 +32,7 @@ namespace NoteEditor.UI.Presenter
                 noteColor_,
                 noteType);
 
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
             var editPresenter = EditNotesPresenter.Instance;
             noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
 
@@ -96,7 +96,7 @@ namespace NoteEditor.UI.Presenter
 
         void RemoveLink()
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
 
             if (model.NoteObjects.ContainsKey(note.prev))
                 model.NoteObjects[note.prev].note.next = note.next;
@@ -107,7 +107,7 @@ namespace NoteEditor.UI.Presenter
 
         void InsertLink(NotePosition position)
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
 
             if (model.NoteObjects.ContainsKey(note.prev))
                 model.NoteObjects[note.prev].note.next = position;
@@ -118,7 +118,7 @@ namespace NoteEditor.UI.Presenter
 
         public void SetState(Note note)
         {
-            var model = NotesEditorModel.Instance;
+            var model = NoteEditorModel.Instance;
 
             if (note.type == NoteTypes.Single)
             {

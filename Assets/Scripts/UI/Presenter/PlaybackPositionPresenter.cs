@@ -18,11 +18,11 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Text playbackTimeDisplayText;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             model.OnLoadMusicObservable.First().Subscribe(_ => Init());
         }
 

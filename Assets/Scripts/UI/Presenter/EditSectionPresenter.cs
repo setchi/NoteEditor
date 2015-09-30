@@ -21,12 +21,12 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Color markerColor;
 
-        NotesEditorModel model;
+        NoteEditorModel model;
         Geometry drawData = new Geometry(Enumerable.Range(0, 4).Select(_ => Vector3.zero).ToArray(), Color.clear);
 
         void Awake()
         {
-            model = NotesEditorModel.Instance;
+            model = NoteEditorModel.Instance;
             model.OnLoadMusicObservable.First().Subscribe(_ => Init());
         }
 
