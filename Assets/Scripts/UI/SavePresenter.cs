@@ -64,15 +64,26 @@ public class SavePresenter : MonoBehaviour
 
         dialogSaveButton.AddListener(
             EventTriggerType.PointerClick,
-            (e) => { mustBeSaved.Value = false; Save(); Application.Quit(); });
+            (e) => {
+                mustBeSaved.Value = false;
+                saveDialog.SetActive(false);
+                Save();
+                Application.Quit();
+            });
 
         dialogDoNotSaveButton.AddListener(
             EventTriggerType.PointerClick,
-            (e) => { mustBeSaved.Value = false; Application.Quit(); });
+            (e) => {
+                mustBeSaved.Value = false;
+                saveDialog.SetActive(false);
+                Application.Quit();
+            });
 
         dialogCancelButton.AddListener(
             EventTriggerType.PointerClick,
-            (e) => { saveDialog.SetActive(false); });
+            (e) => {
+                saveDialog.SetActive(false);
+            });
 
     }
 
