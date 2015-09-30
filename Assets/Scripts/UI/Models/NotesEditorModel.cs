@@ -31,7 +31,7 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
     public readonly ReactiveProperty<float> SmoothedTimeSamples = new ReactiveProperty<float>(0);
     public readonly Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
     public readonly ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
-    public readonly Subject<int> OnLoadMusicObservable = new Subject<int>();
+    public readonly Subject<Unit> OnLoadMusicObservable = new Subject<Unit>();
 
     [HideInInspector]
     public AudioSource Audio;
@@ -62,8 +62,16 @@ public class NotesEditorModel : SingletonGameObject<NotesEditorModel>
         TimeSamples.Value = 0;
         EditType.Value = NoteTypes.Single;
         LongNoteTailPosition.Value = NotePosition.None;
+        Audio.clip = null;
+
+        foreach (var note in NoteObjects.Values)
+        {
+            note.Dispose();
+        }
 
         NoteObjects.Clear();
+
+        Resources.UnloadUnusedAssets();
     }
 
     public string SerializeNotesData()

@@ -23,7 +23,7 @@ public class EditSectionPresenter : MonoBehaviour
     void Awake()
     {
         model = NotesEditorModel.Instance;
-        model.OnLoadMusicObservable.Subscribe(_ => Init());
+        model.OnLoadMusicObservable.First().Subscribe(_ => Init());
     }
 
     void Init()

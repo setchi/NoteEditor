@@ -1,5 +1,6 @@
 ﻿using LitJson;
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using UniRx;
@@ -28,9 +29,11 @@ public class MusicSelectorPresenter : MonoBehaviour
     [SerializeField]
     GameObject noteObjectPrefab;
 
+    MusicSelectorModel model;
+
     void Start()
     {
-        var model = MusicSelectorModel.Instance;
+        model = MusicSelectorModel.Instance;
 
         directoryPathInputField.OnValueChangeAsObservable()
             .Subscribe(path => model.DirectoryPath.Value = path);
@@ -69,31 +72,34 @@ public class MusicSelectorPresenter : MonoBehaviour
         LoadButton.OnClickAsObservable()
             .Select(_ => model.SelectedFileName.Value)
                 .Where(fileName => !string.IsNullOrEmpty(fileName))
-                .Subscribe(fileName =>
-                {
-                    ObservableWWW.GetWWW("file:///" + model.DirectoryPath.Value + fileName).Subscribe(www =>
-                    {
-
-                        if (www.audioClip == null)
-                        {
-                            // selectedFileNameText.text = fileName + " は音楽ファイルじゃない件!!!!!!!!!!!!!";
-                            return;
-                        }
-
-                        var editorModel = NotesEditorModel.Instance;
-                        editorModel.ClearNotesData();
-
-                        // Apply music data
-                        editorModel.Audio.clip = www.audioClip;
-                        editorModel.MusicName.Value = fileName;
-
-                        editorModel.OnLoadMusicObservable.OnNext(0);
-
-                        LoadNotesData();
-                    });
-                });
+                .Subscribe(fileName => StartCoroutine(LoadMusic(fileName)));
 
         // model.SelectedFileName.SubscribeToText(selectedFileNameText);
+    }
+
+    IEnumerator LoadMusic(string fileName)
+    {
+        UndoRedoManager.Clear();
+
+        var editorModel = NotesEditorModel.Instance;
+        editorModel.ClearNotesData();
+
+        using (var www = new WWW("file:///" + model.DirectoryPath.Value + fileName))
+        {
+            yield return www;
+
+            editorModel.Audio.clip = www.audioClip;
+
+            if (editorModel.Audio.clip == null)
+            {
+            }
+            else
+            {
+                editorModel.MusicName.Value = fileName;
+                editorModel.OnLoadMusicObservable.OnNext(Unit.Default);
+                LoadNotesData();
+            }
+        }
     }
 
     void LoadNotesData()

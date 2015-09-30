@@ -11,7 +11,6 @@ public struct NotePosition
         this.block = block;
     }
 
-
     public int ToSamples(int frequency, int BPM)
     {
         return Mathf.FloorToInt(num * (frequency * 60f / BPM / LPB));

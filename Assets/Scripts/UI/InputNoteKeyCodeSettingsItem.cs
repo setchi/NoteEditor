@@ -30,7 +30,7 @@ public class InputNoteKeyCodeSettingsItem : MonoBehaviour
             .Select(selectedBlock => block == selectedBlock)
             .Do(selected => image.color = selected ? selectedStateBackgroundColor : defaultBackgroundColor)
             .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor)
-            .AddTo(gameObject);
+            .AddTo(this);
 
         this.UpdateAsObservable()
             .Where(_ => model.IsViewing.Value)
@@ -41,10 +41,11 @@ public class InputNoteKeyCodeSettingsItem : MonoBehaviour
             .Do(keyCode => this.keyCode.Value = keyCode)
             .Do(keyCode => model.NoteInputKeyCodes.Value[block] = keyCode)
             .Subscribe(_ => model.RequestForChangeInputNoteKeyCode.OnNext(Unit.Default))
-            .AddTo(gameObject);
+            .AddTo(this);
 
         this.keyCode.Select(keyCode => block + ": " + keyCode)
-            .SubscribeToText(GetComponentInChildren<Text>());
+            .SubscribeToText(GetComponentInChildren<Text>())
+            .AddTo(this);
     }
 
     public void SetData(int block, KeyCode keyCode)

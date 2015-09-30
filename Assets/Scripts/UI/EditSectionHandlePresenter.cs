@@ -29,7 +29,7 @@ public class EditSectionHandlePresenter : MonoBehaviour
     void Start()
     {
         model = NotesEditorModel.Instance;
-        model.OnLoadMusicObservable.Subscribe(_ => Init());
+        model.OnLoadMusicObservable.First().Subscribe(_ => Init());
 
         position_ = lineRectTransform.ObserveEveryValueChanged(rect => rect.localPosition.x).ToReactiveProperty();
     }

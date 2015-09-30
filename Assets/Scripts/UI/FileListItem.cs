@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using UniRx;
+﻿using UniRx;
 using UniRx.Triggers;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class FileListItem : MonoBehaviour
 {
@@ -29,7 +29,8 @@ public class FileListItem : MonoBehaviour
             .Select(_ => fileName == model.SelectedFileName.Value)
             .DistinctUntilChanged()
             .Do(selected => image.color = selected ? selectedStateBackgroundColor : defaultBackgroundColor)
-            .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor);
+            .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor)
+            .AddTo(this);
     }
 
     public void SetName(string name)
