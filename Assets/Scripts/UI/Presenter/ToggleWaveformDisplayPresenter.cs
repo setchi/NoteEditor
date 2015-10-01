@@ -5,16 +5,16 @@ using UnityEngine.UI;
 
 namespace NoteEditor.UI.Presenter
 {
-    public class WaveformDisplayTogglePresenter : MonoBehaviour
+    public class ToggleWaveformDisplayPresenter : MonoBehaviour
     {
         [SerializeField]
-        Toggle waveformDisplayToggle;
+        Toggle toggle;
 
         void Awake()
         {
             var model = NoteEditorModel.Instance;
-            waveformDisplayToggle.OnValueChangedAsObservable()
-                .Subscribe(x => model.WaveformDisplayEnabled.Value = x);
+            toggle.OnValueChangedAsObservable()
+                .Subscribe(x => EditorState.WaveformDisplayEnabled.Value = x);
         }
     }
 }

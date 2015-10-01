@@ -28,46 +28,46 @@ namespace NoteEditor.UI.Presenter
         void Awake()
         {
             model = NoteEditorModel.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
         }
 
         void Init()
         {
             var closestNoteAreaOnMouseDownObservable = canvasEvents.NotesRegionOnMouseDownObservable
                 .Where(_ => !Input.GetMouseButtonDown(1))
-                .Where(_ => 0 <= model.ClosestNotePosition.Value.num);
+                .Where(_ => 0 <= NoteCanvas.ClosestNotePosition.Value.num);
 
             closestNoteAreaOnMouseDownObservable
-                .Where(_ => model.EditType.Value == NoteTypes.Single)
+                .Where(_ => EditState.NoteType.Value == NoteTypes.Single)
                 .Where(_ => !KeyInput.ShiftKey())
                 .Merge(closestNoteAreaOnMouseDownObservable
-                    .Where(_ => model.EditType.Value == NoteTypes.Long))
+                    .Where(_ => EditState.NoteType.Value == NoteTypes.Long))
                 .Subscribe(_ =>
                 {
-                    if (model.NoteObjects.ContainsKey(model.ClosestNotePosition.Value))
+                    if (EditData.Notes.ContainsKey(NoteCanvas.ClosestNotePosition.Value))
                     {
-                        model.NoteObjects[model.ClosestNotePosition.Value].OnClickObservable.OnNext(Unit.Default);
+                        EditData.Notes[NoteCanvas.ClosestNotePosition.Value].OnClickObservable.OnNext(Unit.Default);
                     }
                     else
                     {
                         RequestForEditNote.OnNext(
                            new Note(
-                               model.ClosestNotePosition.Value,
-                               model.EditType.Value,
+                               NoteCanvas.ClosestNotePosition.Value,
+                               EditState.NoteType.Value,
                                NotePosition.None,
-                               model.LongNoteTailPosition.Value));
+                               EditState.LongNoteTailPosition.Value));
                     }
                 });
 
 
             // Start editing of long note
             closestNoteAreaOnMouseDownObservable
-                .Where(_ => model.EditType.Value == NoteTypes.Single)
+                .Where(_ => EditState.NoteType.Value == NoteTypes.Single)
                 .Where(_ => KeyInput.ShiftKey())
-                .Do(_ => model.EditType.Value = NoteTypes.Long)
+                .Do(_ => EditState.NoteType.Value = NoteTypes.Long)
                 .Subscribe(_ => RequestForAddNote.OnNext(
                     new Note(
-                        model.ClosestNotePosition.Value,
+                        NoteCanvas.ClosestNotePosition.Value,
                         NoteTypes.Long,
                         NotePosition.None,
                         NotePosition.None)));
@@ -75,32 +75,32 @@ namespace NoteEditor.UI.Presenter
 
             // Finish editing long note by press-escape or right-click
             this.UpdateAsObservable()
-                .Where(_ => model.EditType.Value == NoteTypes.Long)
+                .Where(_ => EditState.NoteType.Value == NoteTypes.Long)
                 .Where(_ => Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
-                .Subscribe(_ => model.EditType.Value = NoteTypes.Single);
+                .Subscribe(_ => EditState.NoteType.Value = NoteTypes.Single);
 
-            var finishEditLongNoteObservable = model.EditType.Where(editType => editType == NoteTypes.Single);
+            var finishEditLongNoteObservable = EditState.NoteType.Where(editType => editType == NoteTypes.Single);
 
-            finishEditLongNoteObservable.Subscribe(_ => model.LongNoteTailPosition.Value = NotePosition.None);
+            finishEditLongNoteObservable.Subscribe(_ => EditState.LongNoteTailPosition.Value = NotePosition.None);
 
 
             RequestForRemoveNote.Buffer(RequestForRemoveNote.ThrottleFrame(1))
-                .Select(b => b.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
+                .Select(b => b.OrderBy(note => note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)).ToList())
                 .Subscribe(notes => UndoRedoManager.Do(
                     new Command(
                         () => notes.ForEach(RemoveNote),
                         () => notes.ForEach(AddNote))));
 
             RequestForAddNote.Buffer(RequestForAddNote.ThrottleFrame(1))
-                .Select(b => b.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
+                .Select(b => b.OrderBy(note => note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)).ToList())
                 .Subscribe(notes => UndoRedoManager.Do(
                     new Command(
                         () => notes.ForEach(AddNote),
                         () => notes.ForEach(RemoveNote))));
 
-            RequestForChangeNoteStatus.Select(note => new { current = note, prev = model.NoteObjects[note.position].note })
+            RequestForChangeNoteStatus.Select(note => new { current = note, prev = EditData.Notes[note.position].note })
                 .Buffer(RequestForChangeNoteStatus.ThrottleFrame(1))
-                .Select(b => b.OrderBy(note => note.current.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)).ToList())
+                .Select(b => b.OrderBy(note => note.current.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)).ToList())
                 .Subscribe(notes => UndoRedoManager.Do(
                     new Command(
                         () => notes.ForEach(x => ChangeNoteStates(x.current)),
@@ -111,20 +111,20 @@ namespace NoteEditor.UI.Presenter
             {
                 if (note.type == NoteTypes.Single)
                 {
-                    (model.NoteObjects.ContainsKey(note.position)
+                    (EditData.Notes.ContainsKey(note.position)
                         ? RequestForRemoveNote
                         : RequestForAddNote)
                     .OnNext(note);
                 }
                 else if (note.type == NoteTypes.Long)
                 {
-                    if (!model.NoteObjects.ContainsKey(note.position))
+                    if (!EditData.Notes.ContainsKey(note.position))
                     {
                         RequestForAddNote.OnNext(note);
                         return;
                     }
 
-                    var noteObject = model.NoteObjects[note.position];
+                    var noteObject = EditData.Notes[note.position];
                     (noteObject.note.type == NoteTypes.Long
                         ? RequestForRemoveNote
                         : RequestForChangeNoteStatus)
@@ -135,9 +135,9 @@ namespace NoteEditor.UI.Presenter
 
         public void AddNote(Note note)
         {
-            if (model.NoteObjects.ContainsKey(note.position))
+            if (EditData.Notes.ContainsKey(note.position))
             {
-                if (!model.NoteObjects[note.position].note.Equals(note))
+                if (!EditData.Notes[note.position].note.Equals(note))
                     RequestForChangeNoteStatus.OnNext(note);
 
                 return;
@@ -146,25 +146,25 @@ namespace NoteEditor.UI.Presenter
             var noteObject = new NoteObject();
             noteObject.SetState(note);
             noteObject.Init();
-            model.NoteObjects.Add(noteObject.note.position, noteObject);
+            EditData.Notes.Add(noteObject.note.position, noteObject);
         }
 
         void ChangeNoteStates(Note note)
         {
-            if (!model.NoteObjects.ContainsKey(note.position))
+            if (!EditData.Notes.ContainsKey(note.position))
                 return;
 
-            model.NoteObjects[note.position].SetState(note);
+            EditData.Notes[note.position].SetState(note);
         }
 
         void RemoveNote(Note note)
         {
-            if (!model.NoteObjects.ContainsKey(note.position))
+            if (!EditData.Notes.ContainsKey(note.position))
                 return;
 
-            var noteObject = model.NoteObjects[note.position];
+            var noteObject = EditData.Notes[note.position];
             noteObject.Dispose();
-            model.NoteObjects.Remove(noteObject.note.position);
+            EditData.Notes.Remove(noteObject.note.position);
         }
     }
 }

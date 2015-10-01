@@ -3963,7 +3963,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 120452562}
   m_HandleRect: {fileID: 120452561}
   m_Direction: 2
-  m_Value: 0
+  m_Value: 1
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -5534,7 +5534,7 @@ GameObject:
   - 114: {fileID: 804642299}
   - 114: {fileID: 804642301}
   m_Layer: 5
-  m_Name: ClapEnabledToggle
+  m_Name: ToggleClapSoundEffectEnabled
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5593,7 +5593,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3be204c46e00b4a41836ca98e30bdde4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  soundEffectEnabledToggle: {fileID: 1250137138}
+  toggle: {fileID: 1250137138}
 --- !u!1 &833008781
 GameObject:
   m_ObjectHideFlags: 0
@@ -7988,7 +7988,7 @@ GameObject:
   - 114: {fileID: 1283695311}
   - 114: {fileID: 1283695313}
   m_Layer: 5
-  m_Name: WaveformDisplayToggle
+  m_Name: ToggleWaveformDisplay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8047,7 +8047,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a49739583d27aba4a8036239b3e23f1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waveformDisplayToggle: {fileID: 657980408}
+  toggle: {fileID: 657980408}
 --- !u!1 &1286275366
 GameObject:
   m_ObjectHideFlags: 0
@@ -12296,7 +12296,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c256cbc4830982a42961b40a40ed13b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Audio: {fileID: 0}
   canvasScaler: {fileID: 798471442}
 --- !u!4 &2137253337
 Transform:

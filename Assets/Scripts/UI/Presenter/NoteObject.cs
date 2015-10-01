@@ -3,12 +3,13 @@ using NoteEditor.Notes;
 using NoteEditor.UI.Model;
 using NoteEditor.Utility;
 using System.Linq;
+using System;
 using UniRx;
 using UnityEngine;
 
 namespace NoteEditor.UI.Presenter
 {
-    public class NoteObject : DisposableHolder
+    public class NoteObject : IDisposable
     {
         public Note note = new Note();
         public ReactiveProperty<bool> isSelected = new ReactiveProperty<bool>();
@@ -23,10 +24,11 @@ namespace NoteEditor.UI.Presenter
         Color invalidStateColor = new Color(255 / 255f, 0 / 255f, 0 / 255f);
 
         ReactiveProperty<NoteTypes> noteType = new ReactiveProperty<NoteTypes>();
+        CompositeDisposable disposable = new CompositeDisposable();
 
         public void Init()
         {
-            Disposable(
+            disposable = new CompositeDisposable(
                 isSelected,
                 LateUpdateObservable,
                 OnClickObservable,
@@ -37,29 +39,29 @@ namespace NoteEditor.UI.Presenter
             var editPresenter = EditNotesPresenter.Instance;
             noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
 
-            Disposable(noteType.Where(_ => !isSelected.Value)
+            disposable.Add(noteType.Where(_ => !isSelected.Value)
                 .Merge(isSelected.Select(_ => noteType.Value))
                 .Select(type => type == NoteTypes.Long)
                 .Subscribe(isLongNote => noteColor_.Value = isLongNote ? longNoteColor : singleNoteColor));
 
-            Disposable(isSelected.Where(selected => selected)
+            disposable.Add(isSelected.Where(selected => selected)
                 .Subscribe(_ => noteColor_.Value = selectedStateColor));
 
             var mouseDownObservable = OnClickObservable
-                .Select(_ => model.EditType.Value)
-                .Where(_ => model.ClosestNotePosition.Value.Equals(note.position));
+                .Select(_ => EditState.NoteType.Value)
+                .Where(_ => NoteCanvas.ClosestNotePosition.Value.Equals(note.position));
 
-            Disposable(mouseDownObservable.Where(editType => editType == NoteTypes.Single)
+            disposable.Add(mouseDownObservable.Where(editType => editType == NoteTypes.Single)
                 .Where(editType => editType == noteType.Value)
                 .Subscribe(_ => editPresenter.RequestForRemoveNote.OnNext(note)));
 
-            Disposable(mouseDownObservable.Where(editType => editType == NoteTypes.Long)
+            disposable.Add(mouseDownObservable.Where(editType => editType == NoteTypes.Long)
                 .Where(editType => editType == noteType.Value)
                 .Subscribe(_ =>
                 {
-                    if (model.NoteObjects.ContainsKey(model.LongNoteTailPosition.Value) && note.prev.Equals(NotePosition.None))
+                    if (EditData.Notes.ContainsKey(EditState.LongNoteTailPosition.Value) && note.prev.Equals(NotePosition.None))
                     {
-                        var currentTailNote = new Note(model.NoteObjects[model.LongNoteTailPosition.Value].note);
+                        var currentTailNote = new Note(EditData.Notes[EditState.LongNoteTailPosition.Value].note);
                         currentTailNote.next = note.position;
                         editPresenter.RequestForChangeNoteStatus.OnNext(currentTailNote);
 
@@ -69,10 +71,10 @@ namespace NoteEditor.UI.Presenter
                     }
                     else
                     {
-                        if (model.NoteObjects.ContainsKey(note.prev) && !model.NoteObjects.ContainsKey(note.next))
-                            model.LongNoteTailPosition.Value = note.prev;
+                        if (EditData.Notes.ContainsKey(note.prev) && !EditData.Notes.ContainsKey(note.next))
+                            EditState.LongNoteTailPosition.Value = note.prev;
 
-                        editPresenter.RequestForRemoveNote.OnNext(new Note(note.position, model.EditType.Value, note.next, note.prev));
+                        editPresenter.RequestForRemoveNote.OnNext(new Note(note.position, EditState.NoteType.Value, note.next, note.prev));
                         RemoveLink();
                     }
                 }));
@@ -80,17 +82,17 @@ namespace NoteEditor.UI.Presenter
             var longNoteUpdateObservable = LateUpdateObservable
                 .Where(_ => noteType.Value == NoteTypes.Long);
 
-            Disposable(longNoteUpdateObservable
-                .Where(_ => model.NoteObjects.ContainsKey(note.next))
+            disposable.Add(longNoteUpdateObservable
+                .Where(_ => EditData.Notes.ContainsKey(note.next))
                 .Select(_ => ConvertUtils.NoteToCanvasPosition(note.next))
                 .Merge(longNoteUpdateObservable
-                    .Where(_ => model.EditType.Value == NoteTypes.Long)
-                    .Where(_ => model.LongNoteTailPosition.Value.Equals(note.position))
+                    .Where(_ => EditState.NoteType.Value == NoteTypes.Long)
+                    .Where(_ => EditState.LongNoteTailPosition.Value.Equals(note.position))
                     .Select(_ => ConvertUtils.ScreenToCanvasPosition(Input.mousePosition)))
                 .Select(nextPosition => new Line(
                     ConvertUtils.CanvasToScreenPosition(ConvertUtils.NoteToCanvasPosition(note.position)),
                     ConvertUtils.CanvasToScreenPosition(nextPosition),
-                    isSelected.Value || model.NoteObjects.ContainsKey(note.next) && model.NoteObjects[note.next].isSelected.Value ? selectedStateColor
+                    isSelected.Value || EditData.Notes.ContainsKey(note.next) && EditData.Notes[note.next].isSelected.Value ? selectedStateColor
                         : 0 < nextPosition.x - ConvertUtils.NoteToCanvasPosition(note.position).x ? longNoteColor : invalidStateColor))
                 .Subscribe(line => GLLineDrawer.Draw(line)));
         }
@@ -99,22 +101,22 @@ namespace NoteEditor.UI.Presenter
         {
             var model = NoteEditorModel.Instance;
 
-            if (model.NoteObjects.ContainsKey(note.prev))
-                model.NoteObjects[note.prev].note.next = note.next;
+            if (EditData.Notes.ContainsKey(note.prev))
+                EditData.Notes[note.prev].note.next = note.next;
 
-            if (model.NoteObjects.ContainsKey(note.next))
-                model.NoteObjects[note.next].note.prev = note.prev;
+            if (EditData.Notes.ContainsKey(note.next))
+                EditData.Notes[note.next].note.prev = note.prev;
         }
 
         void InsertLink(NotePosition position)
         {
             var model = NoteEditorModel.Instance;
 
-            if (model.NoteObjects.ContainsKey(note.prev))
-                model.NoteObjects[note.prev].note.next = position;
+            if (EditData.Notes.ContainsKey(note.prev))
+                EditData.Notes[note.prev].note.next = position;
 
-            if (model.NoteObjects.ContainsKey(note.next))
-                model.NoteObjects[note.next].note.prev = position;
+            if (EditData.Notes.ContainsKey(note.next))
+                EditData.Notes[note.next].note.prev = position;
         }
 
         public void SetState(Note note)
@@ -131,10 +133,15 @@ namespace NoteEditor.UI.Presenter
             if (note.type == NoteTypes.Long)
             {
                 InsertLink(note.position);
-                model.LongNoteTailPosition.Value = model.LongNoteTailPosition.Value.Equals(note.prev)
+                EditState.LongNoteTailPosition.Value = EditState.LongNoteTailPosition.Value.Equals(note.prev)
                     ? note.position
                     : NotePosition.None;
             }
+        }
+
+        public void Dispose()
+        {
+            disposable.Dispose();
         }
     }
 }

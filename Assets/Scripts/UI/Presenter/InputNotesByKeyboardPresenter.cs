@@ -16,7 +16,7 @@ namespace NoteEditor.UI.Presenter
         {
             model = NoteEditorModel.Instance;
             editPresenter = EditNotesPresenter.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
         }
 
         void Init()
@@ -28,7 +28,7 @@ namespace NoteEditor.UI.Presenter
                 .Where(_ => !KeyInput.AltKey())
                 .Where(_ => !KeyInput.CtrlKey())
                 .Where(_ => !KeyInput.ShiftKey())
-                .SelectMany(_ => Observable.Range(0, model.MaxBlock.Value))
+                .SelectMany(_ => Observable.Range(0, EditData.MaxBlock.Value))
                 .Where(num => Input.GetKeyDown(settingsModel.NoteInputKeyCodes.Value[num]))
                 .Subscribe(num => EnterNote(num));
         }
@@ -36,11 +36,11 @@ namespace NoteEditor.UI.Presenter
         void EnterNote(int block)
         {
             var offset = -5000;
-            var unitBeatSamples = model.Audio.clip.frequency * 60f / model.BPM.Value / model.LPB.Value;
-            var timeSamples = model.Audio.timeSamples - model.BeatOffsetSamples.Value + (model.IsPlaying.Value ? offset : 0);
+            var unitBeatSamples = Audio.Source.clip.frequency * 60f / EditData.BPM.Value / EditData.LPB.Value;
+            var timeSamples = Audio.Source.timeSamples - EditData.OffsetSamples.Value + (Audio.IsPlaying.Value ? offset : 0);
             var beats = Mathf.RoundToInt(timeSamples / unitBeatSamples);
 
-            editPresenter.RequestForEditNote.OnNext(new Note(new NotePosition(model.LPB.Value, beats, block), model.EditType.Value));
+            editPresenter.RequestForEditNote.OnNext(new Note(new NotePosition(EditData.LPB.Value, beats, block), EditState.NoteType.Value));
         }
     }
 }

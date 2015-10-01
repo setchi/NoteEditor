@@ -34,7 +34,7 @@ namespace NoteEditor.UI.Presenter
         void Start()
         {
             model = NoteEditorModel.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
 
             position_ = lineRectTransform.ObserveEveryValueChanged(rect => rect.localPosition.x).ToReactiveProperty();
         }
@@ -56,7 +56,7 @@ namespace NoteEditor.UI.Presenter
                 .RepeatSafe()
                 .Select(_ => ConvertUtils.ScreenToCanvasPosition(Input.mousePosition))
                 .Select(canvasPos => ConvertUtils.CanvasPositionXToSamples(canvasPos.x))
-                .Select(samples => Mathf.Clamp(samples, 0, model.Audio.clip.samples))
+                .Select(samples => Mathf.Clamp(samples, 0, Audio.Source.clip.samples))
                 .DistinctUntilChanged();
 
             operateHandleObservable.Subscribe(samples => CurrentSamples.Value = samples);
@@ -71,10 +71,10 @@ namespace NoteEditor.UI.Presenter
 
             Observable.Merge(
                     CurrentSamples.Select(_ => Unit.Default),
-                    model.CanvasOffsetX.Select(_ => Unit.Default),
-                    model.SmoothedTimeSamples.Select(_ => Unit.Default),
-                    model.CanvasWidth.Select(_ => Unit.Default),
-                    model.BeatOffsetSamples.Select(_ => Unit.Default))
+                    NoteCanvas.OffsetX.Select(_ => Unit.Default),
+                    Audio.SmoothedTimeSamples.Select(_ => Unit.Default),
+                    NoteCanvas.Width.Select(_ => Unit.Default),
+                    EditData.OffsetSamples.Select(_ => Unit.Default))
                 .Select(_ => CurrentSamples.Value)
                 .Subscribe(x =>
                 {

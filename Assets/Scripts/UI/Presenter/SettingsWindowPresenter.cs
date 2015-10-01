@@ -47,7 +47,7 @@ namespace NoteEditor.UI.Presenter
             model.Apply(LoadSettings(model));
 
 
-            NoteEditorModel.Instance.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
+            EditData.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
                     .Select(i => itemContentTransform.GetChild(i))
                     .ToList()
                     .ForEach(child => DestroyObject(child.gameObject)))
@@ -73,7 +73,7 @@ namespace NoteEditor.UI.Presenter
 
             Observable.Merge(
                      model.RequestForChangeInputNoteKeyCode.Select(_ => 0),
-                     NoteEditorModel.Instance.MaxBlock,
+                     EditData.MaxBlock,
                      model.WorkSpaceDirectoryPath.Select(_ => 0))
                  .Where(_ => model.IsViewing.Value)
                  .DelayFrame(1)

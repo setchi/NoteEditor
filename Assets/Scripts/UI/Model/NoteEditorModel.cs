@@ -16,81 +16,53 @@ namespace NoteEditor.UI.Model
 {
     public class NoteEditorModel : SingletonMonoBehaviour<NoteEditorModel>
     {
-        public readonly ReactiveProperty<NoteTypes> EditType = new ReactiveProperty<NoteTypes>(NoteTypes.Single);
-        public readonly ReactiveProperty<string> MusicName = new ReactiveProperty<string>();
-        public readonly ReactiveProperty<int> MaxBlock = new ReactiveProperty<int>(5);
-        public readonly ReactiveProperty<int> LPB = new ReactiveProperty<int>(4);
-        public readonly ReactiveProperty<int> BPM = new ReactiveProperty<int>(0);
-        public readonly ReactiveProperty<int> BeatOffsetSamples = new ReactiveProperty<int>(0);
-        public readonly ReactiveProperty<float> Volume = new ReactiveProperty<float>(1);
-        public readonly ReactiveProperty<bool> IsPlaying = new ReactiveProperty<bool>(false);
-        public readonly ReactiveProperty<int> TimeSamples = new ReactiveProperty<int>();
-        public readonly ReactiveProperty<float> CanvasOffsetX = new ReactiveProperty<float>();
-        public readonly ReactiveProperty<float> CanvasScaleFactor = new ReactiveProperty<float>();
-        public readonly ReactiveProperty<float> CanvasWidth = new ReactiveProperty<float>();
-        public readonly ReactiveProperty<bool> IsMouseOverNotesRegion = new ReactiveProperty<bool>();
-        public readonly ReactiveProperty<bool> IsMouseOverWaveformRegion = new ReactiveProperty<bool>();
-        public readonly ReactiveProperty<bool> IsOperatingPlaybackPositionDuringPlay = new ReactiveProperty<bool>(false);
-        public readonly ReactiveProperty<NotePosition> ClosestNotePosition = new ReactiveProperty<NotePosition>();
-        public readonly ReactiveProperty<bool> WaveformDisplayEnabled = new ReactiveProperty<bool>(true);
-        public readonly ReactiveProperty<bool> PlaySoundEffectEnabled = new ReactiveProperty<bool>(true);
-        public readonly ReactiveProperty<float> SmoothedTimeSamples = new ReactiveProperty<float>(0);
-        public readonly Dictionary<NotePosition, NoteObject> NoteObjects = new Dictionary<NotePosition, NoteObject>();
-        public readonly ReactiveProperty<NotePosition> LongNoteTailPosition = new ReactiveProperty<NotePosition>();
-        public readonly Subject<Unit> OnLoadMusicObservable = new Subject<Unit>();
-
-        [HideInInspector]
-        public AudioSource Audio;
-
         [SerializeField]
         CanvasScaler canvasScaler;
 
         void Awake()
         {
-            Audio = gameObject.AddComponent<AudioSource>();
-
             this.ObserveEveryValueChanged(_ => Screen.width)
                 .DistinctUntilChanged()
-                .Subscribe(w => CanvasScaleFactor.Value = 1280f / w);
-            // .Subscribe(w => CanvasScaleFactor.Value = canvasScaler.referenceResolution.x / w);
+                .Subscribe(w => NoteCanvas.ScaleFactor.Value = 1280f / w);
+            // .Subscribe(w => NoteCanvas.ScaleFactor.Value = canvasScaler.referenceResolution.x / w);
 
             ClearNotesData();
         }
 
         public void ClearNotesData()
         {
-            BPM.Value = 120;
-            BeatOffsetSamples.Value = 0;
-            MusicName.Value = "Note Editor";
-            MaxBlock.Value = NoteEditorSettingsModel.Instance.MaxBlock;
-            LPB.Value = 4;
-            IsPlaying.Value = false;
-            TimeSamples.Value = 0;
-            EditType.Value = NoteTypes.Single;
-            LongNoteTailPosition.Value = NotePosition.None;
-            Audio.clip = null;
+            Audio.Source.clip = null;
+            Audio.IsPlaying.Value = false;
+            Audio.TimeSamples.Value = 0;
+            Audio.SmoothedTimeSamples.Value = 0;
+            EditState.NoteType.Value = NoteTypes.Single;
+            EditState.LongNoteTailPosition.Value = NotePosition.None;
+            EditData.BPM.Value = 120;
+            EditData.OffsetSamples.Value = 0;
+            EditData.Name.Value = "Note Editor";
+            EditData.MaxBlock.Value = NoteEditorSettingsModel.Instance.MaxBlock;
+            EditData.LPB.Value = 4;
 
-            foreach (var note in NoteObjects.Values)
+            foreach (var note in EditData.Notes.Values)
             {
                 note.Dispose();
             }
 
-            NoteObjects.Clear();
-
+            EditData.Notes.Clear();
             Resources.UnloadUnusedAssets();
         }
 
         public string SerializeNotesData()
         {
             var data = new SaveDataModel.NotesData();
-            data.BPM = BPM.Value;
-            data.maxBlock = MaxBlock.Value;
-            data.offset = BeatOffsetSamples.Value;
-            data.name = Path.GetFileNameWithoutExtension(MusicName.Value);
+            data.BPM = EditData.BPM.Value;
+            data.maxBlock = EditData.MaxBlock.Value;
+            data.offset = EditData.OffsetSamples.Value;
+            data.name = Path.GetFileNameWithoutExtension(EditData.Name.Value);
 
-            var sortedNoteObjects = NoteObjects.Values
-                .Where(note => !(note.note.type == NoteTypes.Long && NoteObjects.ContainsKey(note.note.prev)))
-                .OrderBy(note => note.note.position.ToSamples(Audio.clip.frequency, BPM.Value));
+            var sortedNoteObjects = EditData.Notes.Values
+                .Where(note => !(note.note.type == NoteTypes.Long && EditData.Notes.ContainsKey(note.note.prev)))
+                .OrderBy(note => note.note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value));
 
             data.notes = new List<SaveDataModel.Note>();
 
@@ -105,9 +77,9 @@ namespace NoteEditor.UI.Model
                     var current = noteObject;
                     var note = ConvertToNote(noteObject);
 
-                    while (NoteObjects.ContainsKey(current.note.next))
+                    while (EditData.Notes.ContainsKey(current.note.next))
                     {
-                        var nextObj = NoteObjects[current.note.next];
+                        var nextObj = EditData.Notes[current.note.next];
                         note.notes.Add(ConvertToNote(nextObj));
                         current = nextObj;
                     }

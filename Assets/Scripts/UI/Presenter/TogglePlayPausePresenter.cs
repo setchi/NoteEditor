@@ -20,7 +20,7 @@ namespace NoteEditor.UI.Presenter
         void Awake()
         {
             model = NoteEditorModel.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
         }
 
         void Init()
@@ -28,21 +28,21 @@ namespace NoteEditor.UI.Presenter
             this.UpdateAsObservable()
                 .Where(_ => Input.GetKeyDown(KeyCode.Space))
                 .Merge(togglePlayPauseButton.OnClickAsObservable())
-                .Subscribe(_ => model.IsPlaying.Value = !model.IsPlaying.Value);
+                .Subscribe(_ => Audio.IsPlaying.Value = !Audio.IsPlaying.Value);
 
-            model.IsPlaying.Subscribe(playing =>
+            Audio.IsPlaying.Subscribe(playing =>
             {
                 var playButtonImage = togglePlayPauseButton.GetComponent<Image>();
 
                 if (playing)
                 {
-                    model.Audio.Play();
+                    Audio.Source.Play();
                     playButtonImage.sprite = iconPause;
 
                 }
                 else
                 {
-                    model.Audio.Pause();
+                    Audio.Source.Pause();
                     playButtonImage.sprite = iconPlay;
                 }
             });

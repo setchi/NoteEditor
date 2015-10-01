@@ -36,11 +36,11 @@ namespace NoteEditor.UI.Presenter
                 .Select(_ => Input.mousePosition)
                 .SelectMany(startPos => this.UpdateAsObservable()
                     .TakeWhile(_ => !Input.GetMouseButtonUp(0))
-                    .Where(_ => model.IsMouseOverNotesRegion.Value)
+                    .Where(_ => NoteCanvas.IsMouseOverNotesRegion.Value)
                     .Select(_ => Input.mousePosition)
                     .Select(currentPos => new Rect(startPos, currentPos - startPos)))
                 .Do(rect => GLLineDrawer.Draw(ToLines(rect, selectionRectColor)))
-                .Do(_ => { if (!model.IsPlaying.Value) Deselect(); })
+                .Do(_ => { if (!Audio.IsPlaying.Value) Deselect(); })
                 .SelectMany(rect => GetNotesWithin(rect))
                 .Do(kv => selectedNoteObjects[kv.Key] = kv.Value)
                 .Subscribe(kv => kv.Value.isSelected.Value = true);
@@ -49,7 +49,7 @@ namespace NoteEditor.UI.Presenter
             // All select by Ctrl-A
             this.UpdateAsObservable()
                 .Where(_ => KeyInput.CtrlPlus(KeyCode.A))
-                .SelectMany(_ => model.NoteObjects.Values.ToList())
+                .SelectMany(_ => EditData.Notes.Values.ToList())
                 .Do(noteObj => noteObj.isSelected.Value = true)
                 .Subscribe(noteObj => selectedNoteObjects[noteObj.note.position] = noteObj);
 
@@ -64,14 +64,14 @@ namespace NoteEditor.UI.Presenter
             this.UpdateAsObservable()
                 .Where(_ => KeyInput.CtrlPlus(KeyCode.X))
                 .Select(_ => selectedNoteObjects.Values
-                    .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.note.position)))
+                    .Where(noteObj => EditData.Notes.ContainsKey(noteObj.note.position)))
                 .Do(notes => CopyNotes(notes))
                 .Subscribe(notes => DeleteNotes(notes));
 
 
             // Deselect by mousedown
             this.UpdateAsObservable()
-                .Where(_ => !model.IsMouseOverWaveformRegion.Value)
+                .Where(_ => !NoteCanvas.IsMouseOverWaveformRegion.Value)
                 .Where(_ => Input.GetMouseButtonDown(0))
                 .Subscribe(_ => Deselect());
 
@@ -80,7 +80,7 @@ namespace NoteEditor.UI.Presenter
             this.UpdateAsObservable()
                 .Where(_ => Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
                 .Select(_ => selectedNoteObjects.Values
-                    .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.note.position)).ToList())
+                    .Where(noteObj => EditData.Notes.ContainsKey(noteObj.note.position)).ToList())
                 .Do(_ => selectedNoteObjects.Clear())
                 .Subscribe(notes => DeleteNotes(notes));
 
@@ -89,14 +89,14 @@ namespace NoteEditor.UI.Presenter
             this.UpdateAsObservable()
                 .Where(_ => KeyInput.CtrlPlus(KeyCode.V))
                 .Where(_ => copiedNotes.Count > 0)
-                .Select(_ => copiedNotes.OrderBy(note => note.position.ToSamples(model.Audio.clip.frequency, model.BPM.Value)))
+                .Select(_ => copiedNotes.OrderBy(note => note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)))
                 .Subscribe(sortedCopiedNotes =>
                 {
                     var firstPos = sortedCopiedNotes.First().position;
                     var lastPos = sortedCopiedNotes.Last().position;
                     var beatDiff = 1 + lastPos.num / lastPos.LPB - firstPos.num / firstPos.LPB;
 
-                    var validNotes = copiedNotes.Where(note => note.position.Add(0, note.position.LPB * beatDiff, 0).ToSamples(model.Audio.clip.frequency, model.BPM.Value) < model.Audio.clip.samples)
+                    var validNotes = copiedNotes.Where(note => note.position.Add(0, note.position.LPB * beatDiff, 0).ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value) < Audio.Source.clip.samples)
                         .ToList();
 
                     copiedNotes.Clear();
@@ -113,7 +113,7 @@ namespace NoteEditor.UI.Presenter
                                 ))
                         .Do(note => copiedNotes.Add(note))
                         .Subscribe(note =>
-                            (model.NoteObjects.ContainsKey(note.position)
+                            (EditData.Notes.ContainsKey(note.position)
                                 ? editPresenter.RequestForChangeNoteStatus
                                 : editPresenter.RequestForAddNote)
                             .OnNext(note));
@@ -123,7 +123,7 @@ namespace NoteEditor.UI.Presenter
                     validNotes.Select(obj => obj.position.Add(0, obj.position.LPB * beatDiff, 0))
                         .ToObservable()
                         .DelayFrame(1)
-                        .Select(pastedPosition => model.NoteObjects[pastedPosition])
+                        .Select(pastedPosition => EditData.Notes[pastedPosition])
                         .Do(pastedObj => selectedNoteObjects[pastedObj.note.position] = pastedObj)
                         .Subscribe(pastedObj => pastedObj.isSelected.Value = true);
                 });
@@ -131,12 +131,12 @@ namespace NoteEditor.UI.Presenter
 
         public NotePosition GetSelectedNextLongNote(NotePosition current, Func<NoteObject, NotePosition> accessor)
         {
-            while (model.NoteObjects.ContainsKey(current))
+            while (EditData.Notes.ContainsKey(current))
             {
                 if (selectedNoteObjects.ContainsKey(current))
                     return current;
 
-                current = accessor(model.NoteObjects[current]);
+                current = accessor(EditData.Notes[current]);
             }
 
             return NotePosition.None;
@@ -144,7 +144,7 @@ namespace NoteEditor.UI.Presenter
 
         Dictionary<NotePosition, NoteObject> GetNotesWithin(Rect rect)
         {
-            return model.NoteObjects
+            return EditData.Notes
                 .Where(kv => rect.Contains(ConvertUtils.CanvasToScreenPosition(ConvertUtils.NoteToCanvasPosition(kv.Value.note.position)), true))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
         }
@@ -172,7 +172,7 @@ namespace NoteEditor.UI.Presenter
         void Deselect()
         {
             selectedNoteObjects.Values
-                .Where(noteObj => model.NoteObjects.ContainsKey(noteObj.note.position))
+                .Where(noteObj => EditData.Notes.ContainsKey(noteObj.note.position))
                 .ToList()
                 .ForEach(note => note.isSelected.Value = false);
 

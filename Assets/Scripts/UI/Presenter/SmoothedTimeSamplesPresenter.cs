@@ -12,7 +12,7 @@ namespace NoteEditor.UI.Presenter
         void Awake()
         {
             model = NoteEditorModel.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
         }
 
         void Init()
@@ -21,27 +21,27 @@ namespace NoteEditor.UI.Presenter
             var counter = 0;
 
             this.UpdateAsObservable()
-                .Where(_ => model.Audio.clip != null)
-                .Where(_ => model.IsPlaying.Value)
+                .Where(_ => Audio.Source.clip != null)
+                .Where(_ => Audio.IsPlaying.Value)
                 .Subscribe(_ =>
                 {
                     var deltaSamples = counter == 0
-                        ? (model.Audio.timeSamples - prevFrameSamples)
-                        : model.Audio.clip.frequency * Time.deltaTime;
+                        ? (Audio.Source.timeSamples - prevFrameSamples)
+                        : Audio.Source.clip.frequency * Time.deltaTime;
 
-                    model.SmoothedTimeSamples.Value += deltaSamples;
-                    prevFrameSamples = model.SmoothedTimeSamples.Value;
+                    Audio.SmoothedTimeSamples.Value += deltaSamples;
+                    prevFrameSamples = Audio.SmoothedTimeSamples.Value;
 
                     counter = ++counter % 180;
                 });
 
-            model.TimeSamples
-                .Where(_ => model.Audio.clip != null)
-                .Where(_ => !model.IsPlaying.Value)
+            Audio.TimeSamples
+                .Where(_ => Audio.Source.clip != null)
+                .Where(_ => !Audio.IsPlaying.Value)
                 .Subscribe(timeSamples =>
                 {
                     counter = 0;
-                    model.SmoothedTimeSamples.Value = timeSamples;
+                    Audio.SmoothedTimeSamples.Value = timeSamples;
                     prevFrameSamples = timeSamples;
                 });
         }

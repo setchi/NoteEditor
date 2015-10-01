@@ -5,15 +5,16 @@ using UnityEngine.UI;
 
 namespace NoteEditor.UI.Presenter
 {
-    public class MusicNameTextPresenter : MonoBehaviour
+    public class ToggleClapSoundEffectEnablePresenter : MonoBehaviour
     {
         [SerializeField]
-        Text musicNameText;
+        Toggle toggle;
 
         void Awake()
         {
             var model = NoteEditorModel.Instance;
-            EditData.Name.SubscribeToText(musicNameText);
+            toggle.OnValueChangedAsObservable()
+                .Subscribe(isEnabled => EditorState.ClapSoundEffectEnabled.Value = isEnabled);
         }
     }
 }

@@ -49,16 +49,16 @@ namespace NoteEditor.UI.Presenter
                 .Merge(saveButton.OnClickAsObservable());
 
             mustBeSaved = Observable.Merge(
-                    model.BPM.Select(_ => true),
-                    model.BeatOffsetSamples.Select(_ => true),
-                    model.MaxBlock.Select(_ => true),
+                    EditData.BPM.Select(_ => true),
+                    EditData.OffsetSamples.Select(_ => true),
+                    EditData.MaxBlock.Select(_ => true),
                     editPresenter.RequestForEditNote.Select(_ => true),
                     editPresenter.RequestForAddNote.Select(_ => true),
                     editPresenter.RequestForRemoveNote.Select(_ => true),
                     editPresenter.RequestForChangeNoteStatus.Select(_ => true),
-                    model.OnLoadMusicObservable.Select(_ => false),
+                    Audio.OnLoad.Select(_ => false),
                     saveActionObservable.Select(_ => false))
-                .SkipUntil(model.OnLoadMusicObservable.DelayFrame(1))
+                .SkipUntil(Audio.OnLoad.DelayFrame(1))
                 .Do(unsaved => saveButton.GetComponent<Image>().color = unsaved ? unsavedStateButtonColor : savedStateButtonColor)
                 .ToReactiveProperty();
 
@@ -98,7 +98,7 @@ namespace NoteEditor.UI.Presenter
         {
             if (mustBeSaved.Value)
             {
-                dialogMessageText.text = "Do you want to save the changes you made in the note '" + model.MusicName.Value + "' ?"
+                dialogMessageText.text = "Do you want to save the changes you made in the note '" + EditData.Name.Value + "' ?"
                     + System.Environment.NewLine + "Your changes will be lost if you don't save them.";
                 saveDialog.SetActive(true);
                 Application.CancelQuit();
@@ -107,7 +107,7 @@ namespace NoteEditor.UI.Presenter
 
         public void Save()
         {
-            var fileName = Path.GetFileNameWithoutExtension(model.MusicName.Value) + ".json";
+            var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
             var directoryPath = NoteEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Notes/";
             var filePath = directoryPath + fileName;
             var json = model.SerializeNotesData();

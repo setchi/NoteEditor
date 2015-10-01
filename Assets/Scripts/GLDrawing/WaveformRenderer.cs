@@ -23,19 +23,19 @@ namespace NoteEditor.GLDrawing
 
 
             this.LateUpdateAsObservable()
-                .Where(_ => model.WaveformDisplayEnabled.Value)
-                .Where(_ => model.Audio.clip != null)
+                .Where(_ => EditorState.WaveformDisplayEnabled.Value)
+                .Where(_ => Audio.Source.clip != null)
                 .Subscribe(_ =>
                 {
-                    var timeSamples = Mathf.Min(model.SmoothedTimeSamples.Value, model.Audio.clip.samples - 1);
-                    model.Audio.clip.GetData(waveData, Mathf.RoundToInt(timeSamples));
+                    var timeSamples = Mathf.Min(Audio.SmoothedTimeSamples.Value, Audio.Source.clip.samples - 1);
+                    Audio.Source.clip.GetData(waveData, Mathf.RoundToInt(timeSamples));
 
-                    var x = (model.CanvasWidth.Value / model.Audio.clip.samples) / 2f;
-                    var offsetX = model.CanvasOffsetX.Value;
+                    var x = (NoteCanvas.Width.Value / Audio.Source.clip.samples) / 2f;
+                    var offsetX = NoteCanvas.OffsetX.Value;
                     var offsetY = 200;
 
-                    var min = model.CanvasOffsetX.Value;
-                    var max = Screen.width / model.CanvasScaleFactor.Value * 1.3f;
+                    var min = NoteCanvas.OffsetX.Value;
+                    var max = Screen.width / NoteCanvas.ScaleFactor.Value * 1.3f;
 
                     for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
                     {

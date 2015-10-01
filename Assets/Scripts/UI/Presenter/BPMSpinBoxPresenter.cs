@@ -7,7 +7,7 @@ namespace NoteEditor.UI.Presenter
     {
         protected override ReactiveProperty<int> GetReactiveProperty()
         {
-            return NoteEditorModel.Instance.BPM;
+            return EditData.BPM;
         }
     }
 }

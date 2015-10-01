@@ -27,11 +27,11 @@ namespace NoteEditor.UI.Presenter
             var model = NoteEditorModel.Instance;
             NotesRegionOnMouseExitObservable.Select(_ => false)
                 .Merge(NotesRegionOnMouseEnterObservable.Select(_ => true))
-                .Subscribe(isMouseOver => model.IsMouseOverNotesRegion.Value = isMouseOver);
+                .Subscribe(isMouseOver => NoteCanvas.IsMouseOverNotesRegion.Value = isMouseOver);
 
             WaveformRegionOnMouseExitObservable.Select(_ => false)
                 .Merge(WaveformRegionOnMouseEnterObservable.Select(_ => true))
-                .Subscribe(isMouseOver => model.IsMouseOverWaveformRegion.Value = isMouseOver);
+                .Subscribe(isMouseOver => NoteCanvas.IsMouseOverWaveformRegion.Value = isMouseOver);
         }
 
         public void NotesRegionOnMouseUp() { NotesRegionOnMouseUpObservable.OnNext(Input.mousePosition); }

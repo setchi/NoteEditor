@@ -37,9 +37,9 @@ namespace NoteEditor.UI.Model
             var data = new SettingsModel();
 
             data.workSpaceDirectoryPath = WorkSpaceDirectoryPath.Value;
-            data.maxBlock = NoteEditorModel.Instance.MaxBlock.Value;
+            data.maxBlock = EditData.MaxBlock.Value;
             data.noteInputKeyCodes = NoteInputKeyCodes.Value
-                .Take(NoteEditorModel.Instance.MaxBlock.Value)
+                .Take(EditData.MaxBlock.Value)
                 .Select(keyCode => (int)keyCode)
                 .ToList();
 

@@ -26,12 +26,12 @@ namespace NoteEditor.UI.Presenter
 
             editTypeToggleButton.OnClickAsObservable()
                 .Merge(this.UpdateAsObservable().Where(_ => KeyInput.AltKeyDown()))
-                .Select(_ => model.EditType.Value == NoteTypes.Single ? NoteTypes.Long : NoteTypes.Single)
-                .Subscribe(editType => model.EditType.Value = editType);
+                .Select(_ => EditState.NoteType.Value == NoteTypes.Single ? NoteTypes.Long : NoteTypes.Single)
+                .Subscribe(editType => EditState.NoteType.Value = editType);
 
             var buttonImage = editTypeToggleButton.GetComponent<Image>();
 
-            model.EditType.Select(_ => model.EditType.Value == NoteTypes.Long)
+            EditState.NoteType.Select(_ => EditState.NoteType.Value == NoteTypes.Long)
                 .Subscribe(isLongType =>
                 {
                     buttonImage.sprite = isLongType ? iconLongNotes : iconSingleNotes;

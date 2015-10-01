@@ -28,7 +28,7 @@ namespace NoteEditor.UI.Presenter
         void Awake()
         {
             model = NoteEditorModel.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
         }
 
         void Init()
@@ -53,29 +53,29 @@ namespace NoteEditor.UI.Presenter
                     end.HandleRectTransform.localScale = scale1;
 
                     var markerCanvasWidth = end.Position.Value - start.Position.Value;
-                    var startPos = start.Position.Value / model.CanvasScaleFactor.Value + Screen.width / 2f;
+                    var startPos = start.Position.Value / NoteCanvas.ScaleFactor.Value + Screen.width / 2f;
                     var halfScreenHeight = Screen.height / 2f;
-                    var halfHeight = markerRect.sizeDelta.y / model.CanvasScaleFactor.Value / 2;
+                    var halfHeight = markerRect.sizeDelta.y / NoteCanvas.ScaleFactor.Value / 2;
 
                     var min = new Vector2(startPos, halfScreenHeight - halfHeight);
-                    var max = new Vector2(startPos + markerCanvasWidth / model.CanvasScaleFactor.Value, halfScreenHeight + halfHeight);
+                    var max = new Vector2(startPos + markerCanvasWidth / NoteCanvas.ScaleFactor.Value, halfScreenHeight + halfHeight);
 
                     drawData = new Geometry(
                         new[] {
-                        new Vector3(min.x, max.y, 0),
-                        new Vector3(max.x, max.y, 0),
-                        new Vector3(max.x, min.y, 0),
-                        new Vector3(min.x, min.y, 0)
+                            new Vector3(min.x, max.y, 0),
+                            new Vector3(max.x, max.y, 0),
+                            new Vector3(max.x, min.y, 0),
+                            new Vector3(min.x, min.y, 0)
                         },
                         markerColor);
 
                     var sliderMarkerSize = sliderMarker.sizeDelta;
-                    sliderMarkerSize.x = sliderWidth * markerCanvasWidth / model.CanvasWidth.Value;
+                    sliderMarkerSize.x = sliderWidth * markerCanvasWidth / NoteCanvas.Width.Value;
                     sliderMarker.sizeDelta = sliderMarkerSize;
 
-                    if (model.CanvasWidth.Value > 0)
+                    if (NoteCanvas.Width.Value > 0)
                     {
-                        var startPer = (start.Position.Value - ConvertUtils.SamplesToCanvasPositionX(0)) / model.CanvasWidth.Value;
+                        var startPer = (start.Position.Value - ConvertUtils.SamplesToCanvasPositionX(0)) / NoteCanvas.Width.Value;
                         var sliderMarkerPos = sliderMarker.localPosition;
                         sliderMarkerPos.x = sliderWidth * startPer - sliderWidth / 2f;
                         sliderMarker.localPosition = sliderMarkerPos;

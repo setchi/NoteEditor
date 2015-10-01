@@ -21,7 +21,7 @@ namespace NoteEditor.UI.Presenter
         void Awake()
         {
             model = NoteEditorModel.Instance;
-            model.OnLoadMusicObservable.First().Subscribe(_ => Init());
+            Audio.OnLoad.First().Subscribe(_ => Init());
         }
 
         void Init()
@@ -30,23 +30,23 @@ namespace NoteEditor.UI.Presenter
                 .Where(_ => KeyInput.CtrlKey())
                 .Merge(this.UpdateAsObservable().Where(_ => Input.GetKey(KeyCode.UpArrow)).Select(_ => 0.05f))
                 .Merge(this.UpdateAsObservable().Where(_ => Input.GetKey(KeyCode.DownArrow)).Select(_ => -0.05f))
-                .Select(delta => model.CanvasWidth.Value * (1 + delta))
-                .Select(x => x / (model.Audio.clip.samples / 100f))
+                .Select(delta => NoteCanvas.Width.Value * (1 + delta))
+                .Select(x => x / (Audio.Source.clip.samples / 100f))
                 .Select(x => Mathf.Clamp(x, 0.1f, 2f))
                 .Merge(canvasWidthScaleController.OnValueChangedAsObservable()
                     .DistinctUntilChanged())
                 .DistinctUntilChanged()
-                .Select(x => model.Audio.clip.samples / 100f * x);
+                .Select(x => Audio.Source.clip.samples / 100f * x);
 
-            operateCanvasScaleObservable.Subscribe(x => model.CanvasWidth.Value = x);
+            operateCanvasScaleObservable.Subscribe(x => NoteCanvas.Width.Value = x);
 
             operateCanvasScaleObservable.Buffer(operateCanvasScaleObservable.ThrottleFrame(2))
                 .Where(b => 2 <= b.Count)
                 .Select(x => new { current = x.Last(), prev = x.First() })
                 .Subscribe(x => UndoRedoManager.Do(
                     new Command(
-                        () => model.CanvasWidth.Value = x.current,
-                        () => model.CanvasWidth.Value = x.prev)));
+                        () => NoteCanvas.Width.Value = x.current,
+                        () => NoteCanvas.Width.Value = x.prev)));
         }
     }
 }

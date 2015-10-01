@@ -94,15 +94,15 @@ namespace NoteEditor.UI.Presenter
                 var editorModel = NoteEditorModel.Instance;
                 editorModel.ClearNotesData();
 
-                editorModel.Audio.clip = www.audioClip;
+                Audio.Source.clip = www.audioClip;
 
-                if (editorModel.Audio.clip == null)
+                if (Audio.Source.clip == null)
                 {
                 }
                 else
                 {
-                    editorModel.MusicName.Value = fileName;
-                    editorModel.OnLoadMusicObservable.OnNext(Unit.Default);
+                    EditData.Name.Value = fileName;
+                    Audio.OnLoad.OnNext(Unit.Default);
                     LoadNotesData();
                 }
             }
@@ -112,7 +112,7 @@ namespace NoteEditor.UI.Presenter
         {
             var editorModel = NoteEditorModel.Instance;
 
-            var fileName = Path.GetFileNameWithoutExtension(editorModel.MusicName.Value) + ".json";
+            var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
             var directoryPath = Application.persistentDataPath + "/Notes/";
             var filePath = directoryPath + fileName;
 
@@ -129,9 +129,9 @@ namespace NoteEditor.UI.Presenter
             var editorModel = NoteEditorModel.Instance;
             var notePresenter = EditNotesPresenter.Instance;
 
-            editorModel.BPM.Value = notesData.BPM;
-            editorModel.MaxBlock.Value = notesData.maxBlock;
-            editorModel.BeatOffsetSamples.Value = notesData.offset;
+            EditData.BPM.Value = notesData.BPM;
+            EditData.MaxBlock.Value = notesData.maxBlock;
+            EditData.OffsetSamples.Value = notesData.offset;
 
             foreach (var note in notesData.notes)
             {
@@ -145,7 +145,7 @@ namespace NoteEditor.UI.Presenter
                     .Select(note_ =>
                     {
                         notePresenter.AddNote(ToNote(note_));
-                        return editorModel.NoteObjects[ToNote(note_).position];
+                        return EditData.Notes[ToNote(note_).position];
                     })
                     .ToList();
 
@@ -155,7 +155,7 @@ namespace NoteEditor.UI.Presenter
                     longNoteObjects[i - 1].note.next = longNoteObjects[i].note.position;
                 }
 
-                editorModel.LongNoteTailPosition.Value = NotePosition.None;
+                EditState.LongNoteTailPosition.Value = NotePosition.None;
             }
         }
 
