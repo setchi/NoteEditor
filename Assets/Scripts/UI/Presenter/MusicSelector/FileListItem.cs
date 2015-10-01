@@ -18,12 +18,12 @@ namespace NoteEditor.UI.Presenter
         Color defaultTextColor;
 
         string fileName;
-        MusicSelectorModel model;
+        MusicSelector model;
 
         void Start()
         {
             GetComponent<RectTransform>().localScale = Vector3.one;
-            model = MusicSelectorModel.Instance;
+            model = MusicSelector.Instance;
 
             var text = GetComponentInChildren<Text>();
             var image = GetComponent<Image>();

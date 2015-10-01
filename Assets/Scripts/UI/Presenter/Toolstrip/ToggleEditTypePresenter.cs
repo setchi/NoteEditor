@@ -1,4 +1,5 @@
-﻿using NoteEditor.UI.Model;
+﻿using NoteEditor.Notes;
+using NoteEditor.UI.Model;
 using NoteEditor.Utility;
 using UniRx;
 using UniRx.Triggers;

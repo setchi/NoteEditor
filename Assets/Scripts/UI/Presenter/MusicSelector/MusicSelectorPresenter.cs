@@ -36,17 +36,17 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         GameObject noteObjectPrefab;
 
-        MusicSelectorModel model;
+        MusicSelector model;
 
         void Start()
         {
-            ClearNotesData();
+            ResetEditor();
 
-            model = MusicSelectorModel.Instance;
+            model = MusicSelector.Instance;
             directoryPathInputField.OnValueChangeAsObservable()
                 .Subscribe(path => model.DirectoryPath.Value = path);
             model.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
-            model.DirectoryPath.Value = NoteEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
+            model.DirectoryPath.Value = NoteEditorSettings.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
 
 
             if (!Directory.Exists(model.DirectoryPath.Value))
@@ -90,7 +90,7 @@ namespace NoteEditor.UI.Presenter
                 yield return www;
 
                 UndoRedoManager.Clear();
-                ClearNotesData();
+                ResetEditor();
                 Audio.Source.clip = www.audioClip;
 
                 if (Audio.Source.clip == null)
@@ -100,12 +100,12 @@ namespace NoteEditor.UI.Presenter
                 {
                     EditData.Name.Value = fileName;
                     Audio.OnLoad.OnNext(Unit.Default);
-                    LoadNotesData();
+                    LoadEditData();
                 }
             }
         }
 
-        void LoadNotesData()
+        void LoadEditData()
         {
             var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
             var directoryPath = Application.persistentDataPath + "/Notes/";
@@ -114,20 +114,20 @@ namespace NoteEditor.UI.Presenter
             if (File.Exists(filePath))
             {
                 var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-                var notesData = JsonMapper.ToObject<SaveDataModel.NotesData>(json);
-                InstantiateNotesData(notesData);
+                var editData = JsonMapper.ToObject<SaveData.EditData>(json);
+                InstantiateEditData(editData);
             }
         }
 
-        void InstantiateNotesData(SaveDataModel.NotesData notesData)
+        void InstantiateEditData(SaveData.EditData editData)
         {
             var notePresenter = EditNotesPresenter.Instance;
 
-            EditData.BPM.Value = notesData.BPM;
-            EditData.MaxBlock.Value = notesData.maxBlock;
-            EditData.OffsetSamples.Value = notesData.offset;
+            EditData.BPM.Value = editData.BPM;
+            EditData.MaxBlock.Value = editData.maxBlock;
+            EditData.OffsetSamples.Value = editData.offset;
 
-            foreach (var note in notesData.notes)
+            foreach (var note in editData.notes)
             {
                 if (note.type == 1)
                 {
@@ -153,7 +153,7 @@ namespace NoteEditor.UI.Presenter
             }
         }
 
-        public void ClearNotesData()
+        void ResetEditor()
         {
             Audio.TimeSamples.Value = 0;
             Audio.SmoothedTimeSamples.Value = 0;
@@ -164,7 +164,7 @@ namespace NoteEditor.UI.Presenter
             EditData.BPM.Value = 120;
             EditData.OffsetSamples.Value = 0;
             EditData.Name.Value = "Note Editor";
-            EditData.MaxBlock.Value = NoteEditorSettingsModel.Instance.MaxBlock;
+            EditData.MaxBlock.Value = NoteEditorSettings.Instance.MaxBlock;
             EditData.LPB.Value = 4;
 
             foreach (var note in EditData.Notes.Values)

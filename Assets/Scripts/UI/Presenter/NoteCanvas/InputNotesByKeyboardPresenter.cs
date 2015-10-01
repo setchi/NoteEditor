@@ -19,7 +19,7 @@ namespace NoteEditor.UI.Presenter
 
         void Init()
         {
-            var settingsModel = NoteEditorSettingsModel.Instance;
+            var settingsModel = NoteEditorSettings.Instance;
 
             this.UpdateAsObservable()
                 .Where(_ => !settingsModel.IsViewing.Value)

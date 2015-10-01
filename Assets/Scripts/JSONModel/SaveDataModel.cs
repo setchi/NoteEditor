@@ -2,9 +2,9 @@
 
 namespace NoteEditor.JSONModel
 {
-    public class SaveDataModel
+    public class SaveData
     {
-        public class NotesData
+        public class EditData
         {
             public string name;
             public int maxBlock;

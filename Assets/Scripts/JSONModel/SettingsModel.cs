@@ -2,7 +2,7 @@
 
 namespace NoteEditor.JSONModel
 {
-    public class SettingsModel
+    public class Settings
     {
         public string workSpaceDirectoryPath;
         public int maxBlock;

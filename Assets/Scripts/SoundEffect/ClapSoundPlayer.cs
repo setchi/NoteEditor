@@ -6,7 +6,7 @@ using UniRx;
 using UniRx.Triggers;
 using UnityEngine;
 
-namespace NoteEditor.SE
+namespace NoteEditor.SoundEffect
 {
     public class ClapSoundPlayer : MonoBehaviour
     {

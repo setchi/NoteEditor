@@ -19,7 +19,7 @@ namespace NoteEditor.UI.Presenter
         static string fileName = "settings.json";
         static string filePath = directoryPath + fileName;
 
-        SettingsModel LoadSettings(NoteEditorSettingsModel model)
+        Settings LoadSettings(NoteEditorSettings model)
         {
             if (!Directory.Exists(directoryPath))
             {
@@ -33,17 +33,17 @@ namespace NoteEditor.UI.Presenter
             }
 
             var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-            return JsonMapper.ToObject<SettingsModel>(json);
+            return JsonMapper.ToObject<Settings>(json);
         }
 
-        void SaveSettings(NoteEditorSettingsModel model)
+        void SaveSettings(NoteEditorSettings model)
         {
             File.WriteAllText(filePath, model.SerializeSettings(), System.Text.Encoding.UTF8);
         }
 
         void Awake()
         {
-            var model = NoteEditorSettingsModel.Instance;
+            var model = NoteEditorSettings.Instance;
             model.Apply(LoadSettings(model));
 
 

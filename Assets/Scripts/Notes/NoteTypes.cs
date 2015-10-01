@@ -1,1 +1,4 @@
-﻿public enum NoteTypes { Single, Long }
+﻿namespace NoteEditor.Notes
+{
+    public enum NoteTypes { Single, Long }
+}

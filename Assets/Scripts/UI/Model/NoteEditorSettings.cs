@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace NoteEditor.UI.Model
 {
-    public class NoteEditorSettingsModel : SingletonMonoBehaviour<NoteEditorSettingsModel>
+    public class NoteEditorSettings : SingletonMonoBehaviour<NoteEditorSettings>
     {
         public readonly ReactiveProperty<string> WorkSpaceDirectoryPath = new ReactiveProperty<string>();
         public readonly ReactiveProperty<List<KeyCode>> NoteInputKeyCodes = new ReactiveProperty<List<KeyCode>>();
@@ -19,7 +19,7 @@ namespace NoteEditor.UI.Model
         [HideInInspector]
         public int MaxBlock = 0;
 
-        public void Apply(SettingsModel data)
+        public void Apply(Settings data)
         {
             NoteInputKeyCodes.Value = data.noteInputKeyCodes
                 .Select(keyCodeNum => (KeyCode)keyCodeNum)
@@ -34,7 +34,7 @@ namespace NoteEditor.UI.Model
 
         public string SerializeSettings()
         {
-            var data = new SettingsModel();
+            var data = new Settings();
 
             data.workSpaceDirectoryPath = WorkSpaceDirectoryPath.Value;
             data.maxBlock = EditData.MaxBlock.Value;
