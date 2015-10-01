@@ -15,7 +15,6 @@ namespace NoteEditor.SE
 
         void Awake()
         {
-            var model = NoteEditorModel.Instance;
             var editPresenter = EditNotesPresenter.Instance;
             var clapOffsetSamples = 1800;
 

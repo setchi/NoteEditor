@@ -18,11 +18,8 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Sprite iconMute;
 
-        NoteEditorModel model;
-
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             Audio.OnLoad.First().Subscribe(_ => Init());
         }
 

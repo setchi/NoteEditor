@@ -7,13 +7,6 @@ namespace NoteEditor.GLDrawing
 {
     public class NoteRenderer : MonoBehaviour
     {
-        NoteEditorModel model;
-
-        void Start()
-        {
-            model = NoteEditorModel.Instance;
-        }
-
         void LateUpdate()
         {
             if (Audio.Source.clip == null)

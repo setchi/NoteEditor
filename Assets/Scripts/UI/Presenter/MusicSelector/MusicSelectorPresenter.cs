@@ -3,6 +3,7 @@ using NoteEditor.Common;
 using NoteEditor.JSONModel;
 using NoteEditor.Notes;
 using NoteEditor.UI.Model;
+using NoteEditor.Utility;
 using System;
 using System.Collections;
 using System.IO;
@@ -39,13 +40,12 @@ namespace NoteEditor.UI.Presenter
 
         void Start()
         {
-            model = MusicSelectorModel.Instance;
+            ClearNotesData();
 
+            model = MusicSelectorModel.Instance;
             directoryPathInputField.OnValueChangeAsObservable()
                 .Subscribe(path => model.DirectoryPath.Value = path);
-
             model.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
-
             model.DirectoryPath.Value = NoteEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
 
 
@@ -90,10 +90,7 @@ namespace NoteEditor.UI.Presenter
                 yield return www;
 
                 UndoRedoManager.Clear();
-
-                var editorModel = NoteEditorModel.Instance;
-                editorModel.ClearNotesData();
-
+                ClearNotesData();
                 Audio.Source.clip = www.audioClip;
 
                 if (Audio.Source.clip == null)
@@ -110,8 +107,6 @@ namespace NoteEditor.UI.Presenter
 
         void LoadNotesData()
         {
-            var editorModel = NoteEditorModel.Instance;
-
             var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
             var directoryPath = Application.persistentDataPath + "/Notes/";
             var filePath = directoryPath + fileName;
@@ -126,7 +121,6 @@ namespace NoteEditor.UI.Presenter
 
         void InstantiateNotesData(SaveDataModel.NotesData notesData)
         {
-            var editorModel = NoteEditorModel.Instance;
             var notePresenter = EditNotesPresenter.Instance;
 
             EditData.BPM.Value = notesData.BPM;
@@ -137,15 +131,15 @@ namespace NoteEditor.UI.Presenter
             {
                 if (note.type == 1)
                 {
-                    notePresenter.AddNote(ToNote(note));
+                    notePresenter.AddNote(ConvertUtils.ToNote(note));
                     continue;
                 }
 
                 var longNoteObjects = new[] { note }.Concat(note.notes)
                     .Select(note_ =>
                     {
-                        notePresenter.AddNote(ToNote(note_));
-                        return EditData.Notes[ToNote(note_).position];
+                        notePresenter.AddNote(ConvertUtils.ToNote(note_));
+                        return EditData.Notes[ConvertUtils.ToNote(note_).position];
                     })
                     .ToList();
 
@@ -159,11 +153,27 @@ namespace NoteEditor.UI.Presenter
             }
         }
 
-        Note ToNote(SaveDataModel.Note musicNote)
+        public void ClearNotesData()
         {
-            return new Note(
-                new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),
-                musicNote.type == 1 ? NoteTypes.Single : NoteTypes.Long);
+            Audio.TimeSamples.Value = 0;
+            Audio.SmoothedTimeSamples.Value = 0;
+            Audio.IsPlaying.Value = false;
+            Audio.Source.clip = null;
+            EditState.NoteType.Value = NoteTypes.Single;
+            EditState.LongNoteTailPosition.Value = NotePosition.None;
+            EditData.BPM.Value = 120;
+            EditData.OffsetSamples.Value = 0;
+            EditData.Name.Value = "Note Editor";
+            EditData.MaxBlock.Value = NoteEditorSettingsModel.Instance.MaxBlock;
+            EditData.LPB.Value = 4;
+
+            foreach (var note in EditData.Notes.Values)
+            {
+                note.Dispose();
+            }
+
+            EditData.Notes.Clear();
+            Resources.UnloadUnusedAssets();
         }
     }
 }

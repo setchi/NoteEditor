@@ -22,12 +22,10 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Color markerColor;
 
-        NoteEditorModel model;
         Geometry drawData = new Geometry(Enumerable.Range(0, 4).Select(_ => Vector3.zero).ToArray(), Color.clear);
 
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             Audio.OnLoad.First().Subscribe(_ => Init());
         }
 

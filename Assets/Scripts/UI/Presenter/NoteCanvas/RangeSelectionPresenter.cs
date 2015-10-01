@@ -18,15 +18,12 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Color selectionRectColor;
 
-        NoteEditorModel model;
-        EditNotesPresenter editPresenter;
-
         Dictionary<NotePosition, NoteObject> selectedNoteObjects = new Dictionary<NotePosition, NoteObject>();
         List<Note> copiedNotes = new List<Note>();
+        EditNotesPresenter editPresenter;
 
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             editPresenter = EditNotesPresenter.Instance;
 
 

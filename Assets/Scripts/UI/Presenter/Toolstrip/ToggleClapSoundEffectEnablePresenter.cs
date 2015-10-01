@@ -12,7 +12,6 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NoteEditorModel.Instance;
             toggle.OnValueChangedAsObservable()
                 .Subscribe(isEnabled => EditorState.ClapSoundEffectEnabled.Value = isEnabled);
         }

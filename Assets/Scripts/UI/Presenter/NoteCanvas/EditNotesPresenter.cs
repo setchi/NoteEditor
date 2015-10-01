@@ -23,11 +23,8 @@ namespace NoteEditor.UI.Presenter
         public readonly Subject<Note> RequestForAddNote = new Subject<Note>();
         public readonly Subject<Note> RequestForChangeNoteStatus = new Subject<Note>();
 
-        NoteEditorModel model;
-
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             Audio.OnLoad.First().Subscribe(_ => Init());
         }
 

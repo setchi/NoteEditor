@@ -7,11 +7,8 @@ namespace NoteEditor.UI.Presenter
 {
     public class SmoothedTimeSamplesPresenter : MonoBehaviour
     {
-        NoteEditorModel model;
-
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             Audio.OnLoad.First().Subscribe(_ => Init());
         }
 

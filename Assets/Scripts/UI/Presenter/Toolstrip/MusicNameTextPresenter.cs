@@ -12,7 +12,6 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NoteEditorModel.Instance;
             EditData.Name.SubscribeToText(musicNameText);
         }
     }

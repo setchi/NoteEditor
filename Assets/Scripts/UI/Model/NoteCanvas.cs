@@ -1,6 +1,7 @@
-﻿using NoteEditor.Utility;
+﻿using NoteEditor.Notes;
+using NoteEditor.Utility;
 using UniRx;
-using NoteEditor.Notes;
+using UnityEngine;
 
 namespace NoteEditor.UI.Model
 {
@@ -19,5 +20,13 @@ namespace NoteEditor.UI.Model
         public static ReactiveProperty<bool> IsMouseOverNotesRegion { get { return Instance.isMouseOverNotesRegion_; } }
         public static ReactiveProperty<bool> IsMouseOverWaveformRegion { get { return Instance.isMouseOverWaveformRegion_; } }
         public static ReactiveProperty<NotePosition> ClosestNotePosition { get { return Instance.closestNotePosition_; } }
+
+        void Awake()
+        {
+            this.ObserveEveryValueChanged(_ => Screen.width)
+                .DistinctUntilChanged()
+                .Subscribe(w => ScaleFactor.Value = 1280f / w);
+            // .Subscribe(w => NoteCanvas.ScaleFactor.Value = canvasScaler.referenceResolution.x / w);
+        }
     }
 }

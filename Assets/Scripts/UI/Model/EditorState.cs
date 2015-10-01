@@ -1,5 +1,4 @@
-﻿using NoteEditor.Notes;
-using NoteEditor.Utility;
+﻿using NoteEditor.Utility;
 using UniRx;
 
 namespace NoteEditor.UI.Model

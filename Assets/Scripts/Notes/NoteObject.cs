@@ -1,13 +1,13 @@
 ﻿using NoteEditor.GLDrawing;
-using NoteEditor.Notes;
 using NoteEditor.UI.Model;
+using NoteEditor.UI.Presenter;
 using NoteEditor.Utility;
-using System.Linq;
 using System;
+using System.Linq;
 using UniRx;
 using UnityEngine;
 
-namespace NoteEditor.UI.Presenter
+namespace NoteEditor.Notes
 {
     public class NoteObject : IDisposable
     {
@@ -35,7 +35,6 @@ namespace NoteEditor.UI.Presenter
                 noteColor_,
                 noteType);
 
-            var model = NoteEditorModel.Instance;
             var editPresenter = EditNotesPresenter.Instance;
             noteType = this.ObserveEveryValueChanged(_ => note.type).ToReactiveProperty();
 
@@ -99,8 +98,6 @@ namespace NoteEditor.UI.Presenter
 
         void RemoveLink()
         {
-            var model = NoteEditorModel.Instance;
-
             if (EditData.Notes.ContainsKey(note.prev))
                 EditData.Notes[note.prev].note.next = note.next;
 
@@ -110,8 +107,6 @@ namespace NoteEditor.UI.Presenter
 
         void InsertLink(NotePosition position)
         {
-            var model = NoteEditorModel.Instance;
-
             if (EditData.Notes.ContainsKey(note.prev))
                 EditData.Notes[note.prev].note.next = position;
 
@@ -121,8 +116,6 @@ namespace NoteEditor.UI.Presenter
 
         public void SetState(Note note)
         {
-            var model = NoteEditorModel.Instance;
-
             if (note.type == NoteTypes.Single)
             {
                 RemoveLink();

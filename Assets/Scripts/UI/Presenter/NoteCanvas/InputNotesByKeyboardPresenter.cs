@@ -9,12 +9,10 @@ namespace NoteEditor.UI.Presenter
 {
     public class InputNotesByKeyboardPresenter : MonoBehaviour
     {
-        NoteEditorModel model;
         EditNotesPresenter editPresenter;
 
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             editPresenter = EditNotesPresenter.Instance;
             Audio.OnLoad.First().Subscribe(_ => Init());
         }

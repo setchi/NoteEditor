@@ -20,12 +20,8 @@ namespace NoteEditor.GLDrawing
         [SerializeField]
         Color blockLineColor;
 
-        NoteEditorModel model;
-
         void Awake()
         {
-            model = NoteEditorModel.Instance;
-
             var beatSamples = new int[1];
             var beatLines = new Line[1];
             var blockLines = new Line[1];

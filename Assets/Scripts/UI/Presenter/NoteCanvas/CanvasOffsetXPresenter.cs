@@ -16,8 +16,6 @@ namespace NoteEditor.UI.Presenter
 
         void Awake()
         {
-            var model = NoteEditorModel.Instance;
-
             // Initialize canvas offset x
             Audio.OnLoad.Subscribe(_ => NoteCanvas.OffsetX.Value = -Screen.width * 0.45f * NoteCanvas.ScaleFactor.Value);
 

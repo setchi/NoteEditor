@@ -15,11 +15,8 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Sprite iconPause;
 
-        NoteEditorModel model;
-
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             Audio.OnLoad.First().Subscribe(_ => Init());
         }
 

@@ -32,12 +32,10 @@ namespace NoteEditor.UI.Presenter
         [SerializeField]
         Text dialogMessageText;
 
-        NoteEditorModel model;
         ReactiveProperty<bool> mustBeSaved = new ReactiveProperty<bool>();
 
         void Awake()
         {
-            model = NoteEditorModel.Instance;
             var editPresenter = EditNotesPresenter.Instance;
 
             this.UpdateAsObservable()
@@ -110,7 +108,7 @@ namespace NoteEditor.UI.Presenter
             var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
             var directoryPath = NoteEditorSettingsModel.Instance.WorkSpaceDirectoryPath.Value + "/Notes/";
             var filePath = directoryPath + fileName;
-            var json = model.SerializeNotesData();
+            var json = ConvertUtils.SerializeNotesData();
 
             if (!Directory.Exists(directoryPath))
             {
