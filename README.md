@@ -1,5 +1,5 @@
 # Note Editor
-音楽ゲームの譜面を作るためのツールです。
+音楽ゲーム用の譜面エディタです。
 現在wav形式の音楽ファイルのみ対応しています。
 
 ![screenshot](screenshot.png)
