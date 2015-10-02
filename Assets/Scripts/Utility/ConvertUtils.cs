@@ -52,16 +52,16 @@ namespace NoteEditor.Utility
             return (canvasPosition / NoteCanvas.ScaleFactor.Value + new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0));
         }
 
-        public static Note ToNote(SaveData.Note musicNote)
+        public static Note ToNote(SaveDataModel.Note musicNote)
         {
             return new Note(
                 new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),
                 musicNote.type == 1 ? NoteTypes.Single : NoteTypes.Long);
         }
 
-        public static string SerializeNotesData()
+        public static string SerializeEditData()
         {
-            var data = new SaveData.EditData();
+            var data = new SaveDataModel.EditData();
             data.BPM = EditData.BPM.Value;
             data.maxBlock = EditData.MaxBlock.Value;
             data.offset = EditData.OffsetSamples.Value;
@@ -71,7 +71,7 @@ namespace NoteEditor.Utility
                 .Where(note => !(note.note.type == NoteTypes.Long && EditData.Notes.ContainsKey(note.note.prev)))
                 .OrderBy(note => note.note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value));
 
-            data.notes = new List<SaveData.Note>();
+            data.notes = new List<SaveDataModel.Note>();
 
             foreach (var noteObject in sortedNoteObjects)
             {
@@ -102,14 +102,14 @@ namespace NoteEditor.Utility
             return jsonWriter.ToString();
         }
 
-        static SaveData.Note ToSaveData(NoteObject noteObject)
+        static SaveDataModel.Note ToSaveData(NoteObject noteObject)
         {
-            var note = new SaveData.Note();
+            var note = new SaveDataModel.Note();
             note.num = noteObject.note.position.num;
             note.block = noteObject.note.position.block;
             note.LPB = noteObject.note.position.LPB;
             note.type = noteObject.note.type == NoteTypes.Long ? 2 : 1;
-            note.notes = new List<SaveData.Note>();
+            note.notes = new List<SaveDataModel.Note>();
             return note;
         }
     }

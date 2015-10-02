@@ -46,7 +46,7 @@ namespace NoteEditor.UI.Presenter
             directoryPathInputField.OnValueChangeAsObservable()
                 .Subscribe(path => model.DirectoryPath.Value = path);
             model.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
-            model.DirectoryPath.Value = NoteEditorSettings.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
+            model.DirectoryPath.Value = Settings.Instance.WorkSpaceDirectoryPath.Value + "/Musics/";
 
 
             if (!Directory.Exists(model.DirectoryPath.Value))
@@ -114,12 +114,12 @@ namespace NoteEditor.UI.Presenter
             if (File.Exists(filePath))
             {
                 var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-                var editData = JsonMapper.ToObject<SaveData.EditData>(json);
+                var editData = JsonMapper.ToObject<SaveDataModel.EditData>(json);
                 InstantiateEditData(editData);
             }
         }
 
-        void InstantiateEditData(SaveData.EditData editData)
+        void InstantiateEditData(SaveDataModel.EditData editData)
         {
             var notePresenter = EditNotesPresenter.Instance;
 
@@ -164,7 +164,7 @@ namespace NoteEditor.UI.Presenter
             EditData.BPM.Value = 120;
             EditData.OffsetSamples.Value = 0;
             EditData.Name.Value = "Note Editor";
-            EditData.MaxBlock.Value = NoteEditorSettings.Instance.MaxBlock;
+            EditData.MaxBlock.Value = Settings.Instance.MaxBlock;
             EditData.LPB.Value = 4;
 
             foreach (var note in EditData.Notes.Values)

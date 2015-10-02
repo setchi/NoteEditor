@@ -2,7 +2,7 @@
 
 namespace NoteEditor.JSONModel
 {
-    public class SaveData
+    public class SaveDataModel
     {
         public class EditData
         {
