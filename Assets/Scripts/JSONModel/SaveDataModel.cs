@@ -4,7 +4,7 @@ namespace NoteEditor.JSONModel
 {
     public class SaveDataModel
     {
-        public class NotesData
+        public class EditData
         {
             public string name;
             public int maxBlock;
