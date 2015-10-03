@@ -1,5 +1,5 @@
-﻿using NoteEditor.UI.Model;
-using NoteEditor.UI.Presenter;
+﻿using NoteEditor.Model;
+using NoteEditor.Presenter;
 using System.Collections.Generic;
 using System.Linq;
 using UniRx;

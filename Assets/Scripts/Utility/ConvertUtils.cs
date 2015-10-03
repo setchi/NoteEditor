@@ -1,7 +1,7 @@
 ﻿using LitJson;
-using NoteEditor.JSONModel;
+using NoteEditor.Model.JSON;
 using NoteEditor.Notes;
-using NoteEditor.UI.Model;
+using NoteEditor.Model;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;

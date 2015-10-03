@@ -1,4 +1,4 @@
-﻿using NoteEditor.UI.Model;
+﻿using NoteEditor.Model;
 using NoteEditor.Utility;
 using UniRx;
 using UnityEngine;

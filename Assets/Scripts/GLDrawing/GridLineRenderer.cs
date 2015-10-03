@@ -1,5 +1,5 @@
 ﻿using NoteEditor.Notes;
-using NoteEditor.UI.Model;
+using NoteEditor.Model;
 using NoteEditor.Utility;
 using System;
 using System.Linq;
