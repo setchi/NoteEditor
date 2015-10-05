@@ -25,7 +25,7 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Transform fileItemContainerTransform;
         [SerializeField]
-        Button LoadButton;
+        Button loadButton;
         [SerializeField]
         GameObject notesRegion;
 
@@ -72,7 +72,7 @@ namespace NoteEditor.Presenter
                     .Subscribe(elm => elm.obj.GetComponent<FileListItem>().SetName(elm.fileName));
 
 
-            LoadButton.OnClickAsObservable()
+            loadButton.OnClickAsObservable()
                 .Select(_ => MusicSelector.SelectedFileName.Value)
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Subscribe(fileName => StartCoroutine(LoadMusic(fileName)));

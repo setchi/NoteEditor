@@ -108,7 +108,7 @@ namespace NoteEditor.Presenter
             var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
             var directoryPath = Settings.WorkSpaceDirectoryPath.Value + "/Notes/";
             var filePath = directoryPath + fileName;
-            var json = ConvertUtils.SerializeEditData();
+            var json = EditData.SerializeEditData();
 
             if (!Directory.Exists(directoryPath))
             {

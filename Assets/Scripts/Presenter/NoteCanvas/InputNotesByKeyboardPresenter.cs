@@ -20,13 +20,13 @@ namespace NoteEditor.Presenter
         void Init()
         {
             this.UpdateAsObservable()
-                .Where(_ => !Settings.IsViewing.Value)
+                .Where(_ => !Settings.IsOpen.Value)
                 .Where(_ => !KeyInput.AltKey())
                 .Where(_ => !KeyInput.CtrlKey())
                 .Where(_ => !KeyInput.ShiftKey())
                 .SelectMany(_ => Observable.Range(0, EditData.MaxBlock.Value))
-                .Where(num => Input.GetKeyDown(Settings.NoteInputKeyCodes.Value[num]))
-                .Subscribe(num => EnterNote(num));
+                .Where(block => Input.GetKeyDown(Settings.NoteInputKeyCodes.Value[block]))
+                .Subscribe(block => EnterNote(block));
         }
 
         void EnterNote(int block)

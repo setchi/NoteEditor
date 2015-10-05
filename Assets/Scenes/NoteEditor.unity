@@ -904,7 +904,7 @@ MonoBehaviour:
   fileItem: {fileID: 132690, guid: 1e268423609e86e4da1648375715dd32, type: 2}
   fileItemContainer: {fileID: 381058712}
   fileItemContainerTransform: {fileID: 381058713}
-  LoadButton: {fileID: 1773141861}
+  loadButton: {fileID: 1773141861}
   notesRegion: {fileID: 1852700502}
   noteObjectPrefab: {fileID: 145270, guid: 117a02bd3aa02974286fd278ec0611d1, type: 2}
 --- !u!222 &107512840

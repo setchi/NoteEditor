@@ -73,7 +73,7 @@ namespace NoteEditor.Presenter
                      Settings.RequestForChangeInputNoteKeyCode.Select(_ => 0),
                      EditData.MaxBlock,
                      Settings.WorkSpaceDirectoryPath.Select(_ => 0))
-                 .Where(_ => Settings.IsViewing.Value)
+                 .Where(_ => Settings.IsOpen.Value)
                  .DelayFrame(1)
                  .Subscribe(_ => SaveSettings());
         }

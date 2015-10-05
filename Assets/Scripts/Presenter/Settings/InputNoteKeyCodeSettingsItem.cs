@@ -35,7 +35,7 @@ namespace NoteEditor.Presenter
                 .AddTo(this);
 
             this.UpdateAsObservable()
-                .Where(_ => Settings.IsViewing.Value)
+                .Where(_ => Settings.IsOpen.Value)
                 .Where(_ => Settings.SelectedBlock.Value == block)
                 .Where(_ => Input.anyKeyDown)
                 .Select(_ => KeyInput.FetchKey())
