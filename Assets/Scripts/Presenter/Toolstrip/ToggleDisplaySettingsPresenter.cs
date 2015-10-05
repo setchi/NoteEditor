@@ -29,7 +29,7 @@ namespace NoteEditor.Presenter
                         .Where(_ => !isMouseOverOnSettingsWindow && Input.GetMouseButtonDown(0)))
                 .Subscribe(_ => Settings.IsOpen.Value = false);
 
-            Settings.IsOpen.Select(isViewing => isViewing ? Vector3.zero : Vector3.up * 100000)
+            Settings.IsOpen.Select(isOpen => isOpen ? Vector3.zero : Vector3.up * 100000)
                 .Subscribe(pos => settingsWindowTransform.localPosition = pos);
 
             Settings.IsOpen.Subscribe(_ => Settings.SelectedBlock.Value = -1);
