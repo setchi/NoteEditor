@@ -1,6 +1,5 @@
-﻿using LitJson;
-using NoteEditor.Model.JSON;
-using NoteEditor.Model;
+﻿using NoteEditor.Model;
+using NoteEditor.Utility;
 using System.IO;
 using System.Linq;
 using UniRx;
@@ -19,7 +18,7 @@ namespace NoteEditor.Presenter
         static string fileName = "settings.json";
         static string filePath = directoryPath + fileName;
 
-        SettingsDataModel LoadSettings()
+        string LoadSettingsJson()
         {
             if (!Directory.Exists(directoryPath))
             {
@@ -32,18 +31,17 @@ namespace NoteEditor.Presenter
                 File.WriteAllText(filePath, defaultSettings.text, System.Text.Encoding.UTF8);
             }
 
-            var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-            return JsonMapper.ToObject<SettingsDataModel>(json);
+            return File.ReadAllText(filePath, System.Text.Encoding.UTF8);
         }
 
         void SaveSettings()
         {
-            File.WriteAllText(filePath, Settings.SerializeSettings(), System.Text.Encoding.UTF8);
+            File.WriteAllText(filePath, SettingsSerializer.Serialize(), System.Text.Encoding.UTF8);
         }
 
         void Awake()
         {
-            Settings.Apply(LoadSettings());
+            SettingsSerializer.Deserialize(LoadSettingsJson());
 
             EditData.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
                     .Select(i => itemContentTransform.GetChild(i))

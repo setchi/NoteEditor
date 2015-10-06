@@ -1,8 +1,6 @@
-﻿using LitJson;
-using NoteEditor.Common;
-using NoteEditor.Model.JSON;
-using NoteEditor.Notes;
+﻿using NoteEditor.Common;
 using NoteEditor.Model;
+using NoteEditor.Notes;
 using NoteEditor.Utility;
 using System;
 using System.Collections;
@@ -28,11 +26,6 @@ namespace NoteEditor.Presenter
         Button loadButton;
         [SerializeField]
         GameObject notesRegion;
-
-        /*
-        [SerializeField]
-        Text selectedFileNameText;
-        */
         [SerializeField]
         GameObject noteObjectPrefab;
 
@@ -45,12 +38,10 @@ namespace NoteEditor.Presenter
             MusicSelector.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
             MusicSelector.DirectoryPath.Value = Settings.WorkSpaceDirectoryPath.Value + "/Musics/";
 
-
             if (!Directory.Exists(MusicSelector.DirectoryPath.Value))
             {
                 Directory.CreateDirectory(MusicSelector.DirectoryPath.Value);
             }
-
 
             Observable.Timer(TimeSpan.FromMilliseconds(300), TimeSpan.Zero)
                     .Where(_ => Directory.Exists(MusicSelector.DirectoryPath.Value))
@@ -58,7 +49,6 @@ namespace NoteEditor.Presenter
                     .Select(fileInfo => fileInfo.Select(file => file.FullName).ToList())
                     .Where(x => !x.SequenceEqual(MusicSelector.FilePathList.Value))
                     .Subscribe(filePathList => MusicSelector.FilePathList.Value = filePathList);
-
 
             MusicSelector.FilePathList.AsObservable()
                 .Select(filePathList => filePathList.Select(path => Path.GetFileName(path)))
@@ -71,13 +61,10 @@ namespace NoteEditor.Presenter
                     .Do(elm => elm.obj.transform.SetParent(fileItemContainer.transform))
                     .Subscribe(elm => elm.obj.GetComponent<FileListItem>().SetName(elm.fileName));
 
-
             loadButton.OnClickAsObservable()
                 .Select(_ => MusicSelector.SelectedFileName.Value)
                     .Where(fileName => !string.IsNullOrEmpty(fileName))
                     .Subscribe(fileName => StartCoroutine(LoadMusic(fileName)));
-
-            // MusicSelector.SelectedFileName.SubscribeToText(selectedFileNameText);
         }
 
         IEnumerator LoadMusic(string fileName)
@@ -92,6 +79,7 @@ namespace NoteEditor.Presenter
 
                 if (Audio.Source.clip == null)
                 {
+                    // TODO: 読み込み失敗時の処理
                 }
                 else
                 {
@@ -111,42 +99,7 @@ namespace NoteEditor.Presenter
             if (File.Exists(filePath))
             {
                 var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-                var editData = JsonMapper.ToObject<SaveDataModel.EditData>(json);
-                InstantiateEditData(editData);
-            }
-        }
-
-        void InstantiateEditData(SaveDataModel.EditData editData)
-        {
-            var notePresenter = EditNotesPresenter.Instance;
-
-            EditData.BPM.Value = editData.BPM;
-            EditData.MaxBlock.Value = editData.maxBlock;
-            EditData.OffsetSamples.Value = editData.offset;
-
-            foreach (var note in editData.notes)
-            {
-                if (note.type == 1)
-                {
-                    notePresenter.AddNote(ConvertUtils.ToNote(note));
-                    continue;
-                }
-
-                var longNoteObjects = new[] { note }.Concat(note.notes)
-                    .Select(note_ =>
-                    {
-                        notePresenter.AddNote(ConvertUtils.ToNote(note_));
-                        return EditData.Notes[ConvertUtils.ToNote(note_).position];
-                    })
-                    .ToList();
-
-                for (int i = 1; i < longNoteObjects.Count; i++)
-                {
-                    longNoteObjects[i].note.prev = longNoteObjects[i - 1].note.position;
-                    longNoteObjects[i - 1].note.next = longNoteObjects[i].note.position;
-                }
-
-                EditState.LongNoteTailPosition.Value = NotePosition.None;
+                EditDataSerializer.Deserialize(json);
             }
         }
 
