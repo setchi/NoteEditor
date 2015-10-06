@@ -1,13 +1,13 @@
 ﻿using LitJson;
-using NoteEditor.Model;
 using NoteEditor.Model.JSON;
 using NoteEditor.Notes;
 using NoteEditor.Presenter;
+using NoteEditor.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace NoteEditor.Utility
+namespace NoteEditor.Model
 {
     public class EditDataSerializer
     {

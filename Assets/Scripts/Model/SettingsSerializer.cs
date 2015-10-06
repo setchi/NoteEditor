@@ -1,10 +1,9 @@
 ﻿using LitJson;
-using NoteEditor.Model;
 using NoteEditor.Model.JSON;
 using System.Linq;
 using UnityEngine;
 
-namespace NoteEditor.Utility
+namespace NoteEditor.Model
 {
     public class SettingsSerializer
     {

@@ -1,7 +1,6 @@
 ﻿using NoteEditor.Common;
 using NoteEditor.Model;
 using NoteEditor.Notes;
-using NoteEditor.Utility;
 using System;
 using System.Collections;
 using System.IO;
