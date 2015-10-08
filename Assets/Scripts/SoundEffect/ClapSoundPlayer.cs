@@ -41,11 +41,11 @@ namespace NoteEditor.SoundEffect
                         .TakeWhile(_ => Audio.IsPlaying.Value)
                         .TakeUntil(editedDuringPlaybackObservable.Skip(1))
                         .Select(_ => samplesQueue))
-            .Where(samplesQueue => samplesQueue.Count > 0)
-            .Where(samplesQueue => samplesQueue.Peek() <= Audio.Source.timeSamples)
-            .Do(samplesQueue => samplesQueue.Dequeue())
-            .Where(_ => EditorState.ClapSoundEffectEnabled.Value)
-            .Subscribe(_ => clapAudioSource.PlayOneShot(clapAudioSource.clip, 1));
+                .Where(samplesQueue => samplesQueue.Count > 0)
+                .Where(samplesQueue => samplesQueue.Peek() <= Audio.Source.timeSamples)
+                .Do(samplesQueue => samplesQueue.Dequeue())
+                .Where(_ => EditorState.ClapSoundEffectEnabled.Value)
+                .Subscribe(_ => clapAudioSource.PlayOneShot(clapAudioSource.clip, 1));
         }
     }
 }
