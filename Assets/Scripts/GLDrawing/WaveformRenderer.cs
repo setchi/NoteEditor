@@ -20,7 +20,6 @@ namespace NoteEditor.GLDrawing
                 .Select(_ => new Line(Vector3.zero, Vector3.zero, color))
                 .ToArray();
 
-
             this.LateUpdateAsObservable()
                 .Where(_ => EditorState.WaveformDisplayEnabled.Value)
                 .Where(_ => Audio.Source.clip != null)
@@ -32,23 +31,21 @@ namespace NoteEditor.GLDrawing
                     var x = (NoteCanvas.Width.Value / Audio.Source.clip.samples) / 2f;
                     var offsetX = NoteCanvas.OffsetX.Value;
                     var offsetY = 200;
-
-                    var min = NoteCanvas.OffsetX.Value;
                     var max = Screen.width / NoteCanvas.ScaleFactor.Value * 1.3f;
 
                     for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
                     {
-                        lines[li].start.x = lines[li].end.x = wi * x + offsetX;
+                        var pos = wi * x + offsetX;
+
+                        if (pos > max)
+                            break;
+
+                        lines[li].start.x = lines[li].end.x = pos;
                         lines[li].end.y = waveData[wi] * 45 - offsetY;
                         lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
                         lines[li].start = ConvertUtils.CanvasToScreenPosition(lines[li].start);
                         lines[li].end = ConvertUtils.CanvasToScreenPosition(lines[li].end);
-
-                        var posX = lines[li].start.x;
-                        if (min < posX && posX < max)
-                        {
-                            GLLineDrawer.Draw(lines[li]);
-                        }
+                        GLLineDrawer.Draw(lines[li]);
                     }
                 });
         }
