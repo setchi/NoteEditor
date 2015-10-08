@@ -88,8 +88,8 @@ namespace NoteEditor.GLDrawing
                     }
 
 
-                // Highlighting closest line to mouse pointer
-                if (NoteCanvas.IsMouseOverNotesRegion.Value)
+                    // Highlighting closest line to mouse pointer
+                    if (NoteCanvas.IsMouseOverNotesRegion.Value)
                     {
                         var mouseX = Input.mousePosition.x;
                         var closestLineIndex = GetClosestLineIndex(beatLines, c => Mathf.Abs(c.start.x - mouseX));
@@ -119,7 +119,15 @@ namespace NoteEditor.GLDrawing
                         }
                     }
 
-                    GLLineDrawer.Draw(beatLines);
+                    var screenWidth = Screen.width;
+                    for (int i = 0, l = beatLines.Length; i < l && beatLines[i].start.x < screenWidth; i++)
+                    {
+                        if (beatLines[i].start.x > 0)
+                        {
+                            GLLineDrawer.Draw(beatLines[i]);
+                        }
+                    }
+
                     GLLineDrawer.Draw(blockLines);
                 });
         }
