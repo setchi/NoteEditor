@@ -32,10 +32,15 @@ namespace NoteEditor.Presenter
         {
             ResetEditor();
 
+            Settings.WorkSpaceDirectoryPath
+                .Subscribe(workSpacePath => directoryPathInputField.text = workSpacePath + "/Musics/");
+
             directoryPathInputField.OnValueChangeAsObservable()
                 .Subscribe(path => MusicSelector.DirectoryPath.Value = path);
-            MusicSelector.DirectoryPath.Subscribe(path => directoryPathInputField.text = path);
-            MusicSelector.DirectoryPath.Value = Settings.WorkSpaceDirectoryPath.Value + "/Musics/";
+
+            MusicSelector.DirectoryPath
+                .Subscribe(path => directoryPathInputField.text = path);
+
 
             if (!Directory.Exists(MusicSelector.DirectoryPath.Value))
             {
@@ -92,7 +97,7 @@ namespace NoteEditor.Presenter
         void LoadEditData()
         {
             var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
-            var directoryPath = Application.persistentDataPath + "/Notes/";
+            var directoryPath = MusicSelector.DirectoryPath.Value.Substring(0, MusicSelector.DirectoryPath.Value.Length - "/Musics/".Length) + "/Notes/";
             var filePath = directoryPath + fileName;
 
             if (File.Exists(filePath))
