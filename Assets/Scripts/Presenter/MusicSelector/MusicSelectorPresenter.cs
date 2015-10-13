@@ -32,7 +32,7 @@ namespace NoteEditor.Presenter
         {
             ResetEditor();
 
-            Settings.WorkSpaceDirectoryPath
+            Settings.WorkSpacePath
                 .Subscribe(workSpacePath => directoryPathInputField.text = workSpacePath + "/Musics/");
 
             directoryPathInputField.OnValueChangeAsObservable()
