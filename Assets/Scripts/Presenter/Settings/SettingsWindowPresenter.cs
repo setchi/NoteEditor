@@ -70,7 +70,7 @@ namespace NoteEditor.Presenter
             Observable.Merge(
                      Settings.RequestForChangeInputNoteKeyCode.Select(_ => 0),
                      EditData.MaxBlock,
-                     Settings.WorkSpaceDirectoryPath.Select(_ => 0))
+                     Settings.WorkSpacePath.Select(_ => 0))
                  .Where(_ => Settings.IsOpen.Value)
                  .DelayFrame(1)
                  .Subscribe(_ => SaveSettings());

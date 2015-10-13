@@ -16,16 +16,16 @@ namespace NoteEditor.Model
 
             Settings.MaxBlock = data.maxBlock;
 
-            Settings.WorkSpaceDirectoryPath.Value = string.IsNullOrEmpty(data.workSpaceDirectoryPath)
+            Settings.WorkSpacePath.Value = string.IsNullOrEmpty(data.workSpacePath)
                 ? Application.persistentDataPath
-                : data.workSpaceDirectoryPath;
+                : data.workSpacePath;
         }
 
         public static string Serialize()
         {
             var data = new SettingsDataModel();
 
-            data.workSpaceDirectoryPath = Settings.WorkSpaceDirectoryPath.Value;
+            data.workSpacePath = Settings.WorkSpacePath.Value;
             data.maxBlock = EditData.MaxBlock.Value;
             data.noteInputKeyCodes = Settings.NoteInputKeyCodes.Value
                 .Take(EditData.MaxBlock.Value)

@@ -25,9 +25,9 @@ namespace NoteEditor.Presenter
 
             workSpacePathInputField.OnValueChangeAsObservable()
                 .Where(path => Directory.Exists(path))
-                .Subscribe(path => Settings.WorkSpaceDirectoryPath.Value = path);
+                .Subscribe(path => Settings.WorkSpacePath.Value = path);
 
-            Settings.WorkSpaceDirectoryPath.DistinctUntilChanged()
+            Settings.WorkSpacePath.DistinctUntilChanged()
                 .Subscribe(path => workSpacePathInputField.text = path);
         }
     }

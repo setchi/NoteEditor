@@ -13,7 +13,7 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Transform settingsWindowTransform;
 
-        bool isMouseOverOnSettingsWindow = false;
+        bool isMouseOverSettingsWindow = false;
 
         void Awake()
         {
@@ -26,7 +26,8 @@ namespace NoteEditor.Presenter
                         .Where(_ => Input.GetKey(KeyCode.Escape)),
                     this.UpdateAsObservable()
                         .Where(_ => Settings.IsOpen.Value)
-                        .Where(_ => !isMouseOverOnSettingsWindow && Input.GetMouseButtonDown(0)))
+                        .Where(_ => !isMouseOverSettingsWindow)
+                        .Where(_ => Input.GetMouseButtonDown(0)))
                 .Subscribe(_ => Settings.IsOpen.Value = false);
 
             Settings.IsOpen.Select(isOpen => isOpen ? Vector3.zero : Vector3.up * 100000)
@@ -37,12 +38,12 @@ namespace NoteEditor.Presenter
 
         public void OnMouseEnterSettingsWindow()
         {
-            isMouseOverOnSettingsWindow = true;
+            isMouseOverSettingsWindow = true;
         }
 
         public void OnMouseExitSettingsWindow()
         {
-            isMouseOverOnSettingsWindow = false;
+            isMouseOverSettingsWindow = false;
         }
     }
 }

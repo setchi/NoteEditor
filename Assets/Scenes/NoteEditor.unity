@@ -9705,7 +9705,7 @@ GameObject:
   - 222: {fileID: 1632617253}
   - 114: {fileID: 1632617252}
   m_Layer: 5
-  m_Name: ControlPanel
+  m_Name: Toolstrip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11077,7 +11077,7 @@ GameObject:
   - 114: {fileID: 1916073087}
   - 114: {fileID: 1916073086}
   m_Layer: 0
-  m_Name: GLRenderer
+  m_Name: GLDrawer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
