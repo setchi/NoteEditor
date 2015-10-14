@@ -901,7 +901,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   directoryPathInputField: {fileID: 1766608602}
-  fileItem: {fileID: 132690, guid: 1e268423609e86e4da1648375715dd32, type: 2}
+  fileItemPrefab: {fileID: 132690, guid: 1e268423609e86e4da1648375715dd32, type: 2}
   fileItemContainer: {fileID: 381058712}
   fileItemContainerTransform: {fileID: 381058713}
   loadButton: {fileID: 1773141861}
@@ -3962,7 +3962,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 120452562}
   m_HandleRect: {fileID: 120452561}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:

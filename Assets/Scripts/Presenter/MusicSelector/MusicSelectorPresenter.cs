@@ -16,7 +16,7 @@ namespace NoteEditor.Presenter
         [SerializeField]
         InputField directoryPathInputField;
         [SerializeField]
-        GameObject fileItem;
+        GameObject fileItemPrefab;
         [SerializeField]
         GameObject fileItemContainer;
         [SerializeField]
@@ -33,7 +33,7 @@ namespace NoteEditor.Presenter
             ResetEditor();
 
             Settings.WorkSpacePath
-                .Subscribe(workSpacePath => directoryPathInputField.text = workSpacePath + "/Musics/");
+                .Subscribe(workSpacePath => directoryPathInputField.text = Path.Combine(workSpacePath, "Musics"));
 
             directoryPathInputField.OnValueChangeAsObservable()
                 .Subscribe(path => MusicSelector.DirectoryPath.Value = path);
@@ -49,21 +49,24 @@ namespace NoteEditor.Presenter
 
             Observable.Timer(TimeSpan.FromMilliseconds(300), TimeSpan.Zero)
                     .Where(_ => Directory.Exists(MusicSelector.DirectoryPath.Value))
-                    .Select(_ => new DirectoryInfo(MusicSelector.DirectoryPath.Value).GetFiles())
-                    .Select(fileInfo => fileInfo.Select(file => file.FullName).ToList())
-                    .Where(x => !x.SequenceEqual(MusicSelector.FilePathList.Value))
+                    .Select(_ => new DirectoryInfo(MusicSelector.DirectoryPath.Value))
+                    .Select(directoryInfo =>
+                        directoryInfo.GetDirectories().Select(directory => new FileItemInfo(true, directory.FullName))
+                            .Concat(directoryInfo.GetFiles().Select(file => new FileItemInfo(false, file.FullName)))
+                            .ToList())
+                    .Where(x => !x.Select(item => item.fullName)
+                        .SequenceEqual(MusicSelector.FilePathList.Value.Select(item => item.fullName)))
                     .Subscribe(filePathList => MusicSelector.FilePathList.Value = filePathList);
 
             MusicSelector.FilePathList.AsObservable()
-                .Select(filePathList => filePathList.Select(path => Path.GetFileName(path)))
                 .Do(_ => Enumerable.Range(0, fileItemContainerTransform.childCount)
                     .Select(i => fileItemContainerTransform.GetChild(i))
                     .ToList()
                     .ForEach(child => DestroyObject(child.gameObject)))
-                .SelectMany(fileNameList => fileNameList)
-                    .Select(fileName => new { fileName, obj = Instantiate(fileItem) as GameObject })
-                    .Do(elm => elm.obj.transform.SetParent(fileItemContainer.transform))
-                    .Subscribe(elm => elm.obj.GetComponent<FileListItem>().SetName(elm.fileName));
+                .SelectMany(fileItemList => fileItemList)
+                .Select(fileItemInfo => new { fileItemInfo, obj = Instantiate(fileItemPrefab) as GameObject })
+                .Do(elm => elm.obj.transform.SetParent(fileItemContainer.transform))
+                .Subscribe(elm => elm.obj.GetComponent<FileListItem>().SetInfo(elm.fileItemInfo));
 
             loadButton.OnClickAsObservable()
                 .Select(_ => MusicSelector.SelectedFileName.Value)
@@ -73,7 +76,7 @@ namespace NoteEditor.Presenter
 
         IEnumerator LoadMusic(string fileName)
         {
-            using (var www = new WWW("file:///" + MusicSelector.DirectoryPath.Value + fileName))
+            using (var www = new WWW("file:///" + Path.Combine(MusicSelector.DirectoryPath.Value, fileName)))
             {
                 yield return www;
 
@@ -96,9 +99,9 @@ namespace NoteEditor.Presenter
 
         void LoadEditData()
         {
-            var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
-            var directoryPath = MusicSelector.DirectoryPath.Value.Substring(0, MusicSelector.DirectoryPath.Value.Length - "/Musics/".Length) + "/Notes/";
-            var filePath = directoryPath + fileName;
+            var fileName = Path.ChangeExtension(EditData.Name.Value, "json");
+            var directoryPath = Path.Combine(Path.GetDirectoryName(MusicSelector.DirectoryPath.Value), "Notes");
+            var filePath = Path.Combine(directoryPath, fileName);
 
             if (File.Exists(filePath))
             {

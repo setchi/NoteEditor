@@ -16,8 +16,17 @@ namespace NoteEditor.Presenter
         Color selectedTextColor;
         [SerializeField]
         Color defaultTextColor;
+        [SerializeField]
+        Image itemTypeIcon;
+        [SerializeField]
+        Sprite directoryIcon;
+        [SerializeField]
+        Sprite musicFileIcon;
+        [SerializeField]
+        Sprite otherFileIcon;
 
-        string fileName;
+        string itemName;
+        FileItemInfo fileItemInfo;
 
         void Start()
         {
@@ -26,23 +35,35 @@ namespace NoteEditor.Presenter
             var text = GetComponentInChildren<Text>();
             var image = GetComponent<Image>();
 
-            this.UpdateAsObservable()
-                .Select(_ => fileName == MusicSelector.SelectedFileName.Value)
-                .DistinctUntilChanged()
+            this.ObserveEveryValueChanged(_ => itemName == MusicSelector.SelectedFileName.Value)
                 .Do(selected => image.color = selected ? selectedStateBackgroundColor : defaultBackgroundColor)
                 .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor)
                 .AddTo(this);
         }
 
-        public void SetName(string name)
+        public void SetInfo(FileItemInfo info)
         {
-            fileName = name;
-            GetComponentInChildren<Text>().text = name;
+            fileItemInfo = info;
+            itemName = System.IO.Path.GetFileName(info.fullName);
+            GetComponentInChildren<Text>().text = itemName;
+
+            itemTypeIcon.sprite = fileItemInfo.isDirectory
+                ? directoryIcon
+                : System.IO.Path.GetExtension(itemName) == ".wav"
+                    ? musicFileIcon
+                    : otherFileIcon;
         }
 
         public void OnMouseDown()
         {
-            MusicSelector.SelectedFileName.Value = fileName;
+            if (fileItemInfo.isDirectory && itemName == MusicSelector.SelectedFileName.Value)
+            {
+                MusicSelector.DirectoryPath.Value = fileItemInfo.fullName;
+                // Scroll top
+                return;
+            }
+
+            MusicSelector.SelectedFileName.Value = itemName;
         }
     }
 }
