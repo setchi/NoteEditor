@@ -115,7 +115,7 @@ namespace NoteEditor.Presenter
                 .Where(_ => isRedoUndoAction ? (isRedoUndoAction = false) : true)
                 .Where(b => 2 <= b.Count)
                 .Select(x => new { current = x.Last(), prev = x.First() })
-                .Subscribe(x => UndoRedoManager.Do(
+                .Subscribe(x => EditCommandManager.Do(
                     new Command(
                         () => Audio.TimeSamples.Value = x.current,
                         () => { isRedoUndoAction = true; Audio.TimeSamples.Value = x.prev; },

@@ -65,7 +65,7 @@ namespace NoteEditor.Presenter
                 .DistinctUntilChanged()
                 .Where(_ => isUndoRedoAction ? (isUndoRedoAction = false) : true)
                 .Select(x => new { current = x, prev = property.Value })
-                .Subscribe(x => UndoRedoManager.Do(
+                .Subscribe(x => EditCommandManager.Do(
                     new Command(
                         () => property.Value = x.current,
                         () => { isUndoRedoAction = true; property.Value = x.prev; },

@@ -22,6 +22,10 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Transform fileItemContainerTransform;
         [SerializeField]
+        Button redoButton;
+        [SerializeField]
+        Button undoButton;
+        [SerializeField]
         Button loadButton;
         [SerializeField]
         GameObject notesRegion;
@@ -32,6 +36,11 @@ namespace NoteEditor.Presenter
         {
             ResetEditor();
 
+            ChangeLocationCommandManager.CanUndo.SubscribeToInteractable(undoButton);
+            ChangeLocationCommandManager.CanRedo.SubscribeToInteractable(redoButton);
+            undoButton.OnClickAsObservable().Subscribe(_ => ChangeLocationCommandManager.Undo());
+            redoButton.OnClickAsObservable().Subscribe(_ => ChangeLocationCommandManager.Redo());
+
             Settings.WorkSpacePath
                 .Subscribe(workSpacePath => directoryPathInputField.text = Path.Combine(workSpacePath, "Musics"));
 
@@ -41,6 +50,17 @@ namespace NoteEditor.Presenter
             MusicSelector.DirectoryPath
                 .Subscribe(path => directoryPathInputField.text = path);
 
+            var isUndoRedoAction = false;
+
+            MusicSelector.DirectoryPath
+                .Where(_ => isUndoRedoAction ? (isUndoRedoAction = false) : true)
+                .Where(path => Directory.Exists(path))
+                .Buffer(2, 1)
+                .Select(b => new { prev = b[0], current = b[1] })
+                .Subscribe(path => ChangeLocationCommandManager.Do(new Command(
+                    () => { },
+                    () => { isUndoRedoAction = true; MusicSelector.DirectoryPath.Value = path.prev; },
+                    () => { isUndoRedoAction = true; MusicSelector.DirectoryPath.Value = path.current; })));
 
             if (!Directory.Exists(MusicSelector.DirectoryPath.Value))
             {
@@ -80,7 +100,7 @@ namespace NoteEditor.Presenter
             {
                 yield return www;
 
-                UndoRedoManager.Clear();
+                EditCommandManager.Clear();
                 ResetEditor();
                 Audio.Source.clip = www.audioClip;
 

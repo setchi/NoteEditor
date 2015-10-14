@@ -36,7 +36,7 @@ namespace NoteEditor.Presenter
             operateCanvasOffsetXObservable.Buffer(this.UpdateAsObservable().Where(_ => Input.GetMouseButtonUp(0)))
                 .Where(b => 2 <= b.Count)
                 .Select(x => new { current = x.Last(), prev = x.First() })
-                .Subscribe(x => UndoRedoManager.Do(
+                .Subscribe(x => EditCommandManager.Do(
                     new Command(
                         () => NoteCanvas.OffsetX.Value = x.current,
                         () => NoteCanvas.OffsetX.Value = x.prev)));

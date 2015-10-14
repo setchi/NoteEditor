@@ -40,7 +40,7 @@ namespace NoteEditor.Presenter
             operateCanvasScaleObservable.Buffer(operateCanvasScaleObservable.ThrottleFrame(2))
                 .Where(b => 2 <= b.Count)
                 .Select(x => new { current = x.Last(), prev = x.First() })
-                .Subscribe(x => UndoRedoManager.Do(
+                .Subscribe(x => EditCommandManager.Do(
                     new Command(
                         () => NoteCanvas.Width.Value = x.current,
                         () => NoteCanvas.Width.Value = x.prev)));

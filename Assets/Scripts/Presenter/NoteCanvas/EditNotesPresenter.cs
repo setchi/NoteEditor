@@ -83,14 +83,14 @@ namespace NoteEditor.Presenter
 
             RequestForRemoveNote.Buffer(RequestForRemoveNote.ThrottleFrame(1))
                 .Select(b => b.OrderBy(note => note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)).ToList())
-                .Subscribe(notes => UndoRedoManager.Do(
+                .Subscribe(notes => EditCommandManager.Do(
                     new Command(
                         () => notes.ForEach(RemoveNote),
                         () => notes.ForEach(AddNote))));
 
             RequestForAddNote.Buffer(RequestForAddNote.ThrottleFrame(1))
                 .Select(b => b.OrderBy(note => note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)).ToList())
-                .Subscribe(notes => UndoRedoManager.Do(
+                .Subscribe(notes => EditCommandManager.Do(
                     new Command(
                         () => notes.ForEach(AddNote),
                         () => notes.ForEach(RemoveNote))));
@@ -98,7 +98,7 @@ namespace NoteEditor.Presenter
             RequestForChangeNoteStatus.Select(note => new { current = note, prev = EditData.Notes[note.position].note })
                 .Buffer(RequestForChangeNoteStatus.ThrottleFrame(1))
                 .Select(b => b.OrderBy(note => note.current.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value)).ToList())
-                .Subscribe(notes => UndoRedoManager.Do(
+                .Subscribe(notes => EditCommandManager.Do(
                     new Command(
                         () => notes.ForEach(x => ChangeNoteStates(x.current)),
                         () => notes.ForEach(x => ChangeNoteStates(x.prev)))));
