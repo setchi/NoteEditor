@@ -1,5 +1,5 @@
 ﻿using LitJson;
-using NoteEditor.Model.JSON;
+using NoteEditor.DTO;
 using System.Linq;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ namespace NoteEditor.Model
     {
         public static void Deserialize(string json)
         {
-            var data = JsonMapper.ToObject<SettingsDataModel>(json);
+            var data = JsonMapper.ToObject<SettingsDTO>(json);
             Settings.NoteInputKeyCodes.Value = data.noteInputKeyCodes
                 .Select(keyCodeNum => (KeyCode)keyCodeNum)
                 .ToList();
@@ -23,7 +23,7 @@ namespace NoteEditor.Model
 
         public static string Serialize()
         {
-            var data = new SettingsDataModel();
+            var data = new SettingsDTO();
 
             data.workSpacePath = Settings.WorkSpacePath.Value;
             data.maxBlock = EditData.MaxBlock.Value;

@@ -1,5 +1,5 @@
 ﻿using NoteEditor.Model;
-using NoteEditor.Model.JSON;
+using NoteEditor.DTO;
 using NoteEditor.Notes;
 using UnityEngine;
 
@@ -48,7 +48,7 @@ namespace NoteEditor.Utility
             return (canvasPosition / NoteCanvas.ScaleFactor.Value + new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0));
         }
 
-        public static Note ToNote(SaveDataModel.Note musicNote)
+        public static Note ToNote(MusicDTO.Note musicNote)
         {
             return new Note(
                 new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),

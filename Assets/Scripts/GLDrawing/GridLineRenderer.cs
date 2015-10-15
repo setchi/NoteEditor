@@ -99,15 +99,12 @@ namespace NoteEditor.GLDrawing
                         var closestBlockLindex = GetClosestLineIndex(blockLines, c => Mathf.Abs(c.start.y - mouseY));
                         var closestBlockLine = blockLines[closestBlockLindex];
 
-                        var distance = Vector2.Distance(
-                            new Vector2(closestBeatLine.start.x, closestBlockLine.start.y),
-                            new Vector2(mouseX, mouseY));
+                        var distance = new Vector2(closestBeatLine.start.x, closestBlockLine.start.y) - new Vector2(mouseX, mouseY);
 
-                        var threshold = Mathf.Min(
-                            Mathf.Abs(ConvertUtils.BlockNumToCanvasPositionY(0) - ConvertUtils.BlockNumToCanvasPositionY(1)),
-                            Mathf.Abs(ConvertUtils.SamplesToCanvasPositionX(beatSamples[0]) - ConvertUtils.SamplesToCanvasPositionX(beatSamples[1]))) / 3f;
+                        var thresholdX = Mathf.Abs(ConvertUtils.SamplesToCanvasPositionX(beatSamples[0]) - ConvertUtils.SamplesToCanvasPositionX(beatSamples[1])) / 2f;
+                        var thresholdY = Mathf.Abs(ConvertUtils.BlockNumToCanvasPositionY(0) - ConvertUtils.BlockNumToCanvasPositionY(1)) / 2f;
 
-                        if (distance < threshold)
+                        if (distance.x < thresholdX && distance.y < thresholdY)
                         {
                             closestBlockLine.color = highlightColor;
                             closestBeatLine.color = highlightColor;

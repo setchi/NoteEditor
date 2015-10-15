@@ -1,5 +1,5 @@
 ﻿using LitJson;
-using NoteEditor.Model.JSON;
+using NoteEditor.DTO;
 using NoteEditor.Notes;
 using NoteEditor.Presenter;
 using NoteEditor.Utility;
@@ -13,7 +13,7 @@ namespace NoteEditor.Model
     {
         public static string Serialize()
         {
-            var data = new SaveDataModel.EditData();
+            var data = new MusicDTO.EditData();
             data.BPM = EditData.BPM.Value;
             data.maxBlock = EditData.MaxBlock.Value;
             data.offset = EditData.OffsetSamples.Value;
@@ -23,7 +23,7 @@ namespace NoteEditor.Model
                 .Where(note => !(note.note.type == NoteTypes.Long && EditData.Notes.ContainsKey(note.note.prev)))
                 .OrderBy(note => note.note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value));
 
-            data.notes = new List<SaveDataModel.Note>();
+            data.notes = new List<MusicDTO.Note>();
 
             foreach (var noteObject in sortedNoteObjects)
             {
@@ -56,7 +56,7 @@ namespace NoteEditor.Model
 
         public static void Deserialize(string json)
         {
-            var editData = JsonMapper.ToObject<SaveDataModel.EditData>(json);
+            var editData = JsonMapper.ToObject<MusicDTO.EditData>(json);
             var notePresenter = EditNotesPresenter.Instance;
 
             EditData.BPM.Value = editData.BPM;
@@ -89,14 +89,14 @@ namespace NoteEditor.Model
             }
         }
 
-        static SaveDataModel.Note ToSaveData(NoteObject noteObject)
+        static MusicDTO.Note ToSaveData(NoteObject noteObject)
         {
-            var note = new SaveDataModel.Note();
+            var note = new MusicDTO.Note();
             note.num = noteObject.note.position.num;
             note.block = noteObject.note.position.block;
             note.LPB = noteObject.note.position.LPB;
             note.type = noteObject.note.type == NoteTypes.Long ? 2 : 1;
-            note.notes = new List<SaveDataModel.Note>();
+            note.notes = new List<MusicDTO.Note>();
             return note;
         }
     }

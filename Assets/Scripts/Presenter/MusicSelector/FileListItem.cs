@@ -28,7 +28,7 @@ namespace NoteEditor.Presenter
         string itemName;
         FileItemInfo fileItemInfo;
 
-        void Start()
+        void Awake()
         {
             GetComponent<RectTransform>().localScale = Vector3.one;
 

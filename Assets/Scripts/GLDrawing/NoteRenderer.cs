@@ -31,6 +31,11 @@ namespace NoteEditor.GLDrawing
                             new Vector3(screenPos.x - drawSize, screenPos.y, 0)
                         },
                         noteObj.NoteColor));
+
+                    if (noteObj.note.type == Notes.NoteTypes.Long && EditData.Notes.ContainsKey(noteObj.note.prev))
+                    {
+                        EditData.Notes[noteObj.note.prev].LateUpdateObservable.OnNext(Unit.Default);
+                    }
                 }
             }
         }

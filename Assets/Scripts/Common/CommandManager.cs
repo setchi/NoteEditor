@@ -45,7 +45,7 @@ namespace NoteEditor.Common
             return undoStack.Count > 0;
         }
 
-        public bool CanRed()
+        public bool CanRedo()
         {
             return redoStack.Count > 0;
         }

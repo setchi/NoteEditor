@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace NoteEditor.Model.JSON
+namespace NoteEditor.DTO
 {
-    public class SaveDataModel
+    public class MusicDTO
     {
         public class EditData
         {

@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace NoteEditor.Model.JSON
+namespace NoteEditor.DTO
 {
-    public class SettingsDataModel
+    public class SettingsDTO
     {
         public string workSpacePath;
         public int maxBlock;

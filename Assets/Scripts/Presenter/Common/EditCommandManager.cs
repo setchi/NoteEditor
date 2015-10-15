@@ -19,31 +19,14 @@ namespace NoteEditor.Presenter
 
             this.UpdateAsObservable()
                 .Where(_ => KeyInput.CtrlPlus(KeyCode.Z))
-                .Subscribe(_ => Undo());
+                .Subscribe(_ => commandManager.Undo());
 
             this.UpdateAsObservable()
                 .Where(_ => KeyInput.CtrlPlus(KeyCode.Y))
-                .Subscribe(_ => Redo());
+                .Subscribe(_ => commandManager.Redo());
         }
 
-        static public void Do(Command command)
-        {
-            Instance.commandManager.Do(command);
-        }
-
-        static public void Clear()
-        {
-            Instance.commandManager.Clear();
-        }
-
-        void Undo()
-        {
-            commandManager.Undo();
-        }
-
-        void Redo()
-        {
-            commandManager.Redo();
-        }
+        static public void Do(Command command) { Instance.commandManager.Do(command); }
+        static public void Clear() { Instance.commandManager.Clear(); }
     }
 }

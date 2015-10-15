@@ -105,16 +105,16 @@ namespace NoteEditor.Presenter
 
         public void Save()
         {
-            var fileName = Path.GetFileNameWithoutExtension(EditData.Name.Value) + ".json";
-            var directoryPath = Settings.WorkSpacePath.Value + "/Notes/";
-            var filePath = directoryPath + fileName;
-            var json = EditDataSerializer.Serialize();
+            var fileName = Path.ChangeExtension(EditData.Name.Value, "json");
+            var directoryPath = Path.Combine(Settings.WorkSpacePath.Value, "Notes");
+            var filePath = Path.Combine(directoryPath, fileName);
 
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
+            var json = EditDataSerializer.Serialize();
             File.WriteAllText(filePath, json, System.Text.Encoding.UTF8);
             messageText.text = filePath + " に保存しました";
         }

@@ -14,9 +14,9 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Transform itemContentTransform;
 
-        static string directoryPath = Directory.GetCurrentDirectory() + "/Settings/";
+        static string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Settings");
         static string fileName = "settings.json";
-        static string filePath = directoryPath + fileName;
+        static string filePath = Path.Combine(directoryPath, fileName);
 
         string LoadSettingsJson()
         {

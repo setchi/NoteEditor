@@ -1,8 +1,6 @@
 ﻿using NoteEditor.Common;
 using NoteEditor.Model;
-using NoteEditor.Notes;
 using System;
-using System.Collections;
 using System.IO;
 using System.Linq;
 using UniRx;
@@ -28,13 +26,11 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Button loadButton;
         [SerializeField]
-        GameObject notesRegion;
-        [SerializeField]
-        GameObject noteObjectPrefab;
+        MusicLoader musicLoader;
 
         void Start()
         {
-            ResetEditor();
+            musicLoader.ResetEditor();
 
             ChangeLocationCommandManager.CanUndo.SubscribeToInteractable(undoButton);
             ChangeLocationCommandManager.CanRedo.SubscribeToInteractable(redoButton);
@@ -62,11 +58,6 @@ namespace NoteEditor.Presenter
                     () => { isUndoRedoAction = true; MusicSelector.DirectoryPath.Value = path.prev; },
                     () => { isUndoRedoAction = true; MusicSelector.DirectoryPath.Value = path.current; })));
 
-            if (!Directory.Exists(MusicSelector.DirectoryPath.Value))
-            {
-                Directory.CreateDirectory(MusicSelector.DirectoryPath.Value);
-            }
-
             Observable.Timer(TimeSpan.FromMilliseconds(300), TimeSpan.Zero)
                     .Where(_ => Directory.Exists(MusicSelector.DirectoryPath.Value))
                     .Select(_ => new DirectoryInfo(MusicSelector.DirectoryPath.Value))
@@ -90,67 +81,13 @@ namespace NoteEditor.Presenter
 
             loadButton.OnClickAsObservable()
                 .Select(_ => MusicSelector.SelectedFileName.Value)
-                    .Where(fileName => !string.IsNullOrEmpty(fileName))
-                    .Subscribe(fileName => StartCoroutine(LoadMusic(fileName)));
-        }
+                .Where(fileName => !string.IsNullOrEmpty(fileName))
+                .Subscribe(fileName => musicLoader.LoadMusic(fileName));
 
-        IEnumerator LoadMusic(string fileName)
-        {
-            using (var www = new WWW("file:///" + Path.Combine(MusicSelector.DirectoryPath.Value, fileName)))
+            if (!Directory.Exists(MusicSelector.DirectoryPath.Value))
             {
-                yield return www;
-
-                EditCommandManager.Clear();
-                ResetEditor();
-                Audio.Source.clip = www.audioClip;
-
-                if (Audio.Source.clip == null)
-                {
-                    // TODO: 読み込み失敗時の処理
-                }
-                else
-                {
-                    EditData.Name.Value = fileName;
-                    LoadEditData();
-                    Audio.OnLoad.OnNext(Unit.Default);
-                }
+                Directory.CreateDirectory(MusicSelector.DirectoryPath.Value);
             }
-        }
-
-        void LoadEditData()
-        {
-            var fileName = Path.ChangeExtension(EditData.Name.Value, "json");
-            var directoryPath = Path.Combine(Path.GetDirectoryName(MusicSelector.DirectoryPath.Value), "Notes");
-            var filePath = Path.Combine(directoryPath, fileName);
-
-            if (File.Exists(filePath))
-            {
-                var json = File.ReadAllText(filePath, System.Text.Encoding.UTF8);
-                EditDataSerializer.Deserialize(json);
-            }
-        }
-
-        void ResetEditor()
-        {
-            Audio.TimeSamples.Value = 0;
-            Audio.SmoothedTimeSamples.Value = 0;
-            Audio.IsPlaying.Value = false;
-            Audio.Source.clip = null;
-            EditState.NoteType.Value = NoteTypes.Single;
-            EditState.LongNoteTailPosition.Value = NotePosition.None;
-            EditData.BPM.Value = 120;
-            EditData.OffsetSamples.Value = 0;
-            EditData.Name.Value = "Note Editor";
-            EditData.MaxBlock.Value = Settings.MaxBlock;
-            EditData.LPB.Value = 4;
-
-            foreach (var note in EditData.Notes.Values)
-            {
-                note.Dispose();
-            }
-
-            EditData.Notes.Clear();
-            Resources.UnloadUnusedAssets();
         }
     }
 }

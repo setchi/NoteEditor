@@ -12,11 +12,7 @@ namespace NoteEditor.Presenter
     public class EditNotesPresenter : SingletonMonoBehaviour<EditNotesPresenter>
     {
         [SerializeField]
-        GameObject notesRegion;
-        [SerializeField]
         CanvasEvents canvasEvents;
-        [SerializeField]
-        GameObject notePrefab;
 
         public readonly Subject<Note> RequestForEditNote = new Subject<Note>();
         public readonly Subject<Note> RequestForRemoveNote = new Subject<Note>();

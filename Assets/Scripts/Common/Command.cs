@@ -26,5 +26,4 @@ namespace NoteEditor.Common
         public void Undo() { undoAction(); }
         public void Redo() { redoAction(); }
     }
-
 }
