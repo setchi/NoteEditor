@@ -53,9 +53,9 @@ namespace NoteEditor.Presenter
             var isUndoRedoAction = false;
 
             MusicSelector.DirectoryPath
-                .Where(_ => isUndoRedoAction ? (isUndoRedoAction = false) : true)
                 .Where(path => Directory.Exists(path))
                 .Buffer(2, 1)
+                .Where(_ => isUndoRedoAction ? (isUndoRedoAction = false) : true)
                 .Select(b => new { prev = b[0], current = b[1] })
                 .Subscribe(path => ChangeLocationCommandManager.Do(new Command(
                     () => { },
