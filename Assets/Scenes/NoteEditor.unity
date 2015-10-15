@@ -1717,6 +1717,7 @@ GameObject:
   - 224: {fileID: 199596961}
   - 222: {fileID: 199596962}
   - 114: {fileID: 199596963}
+  - 114: {fileID: 199596964}
   m_Layer: 5
   m_Name: AuxiliaryLines
   m_TagString: Untagged
@@ -1764,6 +1765,18 @@ MonoBehaviour:
   mainBeatLineColor: {r: 1, g: 1, b: 1, a: 1}
   subBeatLineColor: {r: .5, g: .5, b: .5, a: .5}
   blockLineColor: {r: .5, g: .5, b: .5, a: .5}
+--- !u!114 &199596964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 199596960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab57abf65c307b8409d055e87355d1c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  beatNumberPrefab: {fileID: 148046, guid: 9e9cd4d88ac28cd41985b5fa13303e44, type: 2}
 --- !u!1 &220404834
 GameObject:
   m_ObjectHideFlags: 0

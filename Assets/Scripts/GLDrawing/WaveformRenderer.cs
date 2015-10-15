@@ -30,7 +30,7 @@ namespace NoteEditor.GLDrawing
 
                     var x = (NoteCanvas.Width.Value / Audio.Source.clip.samples) / 2f;
                     var offsetX = NoteCanvas.OffsetX.Value;
-                    var offsetY = 200;
+                    var offsetY = 210;
                     var max = Screen.width / NoteCanvas.ScaleFactor.Value * 1.3f;
 
                     for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)

@@ -116,14 +116,30 @@ namespace NoteEditor.GLDrawing
                         }
                     }
 
+                    var beatGridInteral = beatLines[EditData.LPB.Value].start.x - beatLines[0].start.x;
+                    var beatGridMinInterval = 100;
+                    var intervalFactor = beatGridInteral < beatGridMinInterval
+                        ? Mathf.RoundToInt(beatGridMinInterval / beatGridInteral)
+                        : 1;
+
+                    BeatNumberRenderer.Begin();
                     var screenWidth = Screen.width;
                     for (int i = 0, l = beatLines.Length; i < l && beatLines[i].start.x < screenWidth; i++)
                     {
                         if (beatLines[i].start.x > 0)
                         {
                             GLLineDrawer.Draw(beatLines[i]);
+
+                            if (i % (EditData.LPB.Value * intervalFactor) == 0)
+                            {
+                                BeatNumberRenderer.Draw(
+                                    new Vector3(beatLines[i].start.x, Screen.height / 2f - 154 / NoteCanvas.ScaleFactor.Value, 0),
+                                    i / EditData.LPB.Value,
+                                    transform);
+                            }
                         }
                     }
+                    BeatNumberRenderer.End();
 
                     GLLineDrawer.Draw(blockLines);
                 });
