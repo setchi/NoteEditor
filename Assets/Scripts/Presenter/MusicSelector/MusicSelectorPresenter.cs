@@ -30,8 +30,6 @@ namespace NoteEditor.Presenter
 
         void Start()
         {
-            musicLoader.ResetEditor();
-
             ChangeLocationCommandManager.CanUndo.SubscribeToInteractable(undoButton);
             ChangeLocationCommandManager.CanRedo.SubscribeToInteractable(redoButton);
             undoButton.OnClickAsObservable().Subscribe(_ => ChangeLocationCommandManager.Undo());
@@ -82,7 +80,7 @@ namespace NoteEditor.Presenter
             loadButton.OnClickAsObservable()
                 .Select(_ => MusicSelector.SelectedFileName.Value)
                 .Where(fileName => !string.IsNullOrEmpty(fileName))
-                .Subscribe(fileName => musicLoader.LoadMusic(fileName));
+                .Subscribe(fileName => musicLoader.Load(fileName));
 
             if (!Directory.Exists(MusicSelector.DirectoryPath.Value))
             {

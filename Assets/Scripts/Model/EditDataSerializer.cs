@@ -13,44 +13,44 @@ namespace NoteEditor.Model
     {
         public static string Serialize()
         {
-            var data = new MusicDTO.EditData();
-            data.BPM = EditData.BPM.Value;
-            data.maxBlock = EditData.MaxBlock.Value;
-            data.offset = EditData.OffsetSamples.Value;
-            data.name = Path.GetFileNameWithoutExtension(EditData.Name.Value);
+            var dto = new MusicDTO.EditData();
+            dto.BPM = EditData.BPM.Value;
+            dto.maxBlock = EditData.MaxBlock.Value;
+            dto.offset = EditData.OffsetSamples.Value;
+            dto.name = Path.GetFileNameWithoutExtension(EditData.Name.Value);
 
             var sortedNoteObjects = EditData.Notes.Values
                 .Where(note => !(note.note.type == NoteTypes.Long && EditData.Notes.ContainsKey(note.note.prev)))
                 .OrderBy(note => note.note.position.ToSamples(Audio.Source.clip.frequency, EditData.BPM.Value));
 
-            data.notes = new List<MusicDTO.Note>();
+            dto.notes = new List<MusicDTO.Note>();
 
             foreach (var noteObject in sortedNoteObjects)
             {
                 if (noteObject.note.type == NoteTypes.Single)
                 {
-                    data.notes.Add(ToSaveData(noteObject));
+                    dto.notes.Add(ToDTO(noteObject));
                 }
                 else if (noteObject.note.type == NoteTypes.Long)
                 {
                     var current = noteObject;
-                    var note = ToSaveData(noteObject);
+                    var note = ToDTO(noteObject);
 
                     while (EditData.Notes.ContainsKey(current.note.next))
                     {
                         var nextObj = EditData.Notes[current.note.next];
-                        note.notes.Add(ToSaveData(nextObj));
+                        note.notes.Add(ToDTO(nextObj));
                         current = nextObj;
                     }
 
-                    data.notes.Add(note);
+                    dto.notes.Add(note);
                 }
             }
 
             var jsonWriter = new JsonWriter();
             jsonWriter.PrettyPrint = true;
             jsonWriter.IndentValue = 4;
-            JsonMapper.ToJson(data, jsonWriter);
+            JsonMapper.ToJson(dto, jsonWriter);
             return jsonWriter.ToString();
         }
 
@@ -67,15 +67,15 @@ namespace NoteEditor.Model
             {
                 if (note.type == 1)
                 {
-                    notePresenter.AddNote(ConvertUtils.ToNote(note));
+                    notePresenter.AddNote(ToNoteObject(note));
                     continue;
                 }
 
                 var longNoteObjects = new[] { note }.Concat(note.notes)
                     .Select(note_ =>
                     {
-                        notePresenter.AddNote(ConvertUtils.ToNote(note_));
-                        return EditData.Notes[ConvertUtils.ToNote(note_).position];
+                        notePresenter.AddNote(ToNoteObject(note_));
+                        return EditData.Notes[ToNoteObject(note_).position];
                     })
                     .ToList();
 
@@ -89,7 +89,7 @@ namespace NoteEditor.Model
             }
         }
 
-        static MusicDTO.Note ToSaveData(NoteObject noteObject)
+        static MusicDTO.Note ToDTO(NoteObject noteObject)
         {
             var note = new MusicDTO.Note();
             note.num = noteObject.note.position.num;
@@ -98,6 +98,13 @@ namespace NoteEditor.Model
             note.type = noteObject.note.type == NoteTypes.Long ? 2 : 1;
             note.notes = new List<MusicDTO.Note>();
             return note;
+        }
+
+        public static Note ToNoteObject(MusicDTO.Note musicNote)
+        {
+            return new Note(
+                new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),
+                musicNote.type == 1 ? NoteTypes.Single : NoteTypes.Long);
         }
     }
 }

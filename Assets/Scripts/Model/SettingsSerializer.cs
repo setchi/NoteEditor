@@ -9,16 +9,16 @@ namespace NoteEditor.Model
     {
         public static void Deserialize(string json)
         {
-            var data = JsonMapper.ToObject<SettingsDTO>(json);
-            Settings.NoteInputKeyCodes.Value = data.noteInputKeyCodes
+            var dto = JsonMapper.ToObject<SettingsDTO>(json);
+            Settings.NoteInputKeyCodes.Value = dto.noteInputKeyCodes
                 .Select(keyCodeNum => (KeyCode)keyCodeNum)
                 .ToList();
 
-            Settings.MaxBlock = data.maxBlock;
+            Settings.MaxBlock = dto.maxBlock;
 
-            Settings.WorkSpacePath.Value = string.IsNullOrEmpty(data.workSpacePath)
+            Settings.WorkSpacePath.Value = string.IsNullOrEmpty(dto.workSpacePath)
                 ? Application.persistentDataPath
-                : data.workSpacePath;
+                : dto.workSpacePath;
         }
 
         public static string Serialize()

@@ -17,7 +17,7 @@ namespace NoteEditor.GLDrawing
         static int size;
         static int currentIndex = 0;
 
-        static public void Draw(Vector3 pos, int number, Transform parent)
+        static public void Render(Vector3 pos, int number, Transform parent)
         {
             if (currentIndex < size)
             {

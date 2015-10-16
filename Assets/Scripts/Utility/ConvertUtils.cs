@@ -47,12 +47,5 @@ namespace NoteEditor.Utility
         {
             return (canvasPosition / NoteCanvas.ScaleFactor.Value + new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0));
         }
-
-        public static Note ToNote(MusicDTO.Note musicNote)
-        {
-            return new Note(
-                new NotePosition(musicNote.LPB, musicNote.num, musicNote.block),
-                musicNote.type == 1 ? NoteTypes.Single : NoteTypes.Long);
-        }
     }
 }

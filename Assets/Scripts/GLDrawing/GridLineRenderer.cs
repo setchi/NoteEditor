@@ -132,8 +132,8 @@ namespace NoteEditor.GLDrawing
 
                             if (i % (EditData.LPB.Value * intervalFactor) == 0)
                             {
-                                BeatNumberRenderer.Draw(
-                                    new Vector3(beatLines[i].start.x, Screen.height / 2f - 154 / NoteCanvas.ScaleFactor.Value, 0),
+                                BeatNumberRenderer.Render(
+                                    new Vector3(beatLines[i].start.x, Screen.height / 2f + 154 / NoteCanvas.ScaleFactor.Value, 0),
                                     i / EditData.LPB.Value,
                                     transform);
                             }

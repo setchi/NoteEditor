@@ -9,12 +9,17 @@ namespace NoteEditor.Presenter
 {
     public class MusicLoader : MonoBehaviour
     {
-        public void LoadMusic(string fileName)
+        void Awake()
         {
-            StartCoroutine(Load(fileName));
+            ResetEditor();
         }
 
-        IEnumerator Load(string fileName)
+        public void Load(string fileName)
+        {
+            StartCoroutine(LoadMusic(fileName));
+        }
+
+        IEnumerator LoadMusic(string fileName)
         {
             using (var www = new WWW("file:///" + Path.Combine(MusicSelector.DirectoryPath.Value, fileName)))
             {
