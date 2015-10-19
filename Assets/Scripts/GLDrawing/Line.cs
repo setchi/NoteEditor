@@ -2,7 +2,7 @@
 
 namespace NoteEditor.GLDrawing
 {
-    public class Line
+    public struct Line
     {
         public Color color;
         public Vector3 start;

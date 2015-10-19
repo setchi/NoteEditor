@@ -14,11 +14,8 @@ namespace NoteEditor.GLDrawing
 
         void Awake()
         {
-            var waveData = new float[500000];
+            var samples = new float[500000];
             var skipSamples = 50;
-            var lines = Enumerable.Range(0, waveData.Length / skipSamples)
-                .Select(_ => new Line(Vector3.zero, Vector3.zero, color))
-                .ToArray();
 
             this.LateUpdateAsObservable()
                 .Where(_ => EditorState.WaveformDisplayEnabled.Value)
@@ -26,26 +23,24 @@ namespace NoteEditor.GLDrawing
                 .Subscribe(_ =>
                 {
                     var timeSamples = Mathf.Min(Audio.SmoothedTimeSamples.Value, Audio.Source.clip.samples - 1);
-                    Audio.Source.clip.GetData(waveData, Mathf.RoundToInt(timeSamples));
+                    Audio.Source.clip.GetData(samples, Mathf.RoundToInt(timeSamples));
 
                     var x = (NoteCanvas.Width.Value / Audio.Source.clip.samples) / 2f;
                     var offsetX = NoteCanvas.OffsetX.Value;
                     var offsetY = 200;
                     var max = Screen.width / NoteCanvas.ScaleFactor.Value * 1.3f;
 
-                    for (int li = 0, wi = skipSamples / 2, l = waveData.Length; wi < l; li++, wi += skipSamples)
+                    for (int li = 0, wi = skipSamples / 2, l = samples.Length; wi < l; li++, wi += skipSamples)
                     {
                         var pos = wi * x + offsetX;
 
                         if (pos > max)
                             break;
 
-                        lines[li].start.x = lines[li].end.x = pos;
-                        lines[li].end.y = waveData[wi] * 45 - offsetY;
-                        lines[li].start.y = waveData[wi - skipSamples / 2] * 45 - offsetY;
-                        lines[li].start = ConvertUtils.CanvasToScreenPosition(lines[li].start);
-                        lines[li].end = ConvertUtils.CanvasToScreenPosition(lines[li].end);
-                        GLLineDrawer.Draw(lines[li]);
+                        GLLineDrawer.Draw(new Line(
+                            ConvertUtils.CanvasToScreenPosition(new Vector3(pos, samples[wi - skipSamples / 2] * 45 - offsetY, 0)),
+                            ConvertUtils.CanvasToScreenPosition(new Vector3(pos, samples[wi] * 45 - offsetY, 0)),
+                            color));
                     }
                 });
         }

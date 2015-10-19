@@ -68,11 +68,11 @@ namespace NoteEditor.Presenter
                         () => CurrentSamples.Value = x.prev)));
 
             Observable.Merge(
-                    CurrentSamples.Select(_ => Unit.Default),
-                    NoteCanvas.OffsetX.Select(_ => Unit.Default),
-                    Audio.SmoothedTimeSamples.Select(_ => Unit.Default),
-                    NoteCanvas.Width.Select(_ => Unit.Default),
-                    EditData.OffsetSamples.Select(_ => Unit.Default))
+                    CurrentSamples.AsUnitObservable(),
+                    NoteCanvas.OffsetX.AsUnitObservable(),
+                    Audio.SmoothedTimeSamples.AsUnitObservable(),
+                    NoteCanvas.Width.AsUnitObservable(),
+                    EditData.OffsetSamples.AsUnitObservable())
                 .Select(_ => CurrentSamples.Value)
                 .Subscribe(x =>
                 {
