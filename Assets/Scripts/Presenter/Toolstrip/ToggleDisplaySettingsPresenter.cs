@@ -11,7 +11,7 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Button toggleDisplaySettingsButton;
         [SerializeField]
-        Transform settingsWindowTransform;
+        GameObject settingsWindow;
 
         bool isMouseOverSettingsWindow = false;
 
@@ -30,10 +30,8 @@ namespace NoteEditor.Presenter
                         .Where(_ => Input.GetMouseButtonDown(0)))
                 .Subscribe(_ => Settings.IsOpen.Value = false);
 
-            Settings.IsOpen.Select(isOpen => isOpen ? Vector3.zero : Vector3.up * 100000)
-                .Subscribe(pos => settingsWindowTransform.localPosition = pos);
-
             Settings.IsOpen.Subscribe(_ => Settings.SelectedBlock.Value = -1);
+            Settings.IsOpen.Subscribe(isOpen => settingsWindow.SetActive(isOpen));
         }
 
         public void OnMouseEnterSettingsWindow()

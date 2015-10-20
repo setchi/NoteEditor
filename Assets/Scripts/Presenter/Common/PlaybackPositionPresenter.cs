@@ -137,10 +137,10 @@ namespace NoteEditor.Presenter
             Audio.TimeSamples.Subscribe(timeSamples => playbackPositionController.value = timeSamples);
 
             // Model timesamples -> UI(text)
-            Audio.TimeSamples.Select(timeSamples => timeSamples / (float)Audio.Source.clip.samples)
-                .Select(per =>
-                    TimeSpan.FromSeconds(Audio.Source.time).ToString().Substring(3, 5)
-                    + " / "
+            Audio.TimeSamples.Select(_ => TimeSpan.FromSeconds(Audio.Source.time).ToString().Substring(3, 5))
+                .DistinctUntilChanged()
+                .Select(elapsedTime =>
+                    elapsedTime + " / "
                     + TimeSpan.FromSeconds(Audio.Source.clip.samples / (float)Audio.Source.clip.frequency).ToString().Substring(3, 5))
                 .SubscribeToText(playbackTimeDisplayText);
         }

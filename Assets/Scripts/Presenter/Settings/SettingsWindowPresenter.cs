@@ -68,9 +68,9 @@ namespace NoteEditor.Presenter
 
 
             Observable.Merge(
-                     Settings.RequestForChangeInputNoteKeyCode.Select(_ => 0),
-                     EditData.MaxBlock,
-                     Settings.WorkSpacePath.Select(_ => 0))
+                     Settings.RequestForChangeInputNoteKeyCode.AsUnitObservable(),
+                     EditData.MaxBlock.AsUnitObservable(),
+                     Settings.WorkSpacePath.AsUnitObservable())
                  .Where(_ => Settings.IsOpen.Value)
                  .DelayFrame(1)
                  .Subscribe(_ => SaveSettings());

@@ -132,8 +132,7 @@ namespace NoteEditor.GLDrawing
                             {
                                 BeatNumberRenderer.Render(
                                     new Vector3(beatLines[i].start.x, Screen.height / 2f + 154 / NoteCanvas.ScaleFactor.Value, 0),
-                                    i / EditData.LPB.Value,
-                                    transform);
+                                    i / EditData.LPB.Value);
                             }
                         }
                     }

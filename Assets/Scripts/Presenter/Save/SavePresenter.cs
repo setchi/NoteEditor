@@ -96,8 +96,9 @@ namespace NoteEditor.Presenter
         {
             if (mustBeSaved.Value)
             {
-                dialogMessageText.text = "Do you want to save the changes you made in the note '" + EditData.Name.Value + "' ?"
-                    + System.Environment.NewLine + "Your changes will be lost if you don't save them.";
+                dialogMessageText.text = "Do you want to save the changes you made in the note '"
+                    + EditData.Name.Value + "' ?" + System.Environment.NewLine
+                    + "Your changes will be lost if you don't save them.";
                 saveDialog.SetActive(true);
                 Application.CancelQuit();
             }

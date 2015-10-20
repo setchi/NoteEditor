@@ -57,15 +57,15 @@ namespace NoteEditor.Presenter
                     () => { isUndoRedoAction = true; MusicSelector.DirectoryPath.Value = path.current; })));
 
             Observable.Timer(TimeSpan.FromMilliseconds(300), TimeSpan.Zero)
-                    .Where(_ => Directory.Exists(MusicSelector.DirectoryPath.Value))
-                    .Select(_ => new DirectoryInfo(MusicSelector.DirectoryPath.Value))
-                    .Select(directoryInfo =>
-                        directoryInfo.GetDirectories().Select(directory => new FileItemInfo(true, directory.FullName))
-                            .Concat(directoryInfo.GetFiles().Select(file => new FileItemInfo(false, file.FullName)))
-                            .ToList())
-                    .Where(x => !x.Select(item => item.fullName)
-                        .SequenceEqual(MusicSelector.FilePathList.Value.Select(item => item.fullName)))
-                    .Subscribe(filePathList => MusicSelector.FilePathList.Value = filePathList);
+                .Where(_ => Directory.Exists(MusicSelector.DirectoryPath.Value))
+                .Select(_ => new DirectoryInfo(MusicSelector.DirectoryPath.Value))
+                .Select(directoryInfo =>
+                    directoryInfo.GetDirectories().Select(directory => new FileItemInfo(true, directory.FullName))
+                        .Concat(directoryInfo.GetFiles().Select(file => new FileItemInfo(false, file.FullName)))
+                        .ToList())
+                .Where(x => !x.Select(item => item.fullName)
+                    .SequenceEqual(MusicSelector.FilePathList.Value.Select(item => item.fullName)))
+                .Subscribe(filePathList => MusicSelector.FilePathList.Value = filePathList);
 
             MusicSelector.FilePathList.AsObservable()
                 .Do(_ => Enumerable.Range(0, fileItemContainerTransform.childCount)

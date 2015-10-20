@@ -17,7 +17,7 @@ namespace NoteEditor.GLDrawing
         static int size;
         static int currentIndex = 0;
 
-        static public void Render(Vector3 pos, int number, Transform parent)
+        static public void Render(Vector3 pos, int number)
         {
             if (currentIndex < size)
             {
@@ -28,7 +28,7 @@ namespace NoteEditor.GLDrawing
             else
             {
                 var obj = Instantiate(Instance.beatNumberPrefab, pos, Quaternion.identity) as GameObject;
-                obj.transform.SetParent(parent);
+                obj.transform.SetParent(Instance.transform);
                 Instance.rectTransformPool.Add(obj.GetComponent<RectTransform>());
                 Instance.textPool.Add(obj.GetComponent<Text>());
                 size++;
