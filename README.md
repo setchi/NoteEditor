@@ -1,6 +1,7 @@
 # Note Editor
 [![Release](https://img.shields.io/github/release/setchi/NoteEditor.svg?style=flat-square)](https://github.com/setchi/NoteEditor/releases/latest)
 [![License](https://img.shields.io/github/license/setchi/NoteEditor.svg?style=flat-square)](LICENSE)
+
 音楽ゲーム用の譜面エディタです。
 現在wav形式の音楽ファイルのみ対応しています。
 
