@@ -27,6 +27,7 @@ namespace NoteEditor.Presenter
         void Init()
         {
             var closestNoteAreaOnMouseDownObservable = canvasEvents.NotesRegionOnMouseDownObservable
+                .Where(_ => !KeyInput.CtrlKey())
                 .Where(_ => !Input.GetMouseButtonDown(1))
                 .Where(_ => 0 <= NoteCanvas.ClosestNotePosition.Value.num);
 

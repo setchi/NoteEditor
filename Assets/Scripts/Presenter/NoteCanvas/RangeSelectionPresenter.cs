@@ -29,6 +29,7 @@ namespace NoteEditor.Presenter
 
             // Select by dragging
             this.UpdateAsObservable()
+                .Where(_ => KeyInput.CtrlKey())
                 .Where(_ => Input.GetMouseButtonDown(0))
                 .Select(_ => Input.mousePosition)
                 .SelectMany(startPos => this.UpdateAsObservable()
