@@ -15,15 +15,20 @@ namespace NoteEditor.GLDrawing
         List<Text> textPool = new List<Text>();
 
         static int size;
-        static int currentIndex = 0;
+        static int prevActiveCount = 0;
+        static int currentActiveCount = 0;
 
         static public void Render(Vector3 pos, int number)
         {
-            if (currentIndex < size)
+            if (currentActiveCount < size)
             {
-                Instance.textPool[currentIndex].gameObject.SetActive(true);
-                Instance.rectTransformPool[currentIndex].position = pos;
-                Instance.textPool[currentIndex].text = number.ToString();
+                if (currentActiveCount >= prevActiveCount)
+                {
+                    Instance.textPool[currentActiveCount].gameObject.SetActive(true);
+                }
+
+                Instance.rectTransformPool[currentActiveCount].position = pos;
+                Instance.textPool[currentActiveCount].text = number.ToString();
             }
             else
             {
@@ -34,31 +39,35 @@ namespace NoteEditor.GLDrawing
                 size++;
             }
 
-            currentIndex++;
+            currentActiveCount++;
         }
 
         static public void Begin()
         {
-            foreach (var go in Instance.textPool.Take(currentIndex).Select(text => text.gameObject))
-            {
-                go.SetActive(false);
-            }
-
-            currentIndex = 0;
+            prevActiveCount = currentActiveCount;
+            currentActiveCount = 0;
         }
 
         static public void End()
         {
-            if (currentIndex * 2 < size)
+            if (currentActiveCount < prevActiveCount)
             {
-                foreach (var text in Instance.textPool.Skip(currentIndex + 1))
+                for (int i = currentActiveCount; i < prevActiveCount; i++)
+                {
+                    Instance.textPool[i].gameObject.SetActive(false);
+                }
+            }
+
+            if (currentActiveCount * 2 < size)
+            {
+                foreach (var text in Instance.textPool.Skip(currentActiveCount + 1))
                 {
                     DestroyObject(text.gameObject);
                 }
 
-                Instance.rectTransformPool.RemoveRange(currentIndex, size - currentIndex);
-                Instance.textPool.RemoveRange(currentIndex, size - currentIndex);
-                size = currentIndex;
+                Instance.rectTransformPool.RemoveRange(currentActiveCount, size - currentActiveCount);
+                Instance.textPool.RemoveRange(currentActiveCount, size - currentActiveCount);
+                size = currentActiveCount;
             }
         }
     }
