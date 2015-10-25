@@ -13,6 +13,8 @@ namespace NoteEditor.Presenter
         CanvasEvents canvasEvents;
         [SerializeField]
         RectTransform verticalLineRect;
+        [SerializeField]
+        RectTransform waveformRenderImage;
 
         void Awake()
         {
@@ -44,8 +46,10 @@ namespace NoteEditor.Presenter
             NoteCanvas.OffsetX.Subscribe(x =>
             {
                 var pos = verticalLineRect.localPosition;
-                pos.x = x;
+                var pos2 = waveformRenderImage.localPosition;
+                pos.x = pos2.x = x;
                 verticalLineRect.localPosition = pos;
+                waveformRenderImage.localPosition = pos2;
             });
         }
     }

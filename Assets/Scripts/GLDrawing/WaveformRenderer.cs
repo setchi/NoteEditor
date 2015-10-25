@@ -1,48 +1,83 @@
 ﻿using NoteEditor.Model;
-using NoteEditor.Utility;
 using System.Linq;
-using UniRx;
-using UniRx.Triggers;
 using UnityEngine;
+using UnityEngine.UI;
+using UniRx;
 
 namespace NoteEditor.GLDrawing
 {
     public class WaveformRenderer : MonoBehaviour
     {
         [SerializeField]
-        Color color;
+        RawImage image;
 
-        void Awake()
+        Texture2D texture;
+
+        int imageWidth = 1280;
+        float[] samples = new float[500000];
+
+        float cachedCanvasWidth = 0;
+        float cachedTimeSamples = 0;
+
+        void Start()
         {
-            var samples = new float[500000];
-            var skipSamples = 50;
+            texture = new Texture2D(imageWidth, 1);
+            image.texture = texture;
+            ResetTexture();
 
-            this.LateUpdateAsObservable()
-                .Where(_ => EditorState.WaveformDisplayEnabled.Value)
-                .Where(_ => Audio.Source.clip != null)
-                .Subscribe(_ =>
+            EditorState.WaveformDisplayEnabled
+                .Where(enabled => !enabled)
+                .Subscribe(_ => ResetTexture());
+        }
+
+        void LateUpdate()
+        {
+            if (Audio.Source.clip == null || !EditorState.WaveformDisplayEnabled.Value)
+                return;
+
+            var timeSamples = Mathf.Min(Audio.SmoothedTimeSamples.Value, Audio.Source.clip.samples - 1);
+
+            if (HasUpdate(timeSamples))
+                return;
+
+            UpdateCache(timeSamples);
+
+            Audio.Source.clip.GetData(samples, Mathf.RoundToInt(timeSamples));
+
+            int textureX = 0;
+            float maxSample = 0;
+            int skipSamples = Mathf.RoundToInt(1 / (NoteCanvas.Width.Value * 0.5f / Audio.Source.clip.samples));
+
+            for (int i = 0, l = samples.Length; textureX < imageWidth && i < l; i++)
+            {
+                maxSample = Mathf.Max(maxSample, samples[i]);
+
+                if (i % skipSamples == 0)
                 {
-                    var timeSamples = Mathf.Min(Audio.SmoothedTimeSamples.Value, Audio.Source.clip.samples - 1);
-                    Audio.Source.clip.GetData(samples, Mathf.RoundToInt(timeSamples));
+                    texture.SetPixel(textureX, 0, new Color(maxSample, 0, 0));
+                    maxSample = 0;
+                    textureX++;
+                }
+            }
 
-                    var x = (NoteCanvas.Width.Value / Audio.Source.clip.samples) / 2f;
-                    var offsetX = NoteCanvas.OffsetX.Value;
-                    var offsetY = 200;
-                    var max = Screen.width / NoteCanvas.ScaleFactor.Value * 1.3f;
+            texture.Apply();
+        }
 
-                    for (int li = 0, wi = skipSamples / 2, l = samples.Length; wi < l; li++, wi += skipSamples)
-                    {
-                        var pos = wi * x + offsetX;
+        void ResetTexture()
+        {
+            texture.SetPixels(Enumerable.Range(0, imageWidth).Select(_ => Color.clear).ToArray());
+            texture.Apply();
+        }
 
-                        if (pos > max)
-                            break;
+        bool HasUpdate(float timeSamples)
+        {
+            return cachedCanvasWidth == NoteCanvas.Width.Value && cachedTimeSamples == timeSamples;
+        }
 
-                        GLLineDrawer.Draw(new Line(
-                            ConvertUtils.CanvasToScreenPosition(new Vector3(pos, samples[wi - skipSamples / 2] * 45 - offsetY, 0)),
-                            ConvertUtils.CanvasToScreenPosition(new Vector3(pos, samples[wi] * 45 - offsetY, 0)),
-                            color));
-                    }
-                });
+        void UpdateCache(float timeSamples)
+        {
+            cachedCanvasWidth = NoteCanvas.Width.Value;
+            cachedTimeSamples = timeSamples;
         }
     }
 }
