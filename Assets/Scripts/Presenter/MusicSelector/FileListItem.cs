@@ -30,8 +30,6 @@ namespace NoteEditor.Presenter
 
         void Awake()
         {
-            GetComponent<RectTransform>().localScale = Vector3.one;
-
             var text = GetComponentInChildren<Text>();
             var image = GetComponent<Image>();
 
@@ -39,6 +37,11 @@ namespace NoteEditor.Presenter
                 .Do(selected => image.color = selected ? selectedStateBackgroundColor : defaultBackgroundColor)
                 .Subscribe(selected => text.color = selected ? selectedTextColor : defaultTextColor)
                 .AddTo(this);
+        }
+
+        void Start()
+        {
+            GetComponent<RectTransform>().localScale = Vector3.one;
         }
 
         public void SetInfo(FileItemInfo info)
