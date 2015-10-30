@@ -9,11 +9,6 @@ namespace NoteEditor.Presenter
     {
         void Awake()
         {
-            Audio.OnLoad.First().Subscribe(_ => Init());
-        }
-
-        void Init()
-        {
             var prevFrameSamples = 0f;
             var counter = 0;
 

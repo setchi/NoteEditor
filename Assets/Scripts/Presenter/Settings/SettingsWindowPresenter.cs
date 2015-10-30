@@ -1,5 +1,5 @@
-﻿using NoteEditor.Model;
-using NoteEditor.Utility;
+﻿using NoteEditor.DTO;
+using NoteEditor.Model;
 using System.IO;
 using System.Linq;
 using UniRx;
@@ -27,8 +27,7 @@ namespace NoteEditor.Presenter
 
             if (!File.Exists(filePath))
             {
-                var defaultSettings = Resources.Load("Settings/default") as TextAsset;
-                File.WriteAllText(filePath, defaultSettings.text, System.Text.Encoding.UTF8);
+                File.WriteAllText(filePath, LitJson.JsonMapper.ToJson(SettingsDTO.GetDefaultSettings()), System.Text.Encoding.UTF8);
             }
 
             return File.ReadAllText(filePath, System.Text.Encoding.UTF8);

@@ -1,8 +1,8 @@
 ﻿using NoteEditor.Model;
 using System.Linq;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
-using UniRx;
 
 namespace NoteEditor.GLDrawing
 {
@@ -37,7 +37,7 @@ namespace NoteEditor.GLDrawing
 
             var timeSamples = Mathf.Min(Audio.SmoothedTimeSamples.Value, Audio.Source.clip.samples - 1);
 
-            if (HasUpdate(timeSamples))
+            if (!HasUpdate(timeSamples))
                 return;
 
             UpdateCache(timeSamples);
@@ -71,7 +71,7 @@ namespace NoteEditor.GLDrawing
 
         bool HasUpdate(float timeSamples)
         {
-            return cachedCanvasWidth == NoteCanvas.Width.Value && cachedTimeSamples == timeSamples;
+            return cachedCanvasWidth != NoteCanvas.Width.Value || cachedTimeSamples != timeSamples;
         }
 
         void UpdateCache(float timeSamples)
