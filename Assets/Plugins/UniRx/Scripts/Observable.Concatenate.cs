@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq; // memo, remove LINQ(for avoid AOT)
 using System.Text;
+using System.Linq;
+using UniRx.Operators;
 
 namespace UniRx
 {
@@ -9,18 +10,27 @@ namespace UniRx
     // merge, concat, zip...
     public static partial class Observable
     {
+        static IEnumerable<IObservable<T>> CombineSources<T>(IObservable<T> first, IObservable<T>[] seconds)
+        {
+            yield return first;
+            for (int i = 0; i < seconds.Length; i++)
+            {
+                yield return seconds[i];
+            }
+        }
+
         public static IObservable<TSource> Concat<TSource>(params IObservable<TSource>[] sources)
         {
             if (sources == null) throw new ArgumentNullException("sources");
 
-            return ConcatCore(sources);
+            return new ConcatObservable<TSource>(sources);
         }
 
         public static IObservable<TSource> Concat<TSource>(this IEnumerable<IObservable<TSource>> sources)
         {
             if (sources == null) throw new ArgumentNullException("sources");
 
-            return ConcatCore(sources);
+            return new ConcatObservable<TSource>(sources);
         }
 
         public static IObservable<TSource> Concat<TSource>(this IObservable<IObservable<TSource>> sources)
@@ -28,80 +38,18 @@ namespace UniRx
             return sources.Merge(maxConcurrent: 1);
         }
 
-        public static IObservable<TSource> Concat<TSource>(this IObservable<TSource> first, IObservable<TSource> second)
+        public static IObservable<TSource> Concat<TSource>(this IObservable<TSource> first, params IObservable<TSource>[] seconds)
         {
             if (first == null) throw new ArgumentNullException("first");
-            if (second == null) throw new ArgumentNullException("second");
+            if (seconds == null) throw new ArgumentNullException("seconds");
 
-            return ConcatCore(new[] { first, second });
-        }
-
-        static IObservable<T> ConcatCore<T>(IEnumerable<IObservable<T>> sources)
-        {
-            return Observable.Create<T>(observer =>
+            var concat = first as ConcatObservable<TSource>;
+            if (concat != null)
             {
-                var isDisposed = false;
-                var e = sources.AsSafeEnumerable().GetEnumerator();
-                var subscription = new SerialDisposable();
-                var gate = new object();
+                return concat.Combine(seconds);
+            }
 
-                var schedule = Scheduler.DefaultSchedulers.TailRecursion.Schedule(self =>
-                {
-                    lock (gate)
-                    {
-                        if (isDisposed) return;
-
-                        var current = default(IObservable<T>);
-                        var hasNext = false;
-                        var ex = default(Exception);
-
-                        try
-                        {
-                            hasNext = e.MoveNext();
-                            if (hasNext)
-                            {
-                                current = e.Current;
-                                if (current == null) throw new InvalidOperationException("sequence is null.");
-                            }
-                            else
-                            {
-                                e.Dispose();
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            ex = exception;
-                            e.Dispose();
-                        }
-
-                        if (ex != null)
-                        {
-                            observer.OnError(ex);
-                            return;
-                        }
-
-                        if (!hasNext)
-                        {
-                            observer.OnCompleted();
-                            return;
-                        }
-
-                        var source = e.Current;
-                        var d = new SingleAssignmentDisposable();
-                        subscription.Disposable = d;
-                        d.Disposable = source.Subscribe(observer.OnNext, observer.OnError, self); // OnCompleted, run self
-                    }
-                });
-
-                return new CompositeDisposable(schedule, subscription, Disposable.Create(() =>
-                {
-                    lock (gate)
-                    {
-                        isDisposed = true;
-                        e.Dispose();
-                    }
-                }));
-            });
+            return Concat(CombineSources(first, seconds));
         }
 
         public static IObservable<TSource> Merge<TSource>(this IEnumerable<IObservable<TSource>> sources)
@@ -111,7 +59,7 @@ namespace UniRx
 
         public static IObservable<TSource> Merge<TSource>(this IEnumerable<IObservable<TSource>> sources, IScheduler scheduler)
         {
-            return Merge(sources.ToObservable(scheduler));
+            return new MergeObservable<TSource>(sources.ToObservable(scheduler), scheduler == Scheduler.CurrentThread);
         }
 
         public static IObservable<TSource> Merge<TSource>(this IEnumerable<IObservable<TSource>> sources, int maxConcurrent)
@@ -121,7 +69,7 @@ namespace UniRx
 
         public static IObservable<TSource> Merge<TSource>(this IEnumerable<IObservable<TSource>> sources, int maxConcurrent, IScheduler scheduler)
         {
-            return Merge(sources.ToObservable(scheduler), maxConcurrent);
+            return new MergeObservable<TSource>(sources.ToObservable(scheduler), maxConcurrent, scheduler == Scheduler.CurrentThread);
         }
 
         public static IObservable<TSource> Merge<TSource>(params IObservable<TSource>[] sources)
@@ -131,12 +79,12 @@ namespace UniRx
 
         public static IObservable<TSource> Merge<TSource>(IScheduler scheduler, params IObservable<TSource>[] sources)
         {
-            return Merge(sources.ToObservable(scheduler));
+            return new MergeObservable<TSource>(sources.ToObservable(scheduler), scheduler == Scheduler.CurrentThread);
         }
 
-        public static IObservable<T> Merge<T>(this IObservable<T> first, IObservable<T> second)
+        public static IObservable<T> Merge<T>(this IObservable<T> first, params IObservable<T>[] seconds)
         {
-            return Merge(new[] { first, second });
+            return Merge(CombineSources(first, seconds));
         }
 
         public static IObservable<T> Merge<T>(this IObservable<T> first, IObservable<T> second, IScheduler scheduler)
@@ -146,206 +94,17 @@ namespace UniRx
 
         public static IObservable<T> Merge<T>(this IObservable<IObservable<T>> sources)
         {
-            // this code is borrwed from RxOfficial(rx.codeplex.com)
-            return Observable.Create<T>(observer =>
-            {
-                var gate = new object();
-                var isStopped = false;
-                var m = new SingleAssignmentDisposable();
-                var group = new CompositeDisposable() { m };
-
-                m.Disposable = sources.Subscribe(
-                    innerSource =>
-                    {
-                        var innerSubscription = new SingleAssignmentDisposable();
-                        group.Add(innerSubscription);
-                        innerSubscription.Disposable = innerSource.Subscribe(
-                            x =>
-                            {
-                                lock (gate)
-                                    observer.OnNext(x);
-                            },
-                            exception =>
-                            {
-                                lock (gate)
-                                    observer.OnError(exception);
-                            },
-                            () =>
-                            {
-                                group.Remove(innerSubscription);   // modification MUST occur before subsequent check
-                                if (isStopped && group.Count == 1) // isStopped must be checked before group Count to ensure outer is not creating more groups
-                                    lock (gate)
-                                        observer.OnCompleted();
-                            });
-                    },
-                    exception =>
-                    {
-                        lock (gate)
-                            observer.OnError(exception);
-                    },
-                    () =>
-                    {
-                        isStopped = true;     // modification MUST occur before subsequent check
-                        if (group.Count == 1)
-                            lock (gate)
-                                observer.OnCompleted();
-                    });
-
-                return group;
-            });
+            return new MergeObservable<T>(sources, false);
         }
 
         public static IObservable<T> Merge<T>(this IObservable<IObservable<T>> sources, int maxConcurrent)
         {
-            // this code is borrwed from RxOfficial(rx.codeplex.com)
-            return Observable.Create<T>(observer =>
-            {
-                var gate = new object();
-                var q = new Queue<IObservable<T>>();
-                var isStopped = false;
-                var group = new CompositeDisposable();
-                var activeCount = 0;
-
-                var subscribe = default(Action<IObservable<T>>);
-                subscribe = xs =>
-                {
-                    var subscription = new SingleAssignmentDisposable();
-                    group.Add(subscription);
-                    subscription.Disposable = xs.Subscribe(
-                        x =>
-                        {
-                            lock (gate)
-                                observer.OnNext(x);
-                        },
-                        exception =>
-                        {
-                            lock (gate)
-                                observer.OnError(exception);
-                        },
-                        () =>
-                        {
-                            group.Remove(subscription);
-                            lock (gate)
-                            {
-                                if (q.Count > 0)
-                                {
-                                    var s = q.Dequeue();
-                                    subscribe(s);
-                                }
-                                else
-                                {
-                                    activeCount--;
-                                    if (isStopped && activeCount == 0)
-                                        observer.OnCompleted();
-                                }
-                            }
-                        });
-                };
-
-                group.Add(sources.Subscribe(
-                    innerSource =>
-                    {
-                        lock (gate)
-                        {
-                            if (activeCount < maxConcurrent)
-                            {
-                                activeCount++;
-                                subscribe(innerSource);
-                            }
-                            else
-                                q.Enqueue(innerSource);
-                        }
-                    },
-                    exception =>
-                    {
-                        lock (gate)
-                            observer.OnError(exception);
-                    },
-                    () =>
-                    {
-                        lock (gate)
-                        {
-                            isStopped = true;
-                            if (activeCount == 0)
-                                observer.OnCompleted();
-                        }
-                    }));
-
-                return group;
-            });
+            return new MergeObservable<T>(sources, maxConcurrent, false);
         }
 
         public static IObservable<TResult> Zip<TLeft, TRight, TResult>(this IObservable<TLeft> left, IObservable<TRight> right, Func<TLeft, TRight, TResult> selector)
         {
-            return Observable.Create<TResult>(observer =>
-            {
-                var gate = new object();
-                var leftQ = new Queue<TLeft>();
-                bool leftCompleted = false;
-                var rightQ = new Queue<TRight>();
-                var rightCompleted = false;
-
-                Action dequeue = () =>
-                {
-                    TLeft lv;
-                    TRight rv;
-                    TResult v;
-                    if (leftQ.Count != 0 && rightQ.Count != 0)
-                    {
-                        lv = leftQ.Dequeue();
-                        rv = rightQ.Dequeue();
-                    }
-                    else if (leftCompleted || rightCompleted)
-                    {
-                        observer.OnCompleted();
-                        return;
-                    }
-                    else
-                    {
-                        return;
-                    }
-                    try
-                    {
-                        v = selector(lv, rv);
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-                    observer.OnNext(v);
-                };
-
-                var lsubscription = left.Synchronize(gate).Subscribe(x =>
-                {
-                    leftQ.Enqueue(x);
-                    dequeue();
-                }, observer.OnError, () =>
-                {
-                    leftCompleted = true;
-                    if (rightCompleted) observer.OnCompleted();
-                });
-
-
-                var rsubscription = right.Synchronize(gate).Subscribe(x =>
-                {
-                    rightQ.Enqueue(x);
-                    dequeue();
-                }, observer.OnError, () =>
-                {
-                    rightCompleted = true;
-                    if (leftCompleted) observer.OnCompleted();
-                });
-
-                return new CompositeDisposable { lsubscription, rsubscription, Disposable.Create(()=>
-                {
-                    lock(gate)
-                    {
-                        leftQ.Clear();
-                        rightQ.Clear();
-                    }
-                })};
-            });
+            return new ZipObservable<TLeft, TRight, TResult>(left, right, selector);
         }
 
         public static IObservable<IList<T>> Zip<T>(this IEnumerable<IObservable<T>> sources)
@@ -355,150 +114,37 @@ namespace UniRx
 
         public static IObservable<IList<T>> Zip<T>(params IObservable<T>[] sources)
         {
-            return Observable.Create<IList<T>>(observer =>
-            {
-                var gate = new object();
-                var length = sources.Length;
-                var queues = new Queue<T>[length];
-                for (int i = 0; i < length; i++)
-                {
-                    queues[i] = new Queue<T>();
-                }
-                var isDone = new bool[length];
+            return new ZipObservable<T>(sources);
+        }
 
-                Action<int> dequeue = index =>
-                {
-                    lock (gate)
-                    {
-                        if (queues.All(x => x.Count > 0))
-                        {
-                            var result = queues.Select(x => x.Dequeue()).ToList();
-                            observer.OnNext(result);
-                            return;
-                        }
+        public static IObservable<TR> Zip<T1, T2, T3, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, ZipFunc<T1, T2, T3, TR> resultSelector)
+        {
+            return new ZipObservable<T1, T2, T3, TR>(source1, source2, source3, resultSelector);
+        }
 
-                        if (isDone.Where((x, i) => i != index).All(x => x))
-                        {
-                            observer.OnCompleted();
-                            return;
-                        }
-                    }
-                };
+        public static IObservable<TR> Zip<T1, T2, T3, T4, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, ZipFunc<T1, T2, T3, T4, TR> resultSelector)
+        {
+            return new ZipObservable<T1, T2, T3, T4, TR>(source1, source2, source3, source4, resultSelector);
+        }
 
-                var subscriptions = sources
-                    .Select((source, index) =>
-                    {
-                        var d = new SingleAssignmentDisposable();
+        public static IObservable<TR> Zip<T1, T2, T3, T4, T5, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, IObservable<T5> source5, ZipFunc<T1, T2, T3, T4, T5, TR> resultSelector)
+        {
+            return new ZipObservable<T1, T2, T3, T4, T5, TR>(source1, source2, source3, source4, source5, resultSelector);
+        }
 
-                        d.Disposable = source.Subscribe(x =>
-                        {
-                            lock (gate)
-                            {
-                                queues[index].Enqueue(x);
-                                dequeue(index);
-                            }
-                        }, ex =>
-                        {
-                            lock (gate)
-                            {
-                                observer.OnError(ex);
-                            }
-                        }, () =>
-                        {
-                            lock (gate)
-                            {
-                                isDone[index] = true;
-                                if (isDone.All(x => x))
-                                {
-                                    observer.OnCompleted();
-                                }
-                                else
-                                {
-                                    d.Dispose();
-                                }
-                            }
-                        });
+        public static IObservable<TR> Zip<T1, T2, T3, T4, T5, T6, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, IObservable<T5> source5, IObservable<T6> source6, ZipFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector)
+        {
+            return new ZipObservable<T1, T2, T3, T4, T5, T6, TR>(source1, source2, source3, source4, source5, source6, resultSelector);
+        }
 
-                        return d;
-                    })
-                    .ToArray();
-
-                return new CompositeDisposable(subscriptions) { Disposable.Create(()=>
-                {
-                    lock(gate)
-                    {
-                        foreach(var item in queues)
-                        {
-                            item.Clear();
-                        }
-                    }
-                })};
-            });
+        public static IObservable<TR> Zip<T1, T2, T3, T4, T5, T6, T7, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, IObservable<T5> source5, IObservable<T6> source6, IObservable<T7> source7, ZipFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector)
+        {
+            return new ZipObservable<T1, T2, T3, T4, T5, T6, T7, TR>(source1, source2, source3, source4, source5, source6, source7, resultSelector);
         }
 
         public static IObservable<TResult> CombineLatest<TLeft, TRight, TResult>(this IObservable<TLeft> left, IObservable<TRight> right, Func<TLeft, TRight, TResult> selector)
         {
-            return Observable.Create<TResult>(observer =>
-            {
-                var gate = new object();
-
-                var leftValue = default(TLeft);
-                var leftStarted = false;
-                bool leftCompleted = false;
-
-                var rightValue = default(TRight);
-                var rightStarted = false;
-                var rightCompleted = false;
-
-                Action run = () =>
-                {
-                    if ((leftCompleted && !leftStarted) || (rightCompleted && !rightStarted))
-                    {
-                        observer.OnCompleted();
-                        return;
-                    }
-                    else if (!(leftStarted && rightStarted))
-                    {
-                        return;
-                    }
-
-                    TResult v;
-                    try
-                    {
-                        v = selector(leftValue, rightValue);
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-                    observer.OnNext(v);
-                };
-
-                var lsubscription = left.Synchronize(gate).Subscribe(x =>
-                {
-                    leftStarted = true;
-                    leftValue = x;
-                    run();
-                }, observer.OnError, () =>
-                {
-                    leftCompleted = true;
-                    if (rightCompleted) observer.OnCompleted();
-                });
-
-                var rsubscription = right.Synchronize(gate).Subscribe(x =>
-                {
-                    rightStarted = true;
-                    rightValue = x;
-                    run();
-                }, observer.OnError, () =>
-                {
-                    rightCompleted = true;
-                    if (leftCompleted) observer.OnCompleted();
-                });
-
-                return new CompositeDisposable { lsubscription, rsubscription };
-            });
+            return new CombineLatestObservable<TLeft, TRight, TResult>(left, right, selector);
         }
 
         public static IObservable<IList<T>> CombineLatest<T>(this IEnumerable<IObservable<T>> sources)
@@ -508,147 +154,37 @@ namespace UniRx
 
         public static IObservable<IList<TSource>> CombineLatest<TSource>(params IObservable<TSource>[] sources)
         {
-            // this code is borrwed from RxOfficial(rx.codeplex.com)
-            return Observable.Create<IList<TSource>>(observer =>
-            {
-                var srcs = sources.ToArray();
+            return new CombineLatestObservable<TSource>(sources);
+        }
 
-                var N = srcs.Length;
+        public static IObservable<TR> CombineLatest<T1, T2, T3, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, CombineLatestFunc<T1, T2, T3, TR> resultSelector)
+        {
+            return new CombineLatestObservable<T1, T2, T3, TR>(source1, source2, source3, resultSelector);
+        }
 
-                var hasValue = new bool[N];
-                var hasValueAll = false;
+        public static IObservable<TR> CombineLatest<T1, T2, T3, T4, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, CombineLatestFunc<T1, T2, T3, T4, TR> resultSelector)
+        {
+            return new CombineLatestObservable<T1, T2, T3, T4, TR>(source1, source2, source3, source4, resultSelector);
+        }
 
-                var values = new List<TSource>(N);
-                for (int i = 0; i < N; i++)
-                    values.Add(default(TSource));
+        public static IObservable<TR> CombineLatest<T1, T2, T3, T4, T5, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, IObservable<T5> source5, CombineLatestFunc<T1, T2, T3, T4, T5, TR> resultSelector)
+        {
+            return new CombineLatestObservable<T1, T2, T3, T4, T5, TR>(source1, source2, source3, source4, source5, resultSelector);
+        }
 
-                var isDone = new bool[N];
+        public static IObservable<TR> CombineLatest<T1, T2, T3, T4, T5, T6, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, IObservable<T5> source5, IObservable<T6> source6, CombineLatestFunc<T1, T2, T3, T4, T5, T6, TR> resultSelector)
+        {
+            return new CombineLatestObservable<T1, T2, T3, T4, T5, T6, TR>(source1, source2, source3, source4, source5, source6, resultSelector);
+        }
 
-                var next = new Action<int>(i =>
-                {
-                    hasValue[i] = true;
-
-                    if (hasValueAll || (hasValueAll = hasValue.All(x => x)))
-                    {
-                        var res = values.ToList();
-                        observer.OnNext(res);
-                    }
-                    else if (isDone.Where((x, j) => j != i).All(x => x))
-                    {
-                        observer.OnCompleted();
-                        return;
-                    }
-                });
-
-                var done = new Action<int>(i =>
-                {
-                    isDone[i] = true;
-
-                    if (isDone.All(x => x))
-                    {
-                        observer.OnCompleted();
-                        return;
-                    }
-                });
-
-                var subscriptions = new SingleAssignmentDisposable[N];
-
-                var gate = new object();
-
-                for (int i = 0; i < N; i++)
-                {
-                    var j = i;
-                    subscriptions[j] = new SingleAssignmentDisposable
-                    {
-                        Disposable = srcs[j].Synchronize(gate).Subscribe(
-                            x =>
-                            {
-                                values[j] = x;
-                                next(j);
-                            },
-                            observer.OnError,
-                            () =>
-                            {
-                                done(j);
-                            }
-                        )
-                    };
-                }
-
-                return new CompositeDisposable(subscriptions);
-            });
+        public static IObservable<TR> CombineLatest<T1, T2, T3, T4, T5, T6, T7, TR>(this IObservable<T1> source1, IObservable<T2> source2, IObservable<T3> source3, IObservable<T4> source4, IObservable<T5> source5, IObservable<T6> source6, IObservable<T7> source7, CombineLatestFunc<T1, T2, T3, T4, T5, T6, T7, TR> resultSelector)
+        {
+            return new CombineLatestObservable<T1, T2, T3, T4, T5, T6, T7, TR>(source1, source2, source3, source4, source5, source6, source7, resultSelector);
         }
 
         public static IObservable<T> Switch<T>(this IObservable<IObservable<T>> sources)
         {
-            // this code is borrwed from RxOfficial(rx.codeplex.com)
-            return Observable.Create<T>(observer =>
-            {
-                var gate = new object();
-                var innerSubscription = new SerialDisposable();
-                var isStopped = false;
-                var latest = 0UL;
-                var hasLatest = false;
-                var subscription = sources.Subscribe(
-                    innerSource =>
-                    {
-                        var id = default(ulong);
-                        lock (gate)
-                        {
-                            id = unchecked(++latest);
-                            hasLatest = true;
-                        }
-
-                        var d = new SingleAssignmentDisposable();
-                        innerSubscription.Disposable = d;
-                        d.Disposable = innerSource.Subscribe(
-                        x =>
-                        {
-                            lock (gate)
-                            {
-                                if (latest == id)
-                                    observer.OnNext(x);
-                            }
-                        },
-                        exception =>
-                        {
-                            lock (gate)
-                            {
-                                if (latest == id)
-                                    observer.OnError(exception);
-                            }
-                        },
-                        () =>
-                        {
-                            lock (gate)
-                            {
-                                if (latest == id)
-                                {
-                                    hasLatest = false;
-
-                                    if (isStopped)
-                                        observer.OnCompleted();
-                                }
-                            }
-                        });
-                    },
-                    exception =>
-                    {
-                        lock (gate)
-                            observer.OnError(exception);
-                    },
-                    () =>
-                    {
-                        lock (gate)
-                        {
-                            isStopped = true;
-                            if (!hasLatest)
-                                observer.OnCompleted();
-                        }
-                    });
-
-                return new CompositeDisposable(subscription, innerSubscription);
-            });
+            return new SwitchObservable<T>(sources);
         }
 
         /// <summary>
@@ -659,48 +195,7 @@ namespace UniRx
         {
             if (sources.Length == 0) return Observable.Return(new T[0]);
 
-            return Observable.Create<T[]>(observer =>
-            {
-                var gate = new object();
-                var length = sources.Length;
-                var completedCount = 0;
-                var values = new T[length];
-
-                var subscriptions = new IDisposable[length];
-                for (int index = 0; index < length; index++)
-                {
-                    var source = sources[index];
-                    var capturedIndex = index;
-                    var d = new SingleAssignmentDisposable();
-                    d.Disposable = source.Subscribe(x =>
-                    {
-                        lock (gate)
-                        {
-                            values[capturedIndex] = x;
-                        }
-                    }, ex =>
-                    {
-                        lock (gate)
-                        {
-                            observer.OnError(ex);
-                        }
-                    }, () =>
-                    {
-                        lock (gate)
-                        {
-                            completedCount++;
-                            if (completedCount == length)
-                            {
-                                observer.OnNext(values);
-                                observer.OnCompleted();
-                            }
-                        }
-                    });
-                    subscriptions[index] = d;
-                }
-
-                return new CompositeDisposable(subscriptions);
-            });
+            return new WhenAllObservable<T>(sources);
         }
 
         /// <summary>
@@ -712,95 +207,17 @@ namespace UniRx
             var array = sources as IObservable<T>[];
             if (array != null) return WhenAll(array);
 
-            return Observable.Create<T[]>(observer =>
-            {
-                var _sources = sources as IList<IObservable<T>>;
-                if (_sources == null)
-                {
-                    _sources = new List<IObservable<T>>();
-                    foreach (var item in sources)
-                    {
-                        _sources.Add(item);
-                    }
-                }
-
-                var gate = new object();
-                var length = _sources.Count;
-                var completedCount = 0;
-                var values = new T[length];
-
-                if (length == 0)
-                {
-                    observer.OnNext(values);
-                    observer.OnCompleted();
-                    return Disposable.Empty;
-                }
-
-                var subscriptions = new IDisposable[length];
-                for (int index = 0; index < length; index++)
-                {
-                    var source = _sources[index];
-                    var capturedIndex = index;
-                    var d = new SingleAssignmentDisposable();
-                    d.Disposable = source.Subscribe(x =>
-                    {
-                        lock (gate)
-                        {
-                            values[capturedIndex] = x;
-                        }
-                    }, ex =>
-                    {
-                        lock (gate)
-                        {
-                            observer.OnError(ex);
-                        }
-                    }, () =>
-                    {
-                        lock (gate)
-                        {
-                            completedCount++;
-                            if (completedCount == length)
-                            {
-                                observer.OnNext(values);
-                                observer.OnCompleted();
-                            }
-                        }
-                    });
-                    subscriptions[index] = d;
-                }
-
-                return new CompositeDisposable(subscriptions);
-            });
-
+            return new WhenAllObservable<T>(sources);
         }
 
         public static IObservable<T> StartWith<T>(this IObservable<T> source, T value)
         {
-            // optimized path
-            return Observable.Create<T>(observer =>
-            {
-                observer.OnNext(value);
-                return source.Subscribe(observer);
-            });
+            return new StartWithObservable<T>(source, value);
         }
 
         public static IObservable<T> StartWith<T>(this IObservable<T> source, Func<T> valueFactory)
         {
-            return Observable.Create<T>(observer =>
-            {
-                T value;
-                try
-                {
-                    value = valueFactory();
-                }
-                catch (Exception ex)
-                {
-                    observer.OnError(ex);
-                    return Disposable.Empty;
-                }
-                observer.OnNext(value);
-                return source.Subscribe(observer);
-            });
+            return new StartWithObservable<T>(source, valueFactory);
         }
 
         public static IObservable<T> StartWith<T>(this IObservable<T> source, params T[] values)

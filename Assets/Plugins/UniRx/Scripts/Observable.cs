@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using UniRx.Operators;
 
 namespace UniRx
 {
@@ -16,61 +18,39 @@ namespace UniRx
 
         public static IObservable<TR> Select<T, TR>(this IObservable<T> source, Func<T, TR> selector)
         {
-            return Select(source, (x, i) => selector(x));
+            // sometimes cause "which no ahead of time (AOT) code was generated." on IL2CPP...
+
+            //var select = source as ISelect<T>;
+            //if (select != null)
+            //{
+            //    return select.CombineSelector(selector);
+            //}
+
+            return new SelectObservable<T, TR>(source, selector);
         }
 
         public static IObservable<TR> Select<T, TR>(this IObservable<T> source, Func<T, int, TR> selector)
         {
-            return Observable.Create<TR>(observer =>
-            {
-                var index = 0;
-                return source.Subscribe(Observer.Create<T>(x =>
-                {
-                    var v = default(TR);
-                    try
-                    {
-                        v = selector(x, index++);
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-                    observer.OnNext(v);
-                }, observer.OnError, observer.OnCompleted));
-            });
+            return new SelectObservable<T, TR>(source, selector);
         }
 
         public static IObservable<T> Where<T>(this IObservable<T> source, Func<T, bool> predicate)
         {
-            return Where(source, (x, i) => predicate(x));
+            // optimized path
+            var whereObservable = source as UniRx.Operators.WhereObservable<T>;
+            if (whereObservable != null)
+            {
+                return whereObservable.CombinePredicate(predicate);
+            }
+
+            return new WhereObservable<T>(source, predicate);
         }
 
         public static IObservable<T> Where<T>(this IObservable<T> source, Func<T, int, bool> predicate)
         {
-            return Observable.Create<T>(observer =>
-            {
-                var index = 0;
-                return source.Subscribe(Observer.Create<T>(x =>
-                {
-                    var isBypass = default(bool);
-                    try
-                    {
-                        isBypass = predicate(x, index++);
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-
-                    if (isBypass)
-                    {
-                        observer.OnNext(x);
-                    }
-                }, observer.OnError, observer.OnCompleted));
-            });
+            return new WhereObservable<T>(source, predicate);
         }
+
         public static IObservable<TR> SelectMany<T, TR>(this IObservable<T> source, IObservable<TR> other)
         {
             return SelectMany(source, _ => other);
@@ -78,616 +58,181 @@ namespace UniRx
 
         public static IObservable<TR> SelectMany<T, TR>(this IObservable<T> source, Func<T, IObservable<TR>> selector)
         {
-            return source.Select(selector).Merge();
+            return new SelectManyObservable<T, TR>(source, selector);
         }
 
         public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source, Func<TSource, int, IObservable<TResult>> selector)
         {
-            return source.Select(selector).Merge();
+            return new SelectManyObservable<TSource, TResult>(source, selector);
         }
 
         public static IObservable<TR> SelectMany<T, TC, TR>(this IObservable<T> source, Func<T, IObservable<TC>> collectionSelector, Func<T, TC, TR> resultSelector)
         {
-            return source.SelectMany(x => collectionSelector(x).Select(y => resultSelector(x, y)));
+            return new SelectManyObservable<T, TC, TR>(source, collectionSelector, resultSelector);
         }
 
         public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source, Func<TSource, int, IObservable<TCollection>> collectionSelector, Func<TSource, int, TCollection, int, TResult> resultSelector)
         {
-            return source.SelectMany((x, i) => collectionSelector(x, i).Select((y, i2) => resultSelector(x, i, y, i2)));
+            return new SelectManyObservable<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
 
         public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source, Func<TSource, IEnumerable<TResult>> selector)
         {
-            return new AnonymousObservable<TResult>(observer =>
-                source.Subscribe(
-                    x =>
-                    {
-                        var xs = default(IEnumerable<TResult>);
-                        try
-                        {
-                            xs = selector(x);
-                        }
-                        catch (Exception exception)
-                        {
-                            observer.OnError(exception);
-                            return;
-                        }
-
-                        var e = xs.AsSafeEnumerable().GetEnumerator();
-
-                        try
-                        {
-                            var hasNext = true;
-                            while (hasNext)
-                            {
-                                hasNext = false;
-                                var current = default(TResult);
-
-                                try
-                                {
-                                    hasNext = e.MoveNext();
-                                    if (hasNext)
-                                    {
-                                        current = e.Current;
-                                    }
-                                }
-                                catch (Exception exception)
-                                {
-                                    observer.OnError(exception);
-                                    return;
-                                }
-
-                                if (hasNext)
-                                {
-                                    observer.OnNext(current);
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            if (e != null)
-                            {
-                                e.Dispose();
-                            }
-                        }
-                    },
-                    observer.OnError,
-                    observer.OnCompleted
-                )
-            );
+            return new SelectManyObservable<TSource, TResult>(source, selector);
         }
 
         public static IObservable<TResult> SelectMany<TSource, TResult>(this IObservable<TSource> source, Func<TSource, int, IEnumerable<TResult>> selector)
         {
-            return Observable.Create<TResult>(observer =>
-            {
-                var index = 0;
-
-                return source.Subscribe(
-                    x =>
-                    {
-                        var xs = default(IEnumerable<TResult>);
-                        try
-                        {
-                            xs = selector(x, checked(index++));
-                        }
-                        catch (Exception exception)
-                        {
-                            observer.OnError(exception);
-                            return;
-                        }
-
-                        var e = xs.AsSafeEnumerable().GetEnumerator();
-
-                        try
-                        {
-                            var hasNext = true;
-                            while (hasNext)
-                            {
-                                hasNext = false;
-                                var current = default(TResult);
-
-                                try
-                                {
-                                    hasNext = e.MoveNext();
-                                    if (hasNext)
-                                    {
-                                        current = e.Current;
-                                    }
-                                }
-                                catch (Exception exception)
-                                {
-                                    observer.OnError(exception);
-                                    return;
-                                }
-
-                                if (hasNext)
-                                    observer.OnNext(current);
-                            }
-                        }
-                        finally
-                        {
-                            if (e != null)
-                                e.Dispose();
-                        }
-                    },
-                    observer.OnError,
-                    observer.OnCompleted
-                );
-            });
+            return new SelectManyObservable<TSource, TResult>(source, selector);
         }
 
         public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source, Func<TSource, IEnumerable<TCollection>> collectionSelector, Func<TSource, TCollection, TResult> resultSelector)
         {
-            return new AnonymousObservable<TResult>(observer =>
-                source.Subscribe(
-                    x =>
-                    {
-                        var xs = default(IEnumerable<TCollection>);
-                        try
-                        {
-                            xs = collectionSelector(x);
-                        }
-                        catch (Exception exception)
-                        {
-                            observer.OnError(exception);
-                            return;
-                        }
-
-                        var e = xs.AsSafeEnumerable().GetEnumerator();
-
-                        try
-                        {
-                            var hasNext = true;
-                            while (hasNext)
-                            {
-                                hasNext = false;
-                                var current = default(TResult);
-
-                                try
-                                {
-                                    hasNext = e.MoveNext();
-                                    if (hasNext)
-                                    {
-                                        current = resultSelector(x, e.Current);
-                                    }
-                                }
-                                catch (Exception exception)
-                                {
-                                    observer.OnError(exception);
-                                    return;
-                                }
-
-                                if (hasNext)
-                                {
-                                    observer.OnNext(current);
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            if (e != null)
-                            {
-                                e.Dispose();
-                            }
-                        }
-                    },
-                    observer.OnError,
-                    observer.OnCompleted
-                )
-            );
+            return new SelectManyObservable<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
 
         public static IObservable<TResult> SelectMany<TSource, TCollection, TResult>(this IObservable<TSource> source, Func<TSource, int, IEnumerable<TCollection>> collectionSelector, Func<TSource, int, TCollection, int, TResult> resultSelector)
         {
-            return Observable.Create<TResult>(observer =>
-            {
-                var index = 0;
-
-                return source.Subscribe(
-                    x =>
-                    {
-                        var xs = default(IEnumerable<TCollection>);
-                        try
-                        {
-                            xs = collectionSelector(x, checked(index++));
-                        }
-                        catch (Exception exception)
-                        {
-                            observer.OnError(exception);
-                            return;
-                        }
-
-                        var e = xs.AsSafeEnumerable().GetEnumerator();
-
-                        try
-                        {
-                            var eIndex = 0;
-                            var hasNext = true;
-                            while (hasNext)
-                            {
-                                hasNext = false;
-                                var current = default(TResult);
-
-                                try
-                                {
-                                    hasNext = e.MoveNext();
-                                    if (hasNext)
-                                        current = resultSelector(x, index, e.Current, checked(eIndex++));
-                                }
-                                catch (Exception exception)
-                                {
-                                    observer.OnError(exception);
-                                    return;
-                                }
-
-                                if (hasNext)
-                                    observer.OnNext(current);
-                            }
-                        }
-                        finally
-                        {
-                            if (e != null)
-                                e.Dispose();
-                        }
-                    },
-                    observer.OnError,
-                    observer.OnCompleted
-                );
-            });
+            return new SelectManyObservable<TSource, TCollection, TResult>(source, collectionSelector, resultSelector);
         }
 
         public static IObservable<T[]> ToArray<T>(this IObservable<T> source)
         {
-            return Observable.Create<T[]>(observer =>
-            {
-                var list = new List<T>();
-                return source.Subscribe(x => list.Add(x), observer.OnError, () =>
-                {
-                    observer.OnNext(list.ToArray());
-                    observer.OnCompleted();
-                });
-            });
+            return new ToArrayObservable<T>(source);
+        }
+
+        public static IObservable<IList<T>> ToList<T>(this IObservable<T> source)
+        {
+            return new ToListObservable<T>(source);
         }
 
         public static IObservable<T> Do<T>(this IObservable<T> source, IObserver<T> observer)
         {
-            return Do(source, observer.OnNext, observer.OnError, observer.OnCompleted);
+            return new DoObserverObservable<T>(source, observer);
         }
-
 
         public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext)
         {
-            return Do(source, onNext, Stubs.Throw, Stubs.Nop);
+            return new DoObservable<T>(source, onNext, Stubs.Throw, Stubs.Nop);
         }
 
         public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext, Action<Exception> onError)
         {
-            return Do(source, onNext, onError, Stubs.Nop);
+            return new DoObservable<T>(source, onNext, onError, Stubs.Nop);
         }
 
         public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext, Action onCompleted)
         {
-            return Do(source, onNext, Stubs.Throw, onCompleted);
+            return new DoObservable<T>(source, onNext, Stubs.Throw, onCompleted);
         }
 
         public static IObservable<T> Do<T>(this IObservable<T> source, Action<T> onNext, Action<Exception> onError, Action onCompleted)
         {
-            return Observable.Create<T>(observer =>
-            {
-                return source.Subscribe(x =>
-                {
-                    try
-                    {
-                        if (onNext != Stubs.Ignore<T>)
-                        {
-                            onNext(x);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-                    observer.OnNext(x);
-                }, ex =>
-                {
-                    try
-                    {
-                        onError(ex);
-                    }
-                    catch (Exception ex2)
-                    {
-                        observer.OnError(ex2);
-                        return;
-                    }
-                    observer.OnError(ex);
-                }, () =>
-                {
-                    try
-                    {
-                        onCompleted();
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-                    observer.OnCompleted();
-                });
-            });
+            return new DoObservable<T>(source, onNext, onError, onCompleted);
+        }
+
+        public static IObservable<T> DoOnError<T>(this IObservable<T> source, Action<Exception> onError)
+        {
+            return new DoOnErrorObservable<T>(source, onError);
+        }
+
+        public static IObservable<T> DoOnCompleted<T>(this IObservable<T> source, Action onCompleted)
+        {
+            return new DoOnCompletedObservable<T>(source, onCompleted);
+        }
+
+        public static IObservable<T> DoOnTerminate<T>(this IObservable<T> source, Action onTerminate)
+        {
+            return new DoOnTerminateObservable<T>(source, onTerminate);
+        }
+
+        public static IObservable<T> DoOnSubscribe<T>(this IObservable<T> source, Action onSubscribe)
+        {
+            return new DoOnSubscribeObservable<T>(source, onSubscribe);
+        }
+
+        public static IObservable<T> DoOnCancel<T>(this IObservable<T> source, Action onCancel)
+        {
+            return new DoOnCancelObservable<T>(source, onCancel);
         }
 
         public static IObservable<Notification<T>> Materialize<T>(this IObservable<T> source)
         {
-            return Observable.Create<Notification<T>>(observer =>
-            {
-                return source.Subscribe(
-                    x => observer.OnNext(Notification.CreateOnNext(x)),
-                    x =>
-                    {
-                        observer.OnNext(Notification.CreateOnError<T>(x));
-                        observer.OnCompleted();
-                    },
-                    () =>
-                    {
-                        observer.OnNext(Notification.CreateOnCompleted<T>());
-                        observer.OnCompleted();
-                    });
-            });
+            return new MaterializeObservable<T>(source);
         }
 
         public static IObservable<T> Dematerialize<T>(this IObservable<Notification<T>> source)
         {
-            return Observable.Create<T>(observer =>
-            {
-                return source.Subscribe(x =>
-                {
-                    if (x.Kind == NotificationKind.OnNext)
-                    {
-                        observer.OnNext(x.Value);
-                    }
-                    else if (x.Kind == NotificationKind.OnError)
-                    {
-                        observer.OnError(x.Exception);
-                    }
-                    else if (x.Kind == NotificationKind.OnCompleted)
-                    {
-                        observer.OnCompleted();
-                    }
-                }, observer.OnError, observer.OnCompleted);
-            });
+            return new DematerializeObservable<T>(source);
         }
 
         public static IObservable<T> DefaultIfEmpty<T>(this IObservable<T> source)
         {
-            return DefaultIfEmpty(source, default(T));
+            return new DefaultIfEmptyObservable<T>(source, default(T));
         }
 
         public static IObservable<T> DefaultIfEmpty<T>(this IObservable<T> source, T defaultValue)
         {
-            return Observable.Create<T>(observer =>
-            {
-                var hasValue = false;
-
-                return source.Subscribe(x => { hasValue = true; observer.OnNext(x); }, observer.OnError, () =>
-                {
-                    if (!hasValue)
-                    {
-                        observer.OnNext(defaultValue);
-                    }
-                    observer.OnCompleted();
-                });
-            });
+            return new DefaultIfEmptyObservable<T>(source, defaultValue);
         }
 
         public static IObservable<TSource> Distinct<TSource>(this IObservable<TSource> source)
         {
-            return Distinct<TSource>(source, (IEqualityComparer<TSource>)null);
+            return new DistinctObservable<TSource>(source, null);
         }
 
         public static IObservable<TSource> Distinct<TSource>(this IObservable<TSource> source, IEqualityComparer<TSource> comparer)
         {
-            // don't use x => x for avoid iOS AOT issue.
-            return Observable.Create<TSource>(observer =>
-            {
-                var hashSet = (comparer == null)
-                    ? new HashSet<TSource>()
-                    : new HashSet<TSource>(comparer);
-                return source.Subscribe(
-                    x =>
-                    {
-                        var key = default(TSource);
-                        var hasAdded = false;
-
-                        try
-                        {
-                            key = x;
-                            hasAdded = hashSet.Add(key);
-                        }
-                        catch (Exception exception)
-                        {
-                            observer.OnError(exception);
-                            return;
-                        }
-
-                        if (hasAdded)
-                        {
-                            observer.OnNext(x);
-                        }
-                    },
-                    observer.OnError,
-                    observer.OnCompleted
-                );
-            });
+            return new DistinctObservable<TSource>(source, comparer);
         }
 
         public static IObservable<TSource> Distinct<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector)
         {
-            return Distinct(source, keySelector, null);
+            return new DistinctObservable<TSource, TKey>(source, keySelector, null);
         }
 
         public static IObservable<TSource> Distinct<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
-            return Observable.Create<TSource>(observer =>
-            {
-                var hashSet = (comparer == null)
-                    ? new HashSet<TKey>()
-                    : new HashSet<TKey>(comparer);
-                return source.Subscribe(
-                    x =>
-                    {
-                        var key = default(TKey);
-                        var hasAdded = false;
-
-                        try
-                        {
-                            key = keySelector(x);
-                            hasAdded = hashSet.Add(key);
-                        }
-                        catch (Exception exception)
-                        {
-                            observer.OnError(exception);
-                            return;
-                        }
-
-                        if (hasAdded)
-                        {
-                            observer.OnNext(x);
-                        }
-                    },
-                    observer.OnError,
-                    observer.OnCompleted
-                );
-            });
+            return new DistinctObservable<TSource, TKey>(source, keySelector, comparer);
         }
 
         public static IObservable<T> DistinctUntilChanged<T>(this IObservable<T> source)
         {
-            return source.DistinctUntilChanged((IEqualityComparer<T>)null);
+            return new DistinctUntilChangedObservable<T>(source, null);
         }
 
         public static IObservable<T> DistinctUntilChanged<T>(this IObservable<T> source, IEqualityComparer<T> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            return Observable.Create<T>(observer =>
-            {
-                var isFirst = true;
-                var prevKey = default(T);
-                return source.Subscribe(x =>
-                {
-                    T currentKey;
-                    try
-                    {
-                        currentKey = x;
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-
-                    var sameKey = false;
-                    if (isFirst)
-                    {
-                        isFirst = false;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            if (comparer == null)
-                            {
-                                if (currentKey == null)
-                                {
-                                    sameKey = (prevKey == null);
-                                }
-                                else
-                                {
-                                    sameKey = currentKey.Equals(prevKey);
-                                }
-                            }
-                            else
-                            {
-                                sameKey = comparer.Equals(currentKey, prevKey);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            observer.OnError(ex);
-                            return;
-                        }
-                    }
-                    if (!sameKey)
-                    {
-                        prevKey = currentKey;
-                        observer.OnNext(x);
-                    }
-                }, observer.OnError, observer.OnCompleted);
-            });
+            return new DistinctUntilChangedObservable<T>(source, comparer);
         }
 
         public static IObservable<T> DistinctUntilChanged<T, TKey>(this IObservable<T> source, Func<T, TKey> keySelector)
         {
-            return DistinctUntilChanged<T, TKey>(source, keySelector, null);
+            return new DistinctUntilChangedObservable<T, TKey>(source, keySelector, null);
         }
 
         public static IObservable<T> DistinctUntilChanged<T, TKey>(this IObservable<T> source, Func<T, TKey> keySelector, IEqualityComparer<TKey> comparer)
         {
             if (source == null) throw new ArgumentNullException("source");
 
-            return Observable.Create<T>(observer =>
-            {
-                var isFirst = true;
-                var prevKey = default(TKey);
-                return source.Subscribe(x =>
-                {
-                    TKey currentKey;
-                    try
-                    {
-                        currentKey = keySelector(x);
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-
-                    var sameKey = false;
-                    if (isFirst)
-                    {
-                        isFirst = false;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            sameKey = (comparer == null)
-                                ? currentKey.Equals(prevKey)
-                                : comparer.Equals(currentKey, prevKey);
-                        }
-                        catch (Exception ex)
-                        {
-                            observer.OnError(ex);
-                            return;
-                        }
-                    }
-                    if (!sameKey)
-                    {
-                        prevKey = currentKey;
-                        observer.OnNext(x);
-                    }
-                }, observer.OnError, observer.OnCompleted);
-            });
+            return new DistinctUntilChangedObservable<T, TKey>(source, keySelector, comparer);
         }
 
         public static IObservable<T> IgnoreElements<T>(this IObservable<T> source)
         {
-            return Observable.Create<T>(observer =>
-            {
-                return source.Subscribe(Stubs.Ignore<T>, observer.OnError, observer.OnCompleted);
-            });
+            return new IgnoreElementsObservable<T>(source);
+        }
+
+        public static IObservable<Unit> ForEachAsync<T>(this IObservable<T> source, Action<T> onNext)
+        {
+            return new ForEachAsyncObservable<T>(source, onNext);
+        }
+
+        public static IObservable<Unit> ForEachAsync<T>(this IObservable<T> source, Action<T, int> onNext)
+        {
+            return new ForEachAsyncObservable<T>(source, onNext);
         }
     }
 }

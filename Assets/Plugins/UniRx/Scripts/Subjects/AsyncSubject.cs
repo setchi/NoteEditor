@@ -4,7 +4,7 @@ using UniRx.InternalUtil;
 
 namespace UniRx
 {
-    public sealed class AsyncSubject<T> : ISubject<T>
+    public sealed class AsyncSubject<T> : ISubject<T>, IOptimizedObservable<T>, IDisposable
     {
         object observerLock = new object();
 
@@ -13,7 +13,7 @@ namespace UniRx
         bool isStopped;
         bool isDisposed;
         Exception lastError;
-        IObserver<T> outObserver = new EmptyObserver<T>();
+        IObserver<T> outObserver = EmptyObserver<T>.Instance;
 
         public T Value
         {
@@ -47,7 +47,7 @@ namespace UniRx
                 if (isStopped) return;
 
                 old = outObserver;
-                outObserver = new EmptyObserver<T>();
+                outObserver = EmptyObserver<T>.Instance;
                 isStopped = true;
                 v = lastValue;
                 hv = hasValue;
@@ -62,8 +62,6 @@ namespace UniRx
             {
                 old.OnCompleted();
             }
-
-            old.OnCompleted();
         }
 
         public void OnError(Exception error)
@@ -77,7 +75,7 @@ namespace UniRx
                 if (isStopped) return;
 
                 old = outObserver;
-                outObserver = new EmptyObserver<T>();
+                outObserver = EmptyObserver<T>.Instance;
                 isStopped = true;
                 lastError = error;
             }
@@ -158,7 +156,7 @@ namespace UniRx
             lock (observerLock)
             {
                 isDisposed = true;
-                outObserver = new DisposedObserver<T>();
+                outObserver = DisposedObserver<T>.Instance;
                 lastError = null;
                 lastValue = default(T);
             }
@@ -167,6 +165,11 @@ namespace UniRx
         void ThrowIfDisposed()
         {
             if (isDisposed) throw new ObjectDisposedException("");
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
         }
 
         class Subscription : IDisposable
@@ -196,7 +199,7 @@ namespace UniRx
                             }
                             else
                             {
-                                parent.outObserver = new EmptyObserver<T>();
+                                parent.outObserver = EmptyObserver<T>.Instance;
                             }
 
                             unsubscribeTarget = null;

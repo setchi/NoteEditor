@@ -4,14 +4,14 @@ using UniRx.InternalUtil;
 
 namespace UniRx
 {
-    public sealed class ReplaySubject<T> : ISubject<T>
+    public sealed class ReplaySubject<T> : ISubject<T>, IOptimizedObservable<T>, IDisposable
     {
         object observerLock = new object();
 
         bool isStopped;
         bool isDisposed;
         Exception lastError;
-        IObserver<T> outObserver = new EmptyObserver<T>();
+        IObserver<T> outObserver = EmptyObserver<T>.Instance;
 
         readonly int bufferSize;
         readonly TimeSpan window;
@@ -86,7 +86,7 @@ namespace UniRx
                 if (isStopped) return;
 
                 old = outObserver;
-                outObserver = new EmptyObserver<T>();
+                outObserver = EmptyObserver<T>.Instance;
                 isStopped = true;
                 Trim();
             }
@@ -105,7 +105,7 @@ namespace UniRx
                 if (isStopped) return;
 
                 old = outObserver;
-                outObserver = new EmptyObserver<T>();
+                outObserver = EmptyObserver<T>.Instance;
                 isStopped = true;
                 lastError = error;
                 Trim();
@@ -123,7 +123,7 @@ namespace UniRx
                 if (isStopped) return;
 
                 // enQ
-                queue.Enqueue(new TimeInterval<T>(value, Scheduler.Now - startTime));
+                queue.Enqueue(new TimeInterval<T>(value, scheduler.Now - startTime));
                 Trim();
 
                 current = outObserver;
@@ -194,7 +194,7 @@ namespace UniRx
             lock (observerLock)
             {
                 isDisposed = true;
-                outObserver = new DisposedObserver<T>();
+                outObserver = DisposedObserver<T>.Instance;
                 lastError = null;
                 queue = null;
             }
@@ -203,6 +203,11 @@ namespace UniRx
         void ThrowIfDisposed()
         {
             if (isDisposed) throw new ObjectDisposedException("");
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
         }
 
         class Subscription : IDisposable
@@ -232,7 +237,7 @@ namespace UniRx
                             }
                             else
                             {
-                                parent.outObserver = new EmptyObserver<T>();
+                                parent.outObserver = EmptyObserver<T>.Instance;
                             }
 
                             unsubscribeTarget = null;

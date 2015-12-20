@@ -4,9 +4,16 @@ namespace UniRx.InternalUtil
 {
     public class ImmutableList<T>
     {
+        public static readonly ImmutableList<T> Empty = new ImmutableList<T>();
+
         T[] data;
 
-        public ImmutableList()
+        public T[] Data
+        {
+            get { return data; }
+        }
+
+        ImmutableList()
         {
             data = new T[0];
         }
@@ -27,25 +34,26 @@ namespace UniRx.InternalUtil
         public ImmutableList<T> Remove(T value)
         {
             var i = IndexOf(value);
-            if (i < 0)
-                return this;
-            var newData = new T[data.Length - 1];
+            if (i < 0) return this;
+
+            var length = data.Length;
+            if (length == 1) return Empty;
+
+            var newData = new T[length - 1];
+
             Array.Copy(data, 0, newData, 0, i);
-            Array.Copy(data, i + 1, newData, i, data.Length - i - 1);
+            Array.Copy(data, i + 1, newData, i, length - i - 1);
+
             return new ImmutableList<T>(newData);
         }
 
         public int IndexOf(T value)
         {
             for (var i = 0; i < data.Length; ++i)
-                if (data[i].Equals(value))
-                    return i;
+            {
+                if (object.Equals(data[i], value)) return i;
+            }
             return -1;
-        }
-
-        public T[] Data
-        {
-            get { return data; }
         }
     }
 }

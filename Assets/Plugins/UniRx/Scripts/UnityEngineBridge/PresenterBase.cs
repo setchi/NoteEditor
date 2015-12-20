@@ -14,6 +14,7 @@ namespace UniRx
     public interface IPresenter
     {
         IPresenter Parent { get; }
+        GameObject gameObject { get; }
         void RegisterParent(IPresenter parent);
         void InitializeCore();
         void StartCapturePhase();
@@ -72,7 +73,7 @@ namespace UniRx
         IPresenter parent = null;
         T argument = default(T);
 
-        IPresenter IPresenter.Parent
+        public IPresenter Parent
         {
             get
             {

@@ -1,64 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using UniRx.Operators;
 
 namespace UniRx
 {
     public static partial class Observable
     {
-        public static IObservable<TSource> Scan<TSource>(this IObservable<TSource> source, Func<TSource, TSource, TSource> func)
+        public static IObservable<TSource> Scan<TSource>(this IObservable<TSource> source, Func<TSource, TSource, TSource> accumulator)
         {
-            return Observable.Create<TSource>(observer =>
-            {
-                bool isFirst = true;
-                TSource prev = default(TSource);
-                return source.Subscribe(x =>
-                {
-                    if (isFirst)
-                    {
-                        isFirst = false;
-                        prev = x;
-                        observer.OnNext(x);
-                    }
-                    else
-                    {
-                        try
-                        {
-                            prev = func(prev, x); // prev as current
-                        }
-                        catch (Exception ex)
-                        {
-                            observer.OnError(ex);
-                            return;
-                        }
-
-                        observer.OnNext(prev);
-                    }
-                }, observer.OnError, observer.OnCompleted);
-            });
+            return new ScanObservable<TSource>(source, accumulator);
         }
 
-        public static IObservable<TAccumulate> Scan<TSource, TAccumulate>(this IObservable<TSource> source, TAccumulate seed, Func<TAccumulate, TSource, TAccumulate> func)
+        public static IObservable<TAccumulate> Scan<TSource, TAccumulate>(this IObservable<TSource> source, TAccumulate seed, Func<TAccumulate, TSource, TAccumulate> accumulator)
         {
-            return Observable.Create<TAccumulate>(observer =>
-            {
-                var prev = seed;
-                observer.OnNext(seed);
+            return new ScanObservable<TSource, TAccumulate>(source, seed, accumulator);
+        }
 
-                return source.Subscribe(x =>
-                {
-                    try
-                    {
-                        prev = func(prev, x); // prev as next
-                    }
-                    catch (Exception ex)
-                    {
-                        observer.OnError(ex);
-                        return;
-                    }
-                    observer.OnNext(prev);
-                }, observer.OnError, observer.OnCompleted);
-            });
+        public static IObservable<TSource> Aggregate<TSource>(this IObservable<TSource> source, Func<TSource, TSource, TSource> accumulator)
+        {
+            return new AggregateObservable<TSource>(source, accumulator);
+        }
+
+        public static IObservable<TAccumulate> Aggregate<TSource, TAccumulate>(this IObservable<TSource> source, TAccumulate seed, Func<TAccumulate, TSource, TAccumulate> accumulator)
+        {
+            return new AggregateObservable<TSource, TAccumulate>(source, seed, accumulator);
+        }
+
+        public static IObservable<TResult> Aggregate<TSource, TAccumulate, TResult>(this IObservable<TSource> source, TAccumulate seed, Func<TAccumulate, TSource, TAccumulate> accumulator, Func<TAccumulate, TResult> resultSelector)
+        {
+            return new AggregateObservable<TSource, TAccumulate, TResult>(source, seed, accumulator, resultSelector);
         }
     }
 }

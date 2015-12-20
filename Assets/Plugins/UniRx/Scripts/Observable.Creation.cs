@@ -1,57 +1,53 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using UniRx.Operators;
 
 namespace UniRx
 {
     public static partial class Observable
     {
         /// <summary>
-        /// Create anonymous observable. Observer is auto detach when error, completed.
+        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator. 
         /// </summary>
         public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe)
         {
             if (subscribe == null) throw new ArgumentNullException("subscribe");
 
-            return new AnonymousObservable<T>(subscribe);
-        }
-
-        class AnonymousObservable<T> : IObservable<T>
-        {
-            readonly Func<IObserver<T>, IDisposable> subscribe;
-
-            public AnonymousObservable(Func<IObserver<T>, IDisposable> subscribe)
-            {
-                this.subscribe = subscribe;
-            }
-
-            public IDisposable Subscribe(IObserver<T> observer)
-            {
-                var subscription = new SingleAssignmentDisposable();
-
-#if UNITY_5_0
-                // In Unity 5.0.2p1/p2 occures IL2CPP compile error.
-                // IL2CPP compile error when script contains method group of interface to delegate conversion
-                var safeObserver = Observer.Create<T>(x => observer.OnNext(x), ex => observer.OnError(ex), () => observer.OnCompleted(), subscription);
-#else
-                var safeObserver = Observer.Create<T>(observer.OnNext, observer.OnError, observer.OnCompleted, subscription);
-#endif
-
-                if (Scheduler.IsCurrentThreadSchedulerScheduleRequired)
-                {
-                    Scheduler.CurrentThread.Schedule(() => subscription.Disposable = subscribe(safeObserver));
-                }
-                else
-                {
-                    subscription.Disposable = subscribe(safeObserver);
-                }
-
-                return subscription;
-            }
+            return new CreateObservable<T>(subscribe);
         }
 
         /// <summary>
-        /// Empty Observable. Returns only OnCompleted on DefaultSchedulers.ConstantTimeOperations.
+        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator(HotObservable). 
+        /// </summary>
+        public static IObservable<T> Create<T>(Func<IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        {
+            if (subscribe == null) throw new ArgumentNullException("subscribe");
+
+            return new CreateObservable<T>(subscribe, isRequiredSubscribeOnCurrentThread);
+        }
+
+        /// <summary>
+        /// Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for make generator (ColdObservable).
+        /// </summary>
+        public static IObservable<T> CreateSafe<T>(Func<IObserver<T>, IDisposable> subscribe)
+        {
+            if (subscribe == null) throw new ArgumentNullException("subscribe");
+
+            return new CreateSafeObservable<T>(subscribe);
+        }
+
+        /// <summary>
+        /// Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for make generator (ColdObservable).
+        /// </summary>
+        public static IObservable<T> CreateSafe<T>(Func<IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        {
+            if (subscribe == null) throw new ArgumentNullException("subscribe");
+
+            return new CreateSafeObservable<T>(subscribe, isRequiredSubscribeOnCurrentThread);
+        }
+
+        /// <summary>
+        /// Empty Observable. Returns only OnCompleted.
         /// </summary>
         public static IObservable<T> Empty<T>()
         {
@@ -63,14 +59,11 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Empty<T>(IScheduler scheduler)
         {
-            return Observable.Create<T>(observer =>
-            {
-                return scheduler.Schedule(observer.OnCompleted);
-            });
+            return new EmptyObservable<T>(scheduler);
         }
 
         /// <summary>
-        /// Empty Observable. Returns only OnCompleted on DefaultSchedulers.ConstantTimeOperations. witness is for type inference.
+        /// Empty Observable. Returns only OnCompleted. witness is for type inference.
         /// </summary>
         public static IObservable<T> Empty<T>(T witness)
         {
@@ -90,7 +83,7 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Never<T>()
         {
-            return Observable.Create<T>(observer => Disposable.Empty);
+            return new NeverObservable<T>();
         }
 
         /// <summary>
@@ -102,7 +95,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Return single sequence on DefaultSchedulers.ConstantTimeOperations.
+        /// Return single sequence Immediately.
         /// </summary>
         public static IObservable<T> Return<T>(T value)
         {
@@ -114,18 +107,19 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Return<T>(T value, IScheduler scheduler)
         {
-            return Observable.Create<T>(observer =>
-            {
-                return scheduler.Schedule(() =>
-                {
-                    observer.OnNext(value);
-                    observer.OnCompleted();
-                });
-            });
+            return new ReturnObservable<T>(value, scheduler);
         }
 
         /// <summary>
-        /// Empty Observable. Returns only onError on DefaultSchedulers.ConstantTimeOperations.
+        /// Same as Observable.Return(Unit.Default);
+        /// </summary>
+        public static IObservable<Unit> ReturnUnit()
+        {
+            return Return(Unit.Default);
+        }
+
+        /// <summary>
+        /// Empty Observable. Returns only onError.
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error)
         {
@@ -133,7 +127,7 @@ namespace UniRx
         }
 
         /// <summary>
-        /// Empty Observable. Returns only onError on DefaultSchedulers.ConstantTimeOperations. witness if for Type inference.
+        /// Empty Observable. Returns only onError. witness if for Type inference.
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error, T witness)
         {
@@ -145,10 +139,7 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Throw<T>(Exception error, IScheduler scheduler)
         {
-            return Observable.Create<T>(observer =>
-            {
-                return scheduler.Schedule(() => observer.OnError(error));
-            });
+            return new ThrowObservable<T>(error, scheduler);
         }
 
         /// <summary>
@@ -166,24 +157,7 @@ namespace UniRx
 
         public static IObservable<int> Range(int start, int count, IScheduler scheduler)
         {
-            return Observable.Create<int>(observer =>
-            {
-                var i = 0;
-                return scheduler.Schedule((Action self) =>
-                {
-                    if (i < count)
-                    {
-                        int v = start + i;
-                        observer.OnNext(v);
-                        System.Threading.Interlocked.Increment(ref i);
-                        self();
-                    }
-                    else
-                    {
-                        observer.OnCompleted();
-                    }
-                });
-            });
+            return new RangeObservable(start, count, scheduler);
         }
 
         public static IObservable<T> Repeat<T>(T value)
@@ -195,14 +169,7 @@ namespace UniRx
         {
             if (scheduler == null) throw new ArgumentNullException("scheduler");
 
-            return Observable.Create<T>(observer =>
-            {
-                return scheduler.Schedule(self =>
-                {
-                    observer.OnNext(value);
-                    self();
-                });
-            });
+            return new RepeatObservable<T>(value, null, scheduler);
         }
 
         public static IObservable<T> Repeat<T>(T value, int repeatCount)
@@ -215,26 +182,7 @@ namespace UniRx
             if (repeatCount < 0) throw new ArgumentOutOfRangeException("repeatCount");
             if (scheduler == null) throw new ArgumentNullException("scheduler");
 
-            return Observable.Create<T>(observer =>
-            {
-                var currentCount = repeatCount;
-                return scheduler.Schedule(self =>
-                {
-                    if (currentCount > 0)
-                    {
-                        observer.OnNext(value);
-                        currentCount--;
-                    }
-
-                    if (currentCount == 0)
-                    {
-                        observer.OnCompleted();
-                        return;
-                    }
-
-                    self();
-                });
-            });
+            return new RepeatObservable<T>(value, repeatCount, scheduler);
         }
 
         public static IObservable<T> Repeat<T>(this IObservable<T> source)
@@ -255,133 +203,52 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> RepeatSafe<T>(this IObservable<T> source)
         {
-            return RepeatSafeCore(RepeatInfinite(source));
-        }
-
-        static IObservable<T> RepeatSafeCore<T>(IEnumerable<IObservable<T>> sources)
-        {
-            return Observable.Create<T>(observer =>
-            {
-                var isDisposed = false;
-                var isRunNext = false;
-                var e = sources.AsSafeEnumerable().GetEnumerator();
-                var subscription = new SerialDisposable();
-                var gate = new object();
-
-                var schedule = Scheduler.DefaultSchedulers.TailRecursion.Schedule(self =>
-                {
-                    lock (gate)
-                    {
-                        if (isDisposed) return;
-
-                        var current = default(IObservable<T>);
-                        var hasNext = false;
-                        var ex = default(Exception);
-
-                        try
-                        {
-                            hasNext = e.MoveNext();
-                            if (hasNext)
-                            {
-                                current = e.Current;
-                                if (current == null) throw new InvalidOperationException("sequence is null.");
-                            }
-                            else
-                            {
-                                e.Dispose();
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            ex = exception;
-                            e.Dispose();
-                        }
-
-                        if (ex != null)
-                        {
-                            observer.OnError(ex);
-                            return;
-                        }
-
-                        if (!hasNext)
-                        {
-                            observer.OnCompleted();
-                            return;
-                        }
-
-                        var source = e.Current;
-                        var d = new SingleAssignmentDisposable();
-                        subscription.Disposable = d;
-                        d.Disposable = source.Subscribe(x =>
-                        {
-                            isRunNext = true;
-                            observer.OnNext(x);
-                        }, observer.OnError, () =>
-                        {
-                            if (isRunNext && !isDisposed)
-                            {
-                                isRunNext = false;
-                                self();
-                            }
-                            else
-                            {
-                                e.Dispose();
-                                if (!isDisposed)
-                                {
-                                    observer.OnCompleted();
-                                }
-                            }
-                        });
-                    }
-                });
-
-                return new CompositeDisposable(schedule, subscription, Disposable.Create(() =>
-                {
-                    lock (gate)
-                    {
-                        isDisposed = true;
-                        e.Dispose();
-                    }
-                }));
-            });
+            return new RepeatSafeObservable<T>(RepeatInfinite(source), source.IsRequiredSubscribeOnCurrentThread());
         }
 
         public static IObservable<T> Defer<T>(Func<IObservable<T>> observableFactory)
         {
-            return Observable.Create<T>(observer =>
-            {
-                IObservable<T> source;
-                try
-                {
-                    source = observableFactory();
-                }
-                catch (Exception ex)
-                {
-                    source = Throw<T>(ex);
-                }
-
-                return source.Subscribe(observer);
-            });
+            return new DeferObservable<T>(observableFactory);
         }
 
         public static IObservable<T> Start<T>(Func<T> function)
         {
-            return Start(function, Scheduler.DefaultSchedulers.AsyncConversions);
+            return new StartObservable<T>(function, null, Scheduler.DefaultSchedulers.AsyncConversions);
+        }
+
+        public static IObservable<T> Start<T>(Func<T> function, TimeSpan timeSpan)
+        {
+            return new StartObservable<T>(function, timeSpan, Scheduler.DefaultSchedulers.AsyncConversions);
         }
 
         public static IObservable<T> Start<T>(Func<T> function, IScheduler scheduler)
         {
-            return ToAsync(function, scheduler)();
+            return new StartObservable<T>(function, null, scheduler);
+        }
+
+        public static IObservable<T> Start<T>(Func<T> function, TimeSpan timeSpan, IScheduler scheduler)
+        {
+            return new StartObservable<T>(function, timeSpan, scheduler);
         }
 
         public static IObservable<Unit> Start(Action action)
         {
-            return Start(action, Scheduler.DefaultSchedulers.AsyncConversions);
+            return new StartObservable<Unit>(action, null, Scheduler.DefaultSchedulers.AsyncConversions);
+        }
+
+        public static IObservable<Unit> Start(Action action, TimeSpan timeSpan)
+        {
+            return new StartObservable<Unit>(action, timeSpan, Scheduler.DefaultSchedulers.AsyncConversions);
         }
 
         public static IObservable<Unit> Start(Action action, IScheduler scheduler)
         {
-            return ToAsync(action, scheduler)();
+            return new StartObservable<Unit>(action, null, scheduler);
+        }
+
+        public static IObservable<Unit> Start(Action action, TimeSpan timeSpan, IScheduler scheduler)
+        {
+            return new StartObservable<Unit>(action, timeSpan, scheduler);
         }
 
         public static Func<IObservable<T>> ToAsync<T>(Func<T> function)
