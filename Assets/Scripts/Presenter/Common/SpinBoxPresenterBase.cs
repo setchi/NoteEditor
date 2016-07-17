@@ -18,7 +18,7 @@ namespace NoteEditor.Presenter
         [SerializeField]
         Button decreaseButton;
         [SerializeField]
-        int valueChangeCoefficient;
+        int valueStep;
         [SerializeField]
         int minValue;
         [SerializeField]
@@ -36,8 +36,8 @@ namespace NoteEditor.Presenter
         {
             increaseButton.AddListener(EventTriggerType.PointerUp, e => _operateSpinButtonObservable.OnNext(0));
             decreaseButton.AddListener(EventTriggerType.PointerUp, e => _operateSpinButtonObservable.OnNext(0));
-            increaseButton.AddListener(EventTriggerType.PointerDown, e => _operateSpinButtonObservable.OnNext(valueChangeCoefficient));
-            decreaseButton.AddListener(EventTriggerType.PointerDown, e => _operateSpinButtonObservable.OnNext(-valueChangeCoefficient));
+            increaseButton.AddListener(EventTriggerType.PointerDown, e => _operateSpinButtonObservable.OnNext(valueStep));
+            decreaseButton.AddListener(EventTriggerType.PointerDown, e => _operateSpinButtonObservable.OnNext(-valueStep));
 
             var property = GetReactiveProperty();
 
