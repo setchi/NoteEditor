@@ -43,7 +43,7 @@ namespace NoteEditor.Presenter
 
             property.Subscribe(x => inputField.text = x.ToString());
 
-            var updateValueFromInputFieldStream = inputField.OnValueChangeAsObservable()
+            var updateValueFromInputFieldStream = inputField.OnValueChangedAsObservable()
                 .Where(x => Regex.IsMatch(x, @"^[0-9]+$"))
                 .Select(x => int.Parse(x));
 

@@ -19,11 +19,11 @@ namespace NoteEditor.Presenter
 
         void Awake()
         {
-            workSpacePathInputField.OnValueChangeAsObservable()
+            workSpacePathInputField.OnValueChangedAsObservable()
                 .Select(path => Directory.Exists(path))
                 .Subscribe(exists => workSpacePathInputFieldText.color = exists ? defaultTextColor : invalidStateTextColor);
 
-            workSpacePathInputField.OnValueChangeAsObservable()
+            workSpacePathInputField.OnValueChangedAsObservable()
                 .Where(path => Directory.Exists(path))
                 .Subscribe(path => Settings.WorkSpacePath.Value = path);
 

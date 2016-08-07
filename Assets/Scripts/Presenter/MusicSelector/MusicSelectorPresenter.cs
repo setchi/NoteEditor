@@ -38,7 +38,7 @@ namespace NoteEditor.Presenter
             Settings.WorkSpacePath
                 .Subscribe(workSpacePath => directoryPathInputField.text = Path.Combine(workSpacePath, "Musics"));
 
-            directoryPathInputField.OnValueChangeAsObservable()
+            directoryPathInputField.OnValueChangedAsObservable()
                 .Subscribe(path => MusicSelector.DirectoryPath.Value = path);
 
             MusicSelector.DirectoryPath
