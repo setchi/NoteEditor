@@ -36,7 +36,7 @@ namespace UniRx.Operators
 
         class Return : OperatorObserverBase<T, T>
         {
-            public Return(IObserver<T> observer, IDisposable cancel) 
+            public Return(IObserver<T> observer, IDisposable cancel)
                 : base(observer, cancel)
             {
             }
@@ -65,6 +65,94 @@ namespace UniRx.Operators
                 try { observer.OnCompleted(); }
                 finally { Dispose(); }
             }
+        }
+    }
+
+    internal class ImmediateReturnObservable<T> : IObservable<T>, IOptimizedObservable<T>
+    {
+        readonly T value;
+
+        public ImmediateReturnObservable(T value)
+        {
+            this.value = value;
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
+        }
+
+        public IDisposable Subscribe(IObserver<T> observer)
+        {
+            observer.OnNext(value);
+            observer.OnCompleted();
+            return Disposable.Empty;
+        }
+    }
+
+    internal class ImmutableReturnUnitObservable : IObservable<Unit>, IOptimizedObservable<Unit>
+    {
+        internal static ImmutableReturnUnitObservable Instance = new ImmutableReturnUnitObservable();
+
+        ImmutableReturnUnitObservable()
+        {
+
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
+        }
+
+        public IDisposable Subscribe(IObserver<Unit> observer)
+        {
+            observer.OnNext(Unit.Default);
+            observer.OnCompleted();
+            return Disposable.Empty;
+        }
+    }
+
+    internal class ImmutableReturnTrueObservable : IObservable<bool>, IOptimizedObservable<bool>
+    {
+        internal static ImmutableReturnTrueObservable Instance = new ImmutableReturnTrueObservable();
+
+        ImmutableReturnTrueObservable()
+        {
+
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
+        }
+
+        public IDisposable Subscribe(IObserver<bool> observer)
+        {
+            observer.OnNext(true);
+            observer.OnCompleted();
+            return Disposable.Empty;
+        }
+    }
+
+    internal class ImmutableReturnFalseObservable : IObservable<bool>, IOptimizedObservable<bool>
+    {
+        internal static ImmutableReturnFalseObservable Instance = new ImmutableReturnFalseObservable();
+
+        ImmutableReturnFalseObservable()
+        {
+
+        }
+
+        public bool IsRequiredSubscribeOnCurrentThread()
+        {
+            return false;
+        }
+
+        public IDisposable Subscribe(IObserver<bool> observer)
+        {
+            observer.OnNext(false);
+            observer.OnCompleted();
+            return Disposable.Empty;
         }
     }
 }

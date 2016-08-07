@@ -1,4 +1,4 @@
-UniRx - Reactive Extensions for Unity / ver.5.0.0
+﻿UniRx - Reactive Extensions for Unity / ver 5.4.0
 ===
 Created by Yoshifumi Kawai(neuecc)
 
@@ -6,7 +6,7 @@ Created by Yoshifumi Kawai(neuecc)
 
 What is UniRx?
 ---
-UniRx (Reactive Extensions for Unity) is a reimplementation of the .NET Reactive Extensions. The Official Rx implementation is great but doesn't work on Unity and has issues with iOS AOT/IL2CPP compatibility. This library fixes those issues and adds some specific utilities for Unity. Supported platforms are PC/Mac/Android/iOS/WP8/WindowsStore/etc and the library is fully supported on both Unity 5 and 4.6.   
+UniRx (Reactive Extensions for Unity) is a reimplementation of the .NET Reactive Extensions. The Official Rx implementation is great but doesn't work on Unity and has issues with iOS IL2CPP compatibility. This library fixes those issues and adds some specific utilities for Unity. Supported platforms are PC/Mac/Android/iOS/WP8/WindowsStore/etc and the library is fully supported on both Unity 5 and 4.6.   
 
 UniRx is available on the Unity Asset Store (FREE) - http://u3d.as/content/neuecc/uni-rx-reactive-extensions-for-unity/7tT
 
@@ -29,13 +29,12 @@ This kind of lack of composability causes operations to be close-coupled, which 
 
 Rx cures that kind of "asynchronous blues". Rx is a library for composing asynchronous and event-based programs using observable collections and LINQ-style query operators. 
   
-The game loop (every Update, OnCollisionEnter, etc), sensor data (Kinect, Leap Motion, etc.) are all types of events. Rx represents events as reactive sequences which are both easily composable and support time-based operations by using LINQ query operators.
+The game loop (every Update, OnCollisionEnter, etc), sensor data (Kinect, Leap Motion, VR Input, etc.) are all types of events. Rx represents events as reactive sequences which are both easily composable and support time-based operations by using LINQ query operators.
 
 Unity is generally single threaded but UniRx facilitates multithreading for joins, cancels, accessing GameObjects, etc.
 
 UniRx helps UI programming with uGUI. All UI events (clicked, valuechanged, etc) can be converted to UniRx event streams. 
         
-
 Introduction
 ---
 Great introduction to Rx article: [The introduction to Reactive Programming you've been missing](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754).
@@ -188,7 +187,7 @@ IEnumerator TestNewCustomYieldInstruction()
     if (o.HasResult) { Debug.Log(o.Result); }
 
     // other sample(wait until transform.position.y >= 100) 
-    yield return this.ObserveEveryValueChanged(x => x.transform).FirstOrDefault(x => x.position.y >= 100).ToYieldInstruction();
+    yield return this.transform.ObserveEveryValueChanged(x => x.position).FirstOrDefault(p => p.y >= 100).ToYieldInstruction();
 }
 ```
 Normally, we have to use callbacks when we require a coroutine to return a value. Observable.FromCoroutine can convert coroutines to cancellable IObservable[T] instead.
@@ -321,7 +320,7 @@ public class MyComponent : MonoBehaviour
 }
 ```
 
-Supported triggers are `ObservableAnimatorTrigger`, `ObservableCollision2DTrigger`, `ObservableCollisionTrigger`, `ObservableDestroyTrigger`, `ObservableEnableTrigger`, `ObservableFixedUpdateTrigger`, `ObservableUpdateTrigger`, `ObservableLastUpdateTrigger`, `ObservableMouseTrigger`, `ObservableTrigger2DTrigger`, `ObservableTriggerTrigger`, `ObservableVisibleTrigger`, `ObservableTransformChangedTrigger`, `ObservableRectTransformTrigger`, `ObservableCanvasGroupChangedTrigger`, `ObservableStateMachineTrigger`, `ObservableEventTrigger`.
+Supported triggers are listed in [UniRx.wiki#UniRx.Triggers](https://github.com/neuecc/UniRx/wiki#unirxtriggers).
 
 These can also be handled more easily by directly subscribing to observables returned by extension methods on Component/GameObject. These methods inject ObservableTrigger automaticaly (except for `ObservableEventTrigger` and `ObservableStateMachineTrigger`):
 
@@ -470,7 +469,7 @@ this.gameObject.OnMouseDownAsObservable()
     .Subscribe(x => Debug.Log(x));            
 ```
 
-UniRx gurantees hot observable(FromEvent/Subject/FromCoroutine/UnityUI.AsObservable..., there are like event) have unhandled exception durability. What is it? If subscribe in subcribe, does not detach event.
+UniRx gurantees hot observable(FromEvent/Subject/ReactiveProperty/UnityUI.AsObservable..., there are like event) have unhandled exception durability. What is it? If subscribe in subcribe, does not detach event.
 
 ```csharp
 button.OnClickAsObservable().Subscribe(_ =>
@@ -582,6 +581,18 @@ logger.Log("Message");
 logger.Exception(new Exception("test exception"));
 ```
 
+Debugging
+---
+`Debug` operator in `UniRx.Diagnostics` namespace helps debugging.
+
+```csharp
+using UniRx.Diagnostics;
+
+fooObservable.Debug("Debug Test").Subscribe();
+```
+
+shows sequence element on `OnNext`, `OnError`, `OnCompleted`, `OnCancel`, `OnSubscribe` timing to Debug.Log. It enables only `#if DEBUG`.
+
 Unity-specific Extra Gems
 ---
 ```csharp
@@ -596,7 +607,7 @@ MainThreadDispatcher.StartCoroutine(enumerator)
 Observable.FromCoroutine((observer, token) => enumerator(observer, token)); 
 
 // convert IObservable to Coroutine
-yield return Observable.Range(1, 10).StartAsCoroutine();
+yield return Observable.Range(1, 10).ToYieldInstruction(); // after Unity 5.3, before can use StartAsCoroutine()
 
 // Lifetime hooks
 Observable.EveryApplicationPause();
@@ -613,6 +624,9 @@ Method |
 EveryUpdate|
 EveryFixedUpdate|
 EveryEndOfFrame|
+EveryGameObjectUpdate|
+EveryLateUpdate|
+ObserveOnMainThread|
 NextFrame|
 IntervalFrame|
 TimerFrame|
@@ -622,11 +636,80 @@ ThrottleFrame|
 ThrottleFirstFrame|
 TimeoutFrame|
 DelayFrameSubscription|
+FrameInterval|
+FrameTimeInterval|
+BatchFrame|
 
 For example, delayed invoke once:
 
 ```csharp
 Observable.TimerFrame(100).Subscribe(_ => Debug.Log("after 100 frame"));
+```
+
+Every* Method's execution order is
+
+```
+EveryGameObjectUpdate(in MainThreadDispatcher's Execution Order) ->
+EveryUpdate -> 
+EveryLateUpdate -> 
+EveryEndOfFrame
+```
+
+EveryGameObjectUpdate invoke from same frame if caller is called before MainThreadDispatcher.Update(I recommend MainThreadDispatcher called first than others(ScriptExecutionOrder makes -32000)      
+EveryLateUpdate, EveryEndOfFrame invoke from same frame.  
+EveryUpdate, invoke from next frame.  
+
+MicroCoroutine
+---
+MicroCoroutine is memory efficient and fast coroutine worker. This implemantation is based on [Unity blog's 10000 UPDATE() CALLS](http://blogs.unity3d.com/2015/12/23/1k-update-calls/), avoid managed-unmanaged overhead so gets 10x faster iteration. MicroCoroutine is automaticaly used on Framecount-based time operators and ObserveEveryValueChanged.
+
+If you want to use MicroCoroutine instead of standard unity coroutine, use `MainThreadDispatcher.StartUpdateMicroCoroutine` or `Observable.FromMicroCoroutine`.
+
+```csharp
+int counter;
+
+IEnumerator Worker()
+{
+    while(true)
+    {
+        counter++;
+        yield return null;
+    }
+}
+
+void Start()
+{
+    for(var i = 0; i < 10000; i++)
+    {
+        // fast, memory efficient
+        MainThreadDispatcher.StartUpdateMicroCoroutine(Worker());
+
+        // slow...
+        // StartCoroutine(Worker());
+    }
+}
+```
+
+![image](https://cloud.githubusercontent.com/assets/46207/15267997/86e9ed5c-1a0c-11e6-8371-14b61a09c72c.png)
+
+MicroCoroutine's limitation, only supports `yield return null` and update timing is determined start method(`StartUpdateMicroCoroutine`, `StartFixedUpdateMicroCoroutine`, `StartEndOfFrameMicroCoroutine`). 
+
+If you combine with other IObservable, you can check completed property like isDone.
+
+```csharp
+IEnumerator MicroCoroutineWithToYieldInstruction()
+{
+    var www = ObservableWWW.Get("http://aaa").ToYieldInstruction();
+    while (!www.IsDone)
+    {
+        yield return null;
+    }
+
+    if (www.HasResult)
+    {
+        UnityEngine.Debug.Log(www.Result);
+    }
+}
 ```
 
 uGUI Integration
@@ -702,13 +785,15 @@ enemy.IsDead.Where(isDead => isDead == true)
 
 You can combine ReactiveProperties, ReactiveCollections and observables returned by UnityEvent.AsObservable. All UI elements are observable.
 
-Generic ReactiveProperties are not serializable or inspecatble in the Unity editor, but UniRx provides specialized subclasses of ReactiveProperty that are. These include classes such as Int/LongReactiveProperty, Float/DoubleReactiveProperty, StringReactiveProperty, BoolReactiveProperty and more (Browse them here: [InspectableReactiveProperty.cs](https://github.com/neuecc/UniRx/blob/master/Assets/UniRx/Scripts/UnityEngineBridge/InspectableReactiveProperty.cs)). All are fully editable in the inspector. For custom Enum ReactiveProperty, it's easy to write a custom inspectable ReactiveProperty[T].
+Generic ReactiveProperties are not serializable or inspecatble in the Unity editor, but UniRx provides specialized subclasses of ReactiveProperty that are. These include classes such as Int/LongReactiveProperty, Float/DoubleReactiveProperty, StringReactiveProperty, BoolReactiveProperty and more (Browse them here: [InspectableReactiveProperty.cs](https://github.com/neuecc/UniRx/blob/master/Assets/Plugins/UniRx/Scripts/UnityEngineBridge/InspectableReactiveProperty.cs)). All are fully editable in the inspector. For custom Enum ReactiveProperty, it's easy to write a custom inspectable ReactiveProperty[T].
+
+If you needs `[Multiline]` or `[Range]` attach to ReactiveProperty, you can use `MultilineReactivePropertyAttribute` and `RangeReactivePropertyAttribute` instead of `Multiline` and `Range`.
 
 The provided derived InpsectableReactiveProperties are displayed in the inspector naturally and notify when their value is changed even when it is changed in the inspector.
 
 ![](StoreDocument/RxPropInspector.png)
 
-This functionality is provided by [InspectorDisplayDrawer](https://github.com/neuecc/UniRx/blob/master/Assets/UniRx/Scripts/UnityEngineBridge/InspectorDisplayDrawer.cs). You can supply your own custom specialized ReactiveProperties by inheriting from it:
+This functionality is provided by [InspectorDisplayDrawer](https://github.com/neuecc/UniRx/blob/master/Assets/Plugins/UniRx/Scripts/UnityEngineBridge/InspectorDisplayDrawer.cs). You can supply your own custom specialized ReactiveProperties by inheriting from it:
 
 ```csharp
 public enum Fruit
@@ -887,6 +972,212 @@ Yellow is `Awake`, order is indeterminate. Green is `BeforeInitialize` phase, it
 
 If you create `PresenterBase` dynamically for example from Prefab, you can call `ForceInitialize(argument)` after instantiate.
 
+ReactiveCommand, AsyncReactiveCommand
+---
+ReactiveCommand abstraction of button command with boolean interactable.
+
+```csharp 
+public class Player
+{
+   public ReactiveProperty<int> Hp;
+   public ReactiveCommand Resurrect;
+
+   public Player()
+   {
+        Hp = new ReactiveProperty<int>(1000);
+        
+        // If dead, can not execute.
+        Resurrect = Hp.Select(x => x <= 0).ToReactiveCommand();
+        // Execute when clicked
+        Resurrect.Subscribe(_ =>
+        {
+             Hp.Value = 1000;
+        }); 
+    }
+}
+
+public class Presenter : MonoBehaviour
+{
+    public Button resurrectButton;
+
+    Player player;
+
+    void Start()
+    {
+      player = new Player();
+
+      // If Hp <= 0, can't press button.
+      player.Resurrect.BindTo(resurrectButton);
+    }
+}
+```
+
+AsyncReactiveCommand is a variation of ReactiveCommand that `CanExecute`(in many cases bind to button's interactable) is changed to false until asynchronous execution was finished.
+
+```csharp
+public class Presenter : MonoBehaviour
+{
+    public UnityEngine.UI.Button button;
+
+    void Start()
+    {
+        var command = new AsyncReactiveCommand();
+
+        command.Subscribe(_ =>
+        {
+            // heavy, heavy, heavy method....
+            return Observable.Timer(TimeSpan.FromSeconds(3)).AsUnitObservable();
+        });
+
+        // after clicked, button shows disable for 3 seconds
+        command.BindTo(button);
+
+        // Note:shortcut extension, bind aync onclick directly
+        button.BindToOnClick(_ =>
+        {
+            return Observable.Timer(TimeSpan.FromSeconds(3)).AsUnitObservable();
+        });
+    }
+}
+```
+
+`AsyncReactiveCommand` has three constructor.
+
+* `()` - CanExecute is changed to false until async execution finished
+* `(IObservable<bool> canExecuteSource)` - Mixed with empty, CanExecute becomes true when canExecuteSource send to true and does not executing 
+* `(IReactiveProperty<bool> sharedCanExecute)` - share execution status between multiple AsyncReactiveCommands, if one AsyncReactiveCommand is executing, other AsyncReactiveCommands(with same sharedCanExecute property) becomes CanExecute false until async execution finished
+
+```csharp
+public class Presenter : MonoBehaviour
+{
+    public UnityEngine.UI.Button button1;
+    public UnityEngine.UI.Button button2;
+
+    void Start()
+    {
+        // share canExecute status.
+        // when clicked button1, button1 and button2 was disabled for 3 seconds.
+
+        var sharedCanExecute = new ReactiveProperty<bool>();
+
+        button1.BindToOnClick(sharedCanExecute, _ =>
+        {
+            return Observable.Timer(TimeSpan.FromSeconds(3)).AsUnitObservable();
+        });
+
+        button2.BindToOnClick(sharedCanExecute, _ =>
+        {
+            return Observable.Timer(TimeSpan.FromSeconds(3)).AsUnitObservable();
+        });
+    }
+}
+```
+
+MessageBroker, AsyncMessageBroker
+---
+MessageBroker is Rx based in-memory pubsub system filtered by type.
+
+```csharp
+public class TestArgs
+{
+    public int Value { get; set; }
+}
+
+---
+
+// Subscribe message on global-scope.
+MessageBroker.Default.Receive<TestArgs>().Subscribe(x => UnityEngine.Debug.Log(x));
+
+// Publish message
+MessageBroker.Default.Publish(new TestArgs { Value = 1000 });
+```
+
+AsyncMessageBroker is variation of MessageBroker, can await Publish call.
+
+```csharp
+AsyncMessageBroker.Default.Subscribe<TestArgs>(x =>
+{
+    // show after 3 seconds.
+    return Observable.Timer(TimeSpan.FromSeconds(3))
+        .ForEachAsync(_ =>
+        {
+            UnityEngine.Debug.Log(x);
+        });
+});
+
+AsyncMessageBroker.Default.PublishAsync(new TestArgs { Value = 3000 })
+    .Subscribe(_ =>
+    {
+        UnityEngine.Debug.Log("called all subscriber completed");
+    });
+```
+
+UniRx.Toolkit
+---
+`UniRx.Toolkit` includes serveral Rx-ish tools. Currently includes `ObjectPool` and `AsyncObjectPool`.  It can `Rent`, `Return` and `PreloadAsync` for fill pool before rent operation.
+
+```csharp
+// sample class
+public class Foobar : MonoBehaviour
+{
+    public IObservable<Unit> ActionAsync()
+    {
+        // heavy, heavy, action...
+        return Observable.Timer(TimeSpan.FromSeconds(3)).AsUnitObservable();
+    }
+}
+
+public class FoobarPool : ObjectPool<Foobar>
+{
+    readonly Foobar prefab;
+    readonly Transform hierarchyParent;
+
+    public FoobarPool(Foobar prefab, Transform hierarchyParent)
+    {
+        this.prefab = prefab;
+        this.hierarchyParent = hierarchyParent;
+    }
+
+    protected override Foobar CreateInstance()
+    {
+        var foobar = GameObject.Instantiate<Foobar>(prefab);
+        foobar.transform.SetParent(hierarchyParent);
+
+        return foobar;
+    }
+
+    // You can overload OnBeforeRent, OnBeforeReturn, OnClear for customize action.
+    // In default, OnBeforeRent = SetActive(true), OnBeforeReturn = SetActive(false)
+
+    // protected override void OnBeforeRent(Foobar instance)
+    // protected override void OnBeforeReturn(Foobar instance)
+    // protected override void OnClear(Foobar instance)
+}
+
+public class Presenter : MonoBehaviour
+{
+    FoobarPool pool = null;
+
+    public Foobar prefab;
+    public Button rentButton;
+
+    void Start()
+    {
+        pool = new FoobarPool(prefab, this.transform);
+
+        rentButton.OnClickAsObservable().Subscribe(_ =>
+        {
+            var foobar = pool.Rent();
+            foobar.ActionAsync().Subscribe(__ =>
+            {
+                // if action completed, return to pool
+                pool.Return(foobar);
+            });
+        });
+    }
+}
+```
+
 Visual Studio Analyzer
 ---
 For Visual Studio 2015 users, a custom analyzer, UniRxAnalyzer, is provided. It can, for example, detect when streams aren't subscribed to.
@@ -903,7 +1194,7 @@ Please submit new analyzer ideas on GitHub Issues!
 
 Samples
 ---
-See [UniRx/Examples](https://github.com/neuecc/UniRx/tree/master/Assets/UniRx/Examples)  
+See [UniRx/Examples](https://github.com/neuecc/UniRx/tree/master/Assets/Plugins/UniRx/Examples)  
 
 The samples demonstrate how to do resource management (Sample09_EventHandling), what is the MainThreadDispatcher, among other things.
 
@@ -914,37 +1205,53 @@ Therefore, when using NETFX_CORE, please refrain from using such constructs as `
 
 DLL Separation
 ---
-If you want to pre-build UniRx, you can build own dll. clone project and open `UniRx.sln`, you can see `UniRx.Library` and `UniRx.Library.Unity`. `UniRx.Library` can use both .NET 3.5 normal CLR application and Unity. `UniRx.Library.Unity` is for Unity project, you should define compile symbol like  `UniRxLibrary;UNITY;UNITY_5_3_0;UNITY_5_3;UNITY_5;UNITY_IPHONE;`. We can not provides binary because compile symbol is different each other.
+If you want to pre-build UniRx, you can build own dll. clone project and open `UniRx.sln`, you can see `UniRx`, it is fullset separated project of UniRx. You should define compile symbol like  `UNITY;UNITY_5_4_OR_NEWER;UNITY_5_4_0;UNITY_5_4;UNITY_5;` + `UNITY_EDITOR`, `UNITY_IPHONE` or other platform symbol. We can not provides pre-build binary to release page, asset store because compile symbol is different each other.
 
-If needs `UniRx.Library` for minimal test, it avilable in NuGet.
+If you want to use UniRx for .NET 3.5 normal CLR application, you can use `UniRx.Library`. `UniRx.Library` is splitted UnityEngine dependency, build `UniRx.Library` needs to define `UniRxLibrary` symbol. pre-build `UniRx.Library` binary, it avilable in NuGet.
 
 [Install-Package UniRx](https://www.nuget.org/packages/UniRx)
 
 Reference
 ---
-* [RxJava Wiki](https://github.com/Netflix/RxJava/wiki)
- 
-This wiki is a great way for learn Rx. All operators are illustrated with graphical marble diagrams, which makes them easy to understand.
+* [UniRx/wiki](https://github.com/neuecc/UniRx/wiki)
 
-* [Reactive Game Architectures](http://sugarpillstudios.com/wp/?page_id=279)
+UniRx API documents.
 
-Introduction on how to use Rx for game programming.
+* [ReactiveX](http://reactivex.io/)
+
+The home of ReactiveX. [Introduction](http://reactivex.io/intro.html), [All operators](http://reactivex.io/documentation/operators.html) are illustrated with graphical marble diagrams, there makes easy to understand. And UniRx is official [ReactiveX Languages](http://reactivex.io/languages.html).
 
 * [Introduction to Rx](http://introtorx.com/)
 
 A great online tutorial and eBook.
 
-* [Rx(Reactive Extensions)](https://rx.codeplex.com/)
-
-The original project home page.
-
 * [Beginner's Guide to the Reactive Extensions](http://msdn.microsoft.com/en-us/data/gg577611)
 
-Many videos, slides and documents.
+Many videos, slides and documents for Rx.NET.
 
-* [ReactiveX Languages](http://reactivex.io/languages.html)
+* [The future of programming technology in Unity - UniRx -(JPN)](http://www.slideshare.net/torisoup/unity-unirx) 
+  - [Korean translation](http://www.slideshare.net/agebreak/160402-unirx)
 
-UniRx is an official ReacitveX family language.
+Intro slide by [@torisoup](https://github.com/torisoup)
+
+* [Reactive Programming, ​Unity 3D and you](http://slides.com/sammegidov/unirx#/)
+  - [Repository of UniRxSimpleGame](https://github.com/Xerios/UniRxSimpleGame)
+
+Intro slide and sample game by [@Xerios](https://github.com/Xerios)
+
+What game or library is using UniRx?
+---
+Games
+
+Libraries
+
+- [PhotonWire](https://github.com/neuecc/PhotonWire) - Typed Asynchronous RPC Layer for Photon Server + Unity.
+- [uFrame Game Framework](https://www.assetstore.unity3d.com/en/#!/content/14381) - MVVM/MV* framework designed for the Unity Engine.
+- [EcsRx](https://github.com/grofit/ecsrx) - A simple framework for unity using the ECS paradigm but with unirx for fully reactive systems.
+- [ActionStreetMap Demo](https://github.com/ActionStreetMap/demo) - ASM is an engine for building real city environment dynamically using OSM data.
+- [utymap](https://github.com/reinterpretcat/utymap) - UtyMap is library for building real city environment dynamically using various data sources (mostly, OpenStreetMap and Natural Earth).
+
+If you use UniRx, please comment to [UniRx/issues/152](https://github.com/neuecc/UniRx/issues/152).
 
 Help & Contribute
 ---
@@ -952,7 +1259,7 @@ Support thread on the Unity forum. Ask me any question - [http://forum.unity3d.c
 
 We welcome any contributions, be they bug reports, requests or pull request.  
 Please consult and submit your reports or requests on GitHub issues.  
-Source code is available in `Assets/UniRx/Scripts`.  
+Source code is available in `Assets/Plugins/UniRx/Scripts`.  
 This project is using Visual Studio with [UnityVS](http://unityvs.com/).
 
 Author's other Unity + LINQ Assets
@@ -963,10 +1270,10 @@ Author's other Unity + LINQ Assets
 
 Author Info
 ---
-Yoshifumi Kawai(a.k.a. neuecc) is a software developer in Japan.
-He is the Director/CTO at Grani, Inc.
-Grani is a top social game developer in Japan. 
-He was awarded Microsoft MVP for Visual C# in 2011.
+Yoshifumi Kawai(a.k.a. neuecc) is a software developer in Japan.  
+He is the Director/CTO at Grani, Inc.  
+Grani is a top social game developer in Japan.  
+He is awarding Microsoft MVP for Visual C# since 2011.  
 He is known as the creator of [linq.js](http://linqjs.codeplex.com/)(LINQ to Objects for JavaScript)
 
 Blog: http://neue.cc/ (Japanese)  

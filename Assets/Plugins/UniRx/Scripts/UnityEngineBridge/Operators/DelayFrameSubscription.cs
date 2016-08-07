@@ -26,9 +26,9 @@ namespace UniRx.Operators
         {
             var d = new MultipleAssignmentDisposable();
             d.Disposable = UnityObservable.TimerFrame(frameCount, frameCountType)
-                .Subscribe(_ =>
+                .SubscribeWithState3(observer, d, source, (_, o, disp, s) =>
                 {
-                    d.Disposable = source.Subscribe(observer);
+                    disp.Disposable = s.Subscribe(o);
                 });
 
             return d;

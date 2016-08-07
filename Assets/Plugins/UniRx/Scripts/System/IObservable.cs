@@ -1,8 +1,8 @@
 ﻿// defined from .NET Framework 4.0 and NETFX_CORE
 
-#if !NETFX_CORE
-
 using System;
+
+#if !NETFX_CORE
 
 namespace UniRx
 {
@@ -13,3 +13,11 @@ namespace UniRx
 }
 
 #endif
+
+namespace UniRx
+{
+    public interface IGroupedObservable<TKey, TElement> : IObservable<TElement>
+    {
+        TKey Key { get; }
+    }
+}

@@ -27,6 +27,26 @@ namespace UniRx
         }
 
         /// <summary>
+        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator. 
+        /// </summary>
+        public static IObservable<T> CreateWithState<T, TState>(TState state, Func<TState, IObserver<T>, IDisposable> subscribe)
+        {
+            if (subscribe == null) throw new ArgumentNullException("subscribe");
+
+            return new CreateObservable<T, TState>(state, subscribe);
+        }
+
+        /// <summary>
+        /// Create anonymous observable. Observer has exception durability. This is recommended for make operator and event like generator(HotObservable). 
+        /// </summary>
+        public static IObservable<T> CreateWithState<T, TState>(TState state, Func<TState, IObserver<T>, IDisposable> subscribe, bool isRequiredSubscribeOnCurrentThread)
+        {
+            if (subscribe == null) throw new ArgumentNullException("subscribe");
+
+            return new CreateObservable<T, TState>(state, subscribe, isRequiredSubscribeOnCurrentThread);
+        }
+
+        /// <summary>
         /// Create anonymous observable. Safe means auto detach when error raised in onNext pipeline. This is recommended for make generator (ColdObservable).
         /// </summary>
         public static IObservable<T> CreateSafe<T>(Func<IObserver<T>, IDisposable> subscribe)
@@ -59,7 +79,14 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Empty<T>(IScheduler scheduler)
         {
-            return new EmptyObservable<T>(scheduler);
+            if (scheduler == Scheduler.Immediate)
+            {
+                return ImmutableEmptyObservable<T>.Instance;
+            }
+            else
+            {
+                return new EmptyObservable<T>(scheduler);
+            }
         }
 
         /// <summary>
@@ -83,7 +110,7 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Never<T>()
         {
-            return new NeverObservable<T>();
+            return ImmutableNeverObservable<T>.Instance;
         }
 
         /// <summary>
@@ -91,7 +118,7 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Never<T>(T witness)
         {
-            return Never<T>();
+            return ImmutableNeverObservable<T>.Instance;
         }
 
         /// <summary>
@@ -107,15 +134,40 @@ namespace UniRx
         /// </summary>
         public static IObservable<T> Return<T>(T value, IScheduler scheduler)
         {
-            return new ReturnObservable<T>(value, scheduler);
+            if (scheduler == Scheduler.Immediate)
+            {
+                return new ImmediateReturnObservable<T>(value);
+            }
+            else
+            {
+                return new ReturnObservable<T>(value, scheduler);
+            }
         }
 
         /// <summary>
-        /// Same as Observable.Return(Unit.Default);
+        /// Return single sequence Immediately, optimized for Unit(no allocate memory).
+        /// </summary>
+        public static IObservable<Unit> Return(Unit value)
+        {
+            return ImmutableReturnUnitObservable.Instance;
+        }
+
+        /// <summary>
+        /// Return single sequence Immediately, optimized for Boolean(no allocate memory).
+        /// </summary>
+        public static IObservable<bool> Return(bool value)
+        {
+            return (value == true)
+                ? (IObservable<bool>)ImmutableReturnTrueObservable.Instance
+                : (IObservable<bool>)ImmutableReturnFalseObservable.Instance;
+        }
+
+        /// <summary>
+        /// Same as Observable.Return(Unit.Default); but no allocate memory.
         /// </summary>
         public static IObservable<Unit> ReturnUnit()
         {
-            return Return(Unit.Default);
+            return ImmutableReturnUnitObservable.Instance;
         }
 
         /// <summary>

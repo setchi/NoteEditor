@@ -66,6 +66,26 @@ namespace UniRx
             return new TakeUntilObservable<T, TOther>(source, other);
         }
 
+        public static IObservable<T> TakeLast<T>(this IObservable<T> source, int count)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+            if (count < 0) throw new ArgumentOutOfRangeException("count");
+
+            return new TakeLastObservable<T>(source, count);
+        }
+
+        public static IObservable<T> TakeLast<T>(this IObservable<T> source, TimeSpan duration)
+        {
+            return TakeLast<T>(source, duration, Scheduler.DefaultSchedulers.TimeBasedOperations);
+        }
+
+        public static IObservable<T> TakeLast<T>(this IObservable<T> source, TimeSpan duration, IScheduler scheduler)
+        {
+            if (source == null) throw new ArgumentNullException("source");
+
+            return new TakeLastObservable<T>(source, duration, scheduler);
+        }
+
         public static IObservable<T> Skip<T>(this IObservable<T> source, int count)
         {
             if (source == null) throw new ArgumentNullException("source");
@@ -179,6 +199,12 @@ namespace UniRx
         }
 
         /// <summary>Projects old and new element of a sequence into a new form.</summary>
+        public static IObservable<Pair<T>> Pairwise<T>(this IObservable<T> source)
+        {
+            return new PairwiseObservable<T>(source);
+        }
+
+        /// <summary>Projects old and new element of a sequence into a new form.</summary>
         public static IObservable<TR> Pairwise<T, TR>(this IObservable<T> source, Func<T, T, TR> selector)
         {
             return new PairwiseObservable<T, TR>(source, selector);
@@ -241,6 +267,60 @@ namespace UniRx
         public static IObservable<T> SingleOrDefault<T>(this IObservable<T> source, Func<T, bool> predicate)
         {
             return new SingleObservable<T>(source, predicate, true);
+        }
+
+        // Grouping
+
+        public static IObservable<IGroupedObservable<TKey, TSource>> GroupBy<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            return GroupBy(source, keySelector, Stubs<TSource>.Identity);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TSource>> GroupBy<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, IEqualityComparer<TKey> comparer)
+        {
+            return GroupBy(source, keySelector, Stubs<TSource>.Identity, comparer);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector)
+        {
+#if !UniRxLibrary
+            var comparer = UnityEqualityComparer.GetDefault<TKey>();
+#else
+            var comparer = EqualityComparer<TKey>.Default;
+#endif
+
+            return GroupBy(source, keySelector, elementSelector, comparer);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, IEqualityComparer<TKey> comparer)
+        {
+            return new GroupByObservable<TSource, TKey, TElement>(source, keySelector, elementSelector, null, comparer);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TSource>> GroupBy<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, int capacity)
+        {
+            return GroupBy(source, keySelector, Stubs<TSource>.Identity, capacity);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TSource>> GroupBy<TSource, TKey>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, int capacity, IEqualityComparer<TKey> comparer)
+        {
+            return GroupBy(source, keySelector, Stubs<TSource>.Identity, capacity, comparer);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, int capacity)
+        {
+#if !UniRxLibrary
+            var comparer = UnityEqualityComparer.GetDefault<TKey>();
+#else
+            var comparer = EqualityComparer<TKey>.Default;
+#endif
+
+            return GroupBy(source, keySelector, elementSelector, capacity, comparer);
+        }
+
+        public static IObservable<IGroupedObservable<TKey, TElement>> GroupBy<TSource, TKey, TElement>(this IObservable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, int capacity, IEqualityComparer<TKey> comparer)
+        {
+            return new GroupByObservable<TSource, TKey, TElement>(source, keySelector, elementSelector, capacity, comparer);
         }
     }
 }

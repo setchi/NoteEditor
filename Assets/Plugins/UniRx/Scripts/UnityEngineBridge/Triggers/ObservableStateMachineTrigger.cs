@@ -1,5 +1,5 @@
 ﻿// over Unity5 added StateMachineBehaviour
-#if !(UNITY_4_6 || UNITY_4_5 || UNITY_4_4 || UNITY_4_3 || UNITY_4_2 || UNITY_4_1 || UNITY_4_0_1 || UNITY_4_0 || UNITY_3_5 || UNITY_3_4 || UNITY_3_3 || UNITY_3_2 || UNITY_3_1 || UNITY_3_0_0 || UNITY_3_0 || UNITY_2_6_1 || UNITY_2_6)
+#if !(UNITY_4_7 || UNITY_4_6 || UNITY_4_5 || UNITY_4_4 || UNITY_4_3 || UNITY_4_2 || UNITY_4_1 || UNITY_4_0_1 || UNITY_4_0 || UNITY_3_5 || UNITY_3_4 || UNITY_3_3 || UNITY_3_2 || UNITY_3_1 || UNITY_3_0_0 || UNITY_3_0 || UNITY_2_6_1 || UNITY_2_6)
 
 using System; // require keep for Windows Universal App
 using UnityEngine;
@@ -77,9 +77,10 @@ namespace UniRx.Triggers
             return onStateIK ?? (onStateIK = new Subject<OnStateInfo>());
         }
 
-        // ObservableStateMachine Trigger makes stop animating #70
-        // Is this Unity's bug?
-        // comment out until fixed bugs 
+        // Does not implments OnStateMove.
+        // ObservableStateMachine Trigger makes stop animating.
+        // By defining OnAnimatorMove, you are signifying that you want to intercept the movement of the root object and apply it yourself.
+        // http://fogbugz.unity3d.com/default.asp?700990_9jqaim4ev33i8e9h
 
         //// OnStateMove
 

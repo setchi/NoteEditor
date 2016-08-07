@@ -38,13 +38,39 @@ namespace UniRx
         static IScheduler mainThreadIgnoreTimeScale;
 
         /// <summary>
-        /// Another MainThread scheduler, delay elapsed time is calculated based on Time.realtimeSinceStartup.
+        /// Another MainThread scheduler, delay elapsed time is calculated based on Time.unscaledDeltaTime.
         /// </summary>
         public static IScheduler MainThreadIgnoreTimeScale
         {
             get
             {
                 return mainThreadIgnoreTimeScale ?? (mainThreadIgnoreTimeScale = new IgnoreTimeScaleMainThreadScheduler());
+            }
+        }
+
+        static IScheduler mainThreadFixedUpdate;
+
+        /// <summary>
+        /// Run on fixed update mainthread, delay elapsed time is calculated based on Time.fixedTime.
+        /// </summary>
+        public static IScheduler MainThreadFixedUpdate
+        {
+            get
+            {
+                return mainThreadFixedUpdate ?? (mainThreadFixedUpdate = new FixedUpdateMainThreadScheduler());
+            }
+        }
+
+        static IScheduler mainThreadEndOfFrame;
+
+        /// <summary>
+        /// Run on end of frame mainthread, delay elapsed time is calculated based on Time.deltaTime.
+        /// </summary>
+        public static IScheduler MainThreadEndOfFrame
+        {
+            get
+            {
+                return mainThreadEndOfFrame ?? (mainThreadEndOfFrame = new EndOfFrameMainThreadScheduler());
             }
         }
 
@@ -201,14 +227,14 @@ namespace UniRx
                 }
                 else
                 {
-                    var startTime = Time.realtimeSinceStartup; // WaitForSeconds is affected in timescale, doesn't use.
+                    var elapsed = 0f;
                     var dt = (float)dueTime.TotalSeconds;
                     while (true)
                     {
                         yield return null;
                         if (cancellation.IsDisposed) break;
 
-                        var elapsed = Time.realtimeSinceStartup - startTime;
+                        elapsed += Time.unscaledDeltaTime;
                         if (elapsed >= dt)
                         {
                             MainThreadDispatcher.UnsafeSend(action);
@@ -233,18 +259,18 @@ namespace UniRx
                 }
                 else
                 {
-                    var startTime = Time.realtimeSinceStartup; // WaitForSeconds is affected in timescale, doesn't use.
+                    var elapsed = 0f;
                     var dt = (float)period.TotalSeconds;
                     while (true)
                     {
                         yield return null;
                         if (cancellation.IsDisposed) break;
 
-                        var elapsed = Time.realtimeSinceStartup - startTime;
+                        elapsed += Time.unscaledDeltaTime;
                         if (elapsed >= dt)
                         {
-                            startTime = Time.realtimeSinceStartup; // set next start
                             MainThreadDispatcher.UnsafeSend(action);
+                            elapsed = 0;
                         }
                     }
                 }
@@ -314,6 +340,239 @@ namespace UniRx
                         t.Item3(t.Item2);
                     }
                 }
+            }
+        }
+
+        class FixedUpdateMainThreadScheduler : IScheduler, ISchedulerPeriodic, ISchedulerQueueing
+        {
+            public FixedUpdateMainThreadScheduler()
+            {
+                MainThreadDispatcher.Initialize();
+            }
+
+            IEnumerator ImmediateAction<T>(T state, Action<T> action, ICancelable cancellation)
+            {
+                yield return null;
+                if (cancellation.IsDisposed) yield break;
+
+                MainThreadDispatcher.UnsafeSend(action, state);
+            }
+
+            IEnumerator DelayAction(TimeSpan dueTime, Action action, ICancelable cancellation)
+            {
+                if (dueTime == TimeSpan.Zero)
+                {
+                    yield return null;
+                    if (cancellation.IsDisposed) yield break;
+
+                    MainThreadDispatcher.UnsafeSend(action);
+                }
+                else
+                {
+                    var startTime = Time.fixedTime;
+                    var dt = (float)dueTime.TotalSeconds;
+                    while (true)
+                    {
+                        yield return null;
+                        if (cancellation.IsDisposed) break;
+
+                        var elapsed = Time.fixedTime - startTime;
+                        if (elapsed >= dt)
+                        {
+                            MainThreadDispatcher.UnsafeSend(action);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            IEnumerator PeriodicAction(TimeSpan period, Action action, ICancelable cancellation)
+            {
+                // zero == every frame
+                if (period == TimeSpan.Zero)
+                {
+                    while (true)
+                    {
+                        yield return null;
+                        if (cancellation.IsDisposed) yield break;
+
+                        MainThreadDispatcher.UnsafeSend(action);
+                    }
+                }
+                else
+                {
+                    var startTime = Time.fixedTime;
+                    var dt = (float)period.TotalSeconds;
+                    while (true)
+                    {
+                        yield return null;
+                        if (cancellation.IsDisposed) break;
+
+                        var ft = Time.fixedTime;
+                        var elapsed = ft - startTime;
+                        if (elapsed >= dt)
+                        {
+                            MainThreadDispatcher.UnsafeSend(action);
+                            startTime = ft;
+                        }
+                    }
+                }
+            }
+
+            public DateTimeOffset Now
+            {
+                get { return Scheduler.Now; }
+            }
+
+            public IDisposable Schedule(Action action)
+            {
+                return Schedule(TimeSpan.Zero, action);
+            }
+
+            public IDisposable Schedule(DateTimeOffset dueTime, Action action)
+            {
+                return Schedule(dueTime - Now, action);
+            }
+
+            public IDisposable Schedule(TimeSpan dueTime, Action action)
+            {
+                var d = new BooleanDisposable();
+                var time = Scheduler.Normalize(dueTime);
+
+                MainThreadDispatcher.StartFixedUpdateMicroCoroutine(DelayAction(time, action, d));
+
+                return d;
+            }
+
+            public IDisposable SchedulePeriodic(TimeSpan period, Action action)
+            {
+                var d = new BooleanDisposable();
+                var time = Scheduler.Normalize(period);
+
+                MainThreadDispatcher.StartFixedUpdateMicroCoroutine(PeriodicAction(time, action, d));
+
+                return d;
+            }
+
+            public void ScheduleQueueing<T>(ICancelable cancel, T state, Action<T> action)
+            {
+                MainThreadDispatcher.StartFixedUpdateMicroCoroutine(ImmediateAction(state, action, cancel));
+            }
+        }
+
+        class EndOfFrameMainThreadScheduler : IScheduler, ISchedulerPeriodic, ISchedulerQueueing
+        {
+            public EndOfFrameMainThreadScheduler()
+            {
+                MainThreadDispatcher.Initialize();
+            }
+
+            IEnumerator ImmediateAction<T>(T state, Action<T> action, ICancelable cancellation)
+            {
+                yield return null;
+                if (cancellation.IsDisposed) yield break;
+
+                MainThreadDispatcher.UnsafeSend(action, state);
+            }
+
+            IEnumerator DelayAction(TimeSpan dueTime, Action action, ICancelable cancellation)
+            {
+                if (dueTime == TimeSpan.Zero)
+                {
+                    yield return null;
+                    if (cancellation.IsDisposed) yield break;
+
+                    MainThreadDispatcher.UnsafeSend(action);
+                }
+                else
+                {
+                    var elapsed = 0f;
+                    var dt = (float)dueTime.TotalSeconds;
+                    while (true)
+                    {
+                        yield return null;
+                        if (cancellation.IsDisposed) break;
+
+                        elapsed += Time.deltaTime;
+                        if (elapsed >= dt)
+                        {
+                            MainThreadDispatcher.UnsafeSend(action);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            IEnumerator PeriodicAction(TimeSpan period, Action action, ICancelable cancellation)
+            {
+                // zero == every frame
+                if (period == TimeSpan.Zero)
+                {
+                    while (true)
+                    {
+                        yield return null;
+                        if (cancellation.IsDisposed) yield break;
+
+                        MainThreadDispatcher.UnsafeSend(action);
+                    }
+                }
+                else
+                {
+                    var elapsed = 0f;
+                    var dt = (float)period.TotalSeconds;
+                    while (true)
+                    {
+                        yield return null;
+                        if (cancellation.IsDisposed) break;
+                        
+                        elapsed += Time.deltaTime;
+                        if (elapsed >= dt)
+                        {
+                            MainThreadDispatcher.UnsafeSend(action);
+                            elapsed = 0;
+                        }
+                    }
+                }
+            }
+
+            public DateTimeOffset Now
+            {
+                get { return Scheduler.Now; }
+            }
+
+            public IDisposable Schedule(Action action)
+            {
+                return Schedule(TimeSpan.Zero, action);
+            }
+
+            public IDisposable Schedule(DateTimeOffset dueTime, Action action)
+            {
+                return Schedule(dueTime - Now, action);
+            }
+
+            public IDisposable Schedule(TimeSpan dueTime, Action action)
+            {
+                var d = new BooleanDisposable();
+                var time = Scheduler.Normalize(dueTime);
+
+                MainThreadDispatcher.StartEndOfFrameMicroCoroutine(DelayAction(time, action, d));
+
+                return d;
+            }
+
+            public IDisposable SchedulePeriodic(TimeSpan period, Action action)
+            {
+                var d = new BooleanDisposable();
+                var time = Scheduler.Normalize(period);
+
+                MainThreadDispatcher.StartEndOfFrameMicroCoroutine(PeriodicAction(time, action, d));
+
+                return d;
+            }
+
+            public void ScheduleQueueing<T>(ICancelable cancel, T state, Action<T> action)
+            {
+                MainThreadDispatcher.StartEndOfFrameMicroCoroutine(ImmediateAction(state, action, cancel));
             }
         }
     }

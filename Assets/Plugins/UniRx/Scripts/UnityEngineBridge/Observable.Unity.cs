@@ -21,6 +21,21 @@ namespace UniRx
         EndOfFrame,
     }
 
+    public enum MainThreadDispatchType
+    {
+        /// <summary>yield return null</summary>
+        Update,
+        FixedUpdate,
+        EndOfFrame,
+        GameObjectUpdate,
+        LateUpdate,
+#if SupportCustomYieldInstruction
+        /// <summary>[Obsolete]Same as Update</summary>
+        [Obsolete]
+        AfterUpdate
+#endif
+    }
+
     public static class FrameCountTypeExtensions
     {
         public static YieldInstruction GetYieldInstruction(this FrameCountType frameCountType)
@@ -38,20 +53,31 @@ namespace UniRx
         }
     }
 
-    public class ObservableYieldInstruction<T> : IEnumerator<T>
+    internal interface ICustomYieldInstructionErrorHandler
+    {
+        bool HasError { get; }
+        Exception Error { get; }
+        bool IsReThrowOnError { get; }
+        void ForceDisableRethrowOnError();
+        void ForceEnableRethrowOnError();
+    }
+
+    public class ObservableYieldInstruction<T> : IEnumerator<T>, ICustomYieldInstructionErrorHandler
     {
         readonly IDisposable subscription;
-        readonly bool reThrowOnError;
+        readonly CancellationToken cancel;
+        bool reThrowOnError;
         T current;
         T result;
         bool moveNext;
         bool hasResult;
         Exception error;
 
-        public ObservableYieldInstruction(IObservable<T> source, bool reThrowOnError)
+        public ObservableYieldInstruction(IObservable<T> source, bool reThrowOnError, CancellationToken cancel)
         {
             this.moveNext = true;
             this.reThrowOnError = reThrowOnError;
+            this.cancel = cancel;
             try
             {
                 this.subscription = source.Subscribe(new ToYieldInstruction(this));
@@ -71,6 +97,27 @@ namespace UniRx
         public bool HasResult
         {
             get { return hasResult; }
+        }
+
+        public bool IsCanceled
+        {
+            get
+            {
+                if (hasResult) return false;
+                if (error != null) return false;
+                return cancel.IsCancellationRequested;
+            }
+        }
+
+        /// <summary>
+        /// HasResult || IsCanceled || HasError
+        /// </summary>
+        public bool IsDone
+        {
+            get
+            {
+                return HasResult || HasError || (cancel.IsCancellationRequested);
+            }
         }
 
         public T Result
@@ -104,7 +151,38 @@ namespace UniRx
 
         bool IEnumerator.MoveNext()
         {
-            return moveNext;
+            if (!moveNext)
+            {
+                if (reThrowOnError && HasError)
+                {
+                    throw Error;
+                }
+
+                return false;
+            }
+
+            if (cancel.IsCancellationRequested)
+            {
+                subscription.Dispose();
+                return false;
+            }
+
+            return true;
+        }
+
+        bool ICustomYieldInstructionErrorHandler.IsReThrowOnError
+        {
+            get { return reThrowOnError; }
+        }
+
+        void ICustomYieldInstructionErrorHandler.ForceDisableRethrowOnError()
+        {
+            this.reThrowOnError = false;
+        }
+
+        void ICustomYieldInstructionErrorHandler.ForceEnableRethrowOnError()
+        {
+            this.reThrowOnError = true;
         }
 
         public void Dispose()
@@ -135,10 +213,6 @@ namespace UniRx
             {
                 parent.moveNext = false;
                 parent.error = error;
-                if (parent.reThrowOnError)
-                {
-                    throw error;
-                }
             }
 
             public void OnCompleted()
@@ -166,10 +240,88 @@ namespace UniRx
             typeof(Coroutine)
         };
 
+#if SupportCustomYieldInstruction
+
+        class EveryAfterUpdateInvoker : IEnumerator
+        {
+            long count = -1;
+            readonly IObserver<long> observer;
+            readonly CancellationToken cancellationToken;
+
+            public EveryAfterUpdateInvoker(IObserver<long> observer, CancellationToken cancellationToken)
+            {
+                this.observer = observer;
+                this.cancellationToken = cancellationToken;
+            }
+
+            public bool MoveNext()
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    if (count != -1) // ignore first/immediate invoke
+                    {
+                        observer.OnNext(count++);
+                    }
+                    else
+                    {
+                        count++;
+                    }
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            public object Current
+            {
+                get
+                {
+                    return null;
+                }
+            }
+
+            public void Reset()
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+#endif
+
+
+
         /// <summary>From has no callback coroutine to IObservable. If publishEveryYield = true then publish OnNext every yield return else return once on enumeration completed.</summary>
         public static IObservable<Unit> FromCoroutine(Func<IEnumerator> coroutine, bool publishEveryYield = false)
         {
             return FromCoroutine<Unit>((observer, cancellationToken) => WrapEnumerator(coroutine(), observer, cancellationToken, publishEveryYield));
+        }
+
+        /// <summary>From has no callback coroutine to IObservable. If publishEveryYield = true then publish OnNext every yield return else return once on enumeration completed.</summary>
+        public static IObservable<Unit> FromCoroutine(Func<CancellationToken, IEnumerator> coroutine, bool publishEveryYield = false)
+        {
+            return FromCoroutine<Unit>((observer, cancellationToken) => WrapEnumerator(coroutine(cancellationToken), observer, cancellationToken, publishEveryYield));
+        }
+
+        /// <summary>
+        /// MicroCoroutine is lightweight, fast coroutine dispatcher.
+        /// IEnumerator supports only yield return null.
+        /// If publishEveryYield = true then publish OnNext every yield return else return once on enumeration completed.
+        /// </summary>
+        public static IObservable<Unit> FromMicroCoroutine(Func<IEnumerator> coroutine, bool publishEveryYield = false, FrameCountType frameCountType = FrameCountType.Update)
+        {
+            return FromMicroCoroutine<Unit>((observer, cancellationToken) => WrapEnumerator(coroutine(), observer, cancellationToken, publishEveryYield), frameCountType);
+        }
+
+        /// <summary>
+        /// MicroCoroutine is lightweight, fast coroutine dispatcher.
+        /// IEnumerator supports only yield return null.
+        /// If publishEveryYield = true then publish OnNext every yield return else return once on enumeration completed.
+        /// </summary>
+        public static IObservable<Unit> FromMicroCoroutine(Func<CancellationToken, IEnumerator> coroutine, bool publishEveryYield = false, FrameCountType frameCountType = FrameCountType.Update)
+        {
+            return FromMicroCoroutine<Unit>((observer, cancellationToken) => WrapEnumerator(coroutine(cancellationToken), observer, cancellationToken, publishEveryYield), frameCountType);
         }
 
         static IEnumerator WrapEnumerator(IEnumerator enumerator, IObserver<Unit> observer, CancellationToken cancellationToken, bool publishEveryYield)
@@ -217,7 +369,43 @@ namespace UniRx
                 }
                 if (hasNext)
                 {
+#if SupportCustomYieldInstruction
+                    var current = enumerator.Current;
+                    var customHandler = current as ICustomYieldInstructionErrorHandler;
+                    if (customHandler != null && customHandler.IsReThrowOnError)
+                    {
+                        // If throws exception in Custom YieldInsrtuction, can't handle parent coroutine.
+                        // It is C# limitation.
+                        // so store error info and retrieve from parent.
+                        customHandler.ForceDisableRethrowOnError();
+                        yield return current;
+                        customHandler.ForceEnableRethrowOnError();
+
+                        if (customHandler.HasError)
+                        {
+                            try
+                            {
+                                raisedError = true;
+                                observer.OnError(customHandler.Error);
+                            }
+                            finally
+                            {
+                                var d = enumerator as IDisposable;
+                                if (d != null)
+                                {
+                                    d.Dispose();
+                                }
+                            }
+                            yield break;
+                        }
+                    }
+                    else
+                    {
+                        yield return enumerator.Current; // yield inner YieldInstruction
+                    }
+#else
                     yield return enumerator.Current; // yield inner YieldInstruction
+#endif
                 }
             } while (hasNext && !cancellationToken.IsCancellationRequested);
 
@@ -243,6 +431,12 @@ namespace UniRx
         public static IObservable<T> FromCoroutineValue<T>(Func<IEnumerator> coroutine, bool nullAsNextUpdate = true)
         {
             return FromCoroutine<T>((observer, cancellationToken) => WrapEnumeratorYieldValue<T>(coroutine(), observer, cancellationToken, nullAsNextUpdate));
+        }
+
+        /// <summary>Convert coroutine to typed IObservable. If nullAsNextUpdate = true then yield return null when Enumerator.Current and no null publish observer.OnNext.</summary>
+        public static IObservable<T> FromCoroutineValue<T>(Func<CancellationToken, IEnumerator> coroutine, bool nullAsNextUpdate = true)
+        {
+            return FromCoroutine<T>((observer, cancellationToken) => WrapEnumeratorYieldValue<T>(coroutine(cancellationToken), observer, cancellationToken, nullAsNextUpdate));
         }
 
         static IEnumerator WrapEnumeratorYieldValue<T>(IEnumerator enumerator, IObserver<T> observer, CancellationToken cancellationToken, bool nullAsNextUpdate)
@@ -284,7 +478,38 @@ namespace UniRx
 #if SupportCustomYieldInstruction
                     else if (current is IEnumerator)
                     {
-                        yield return current;
+                        var customHandler = current as ICustomYieldInstructionErrorHandler;
+                        if (customHandler != null && customHandler.IsReThrowOnError)
+                        {
+                            // If throws exception in Custom YieldInsrtuction, can't handle parent coroutine.
+                            // It is C# limitation.
+                            // so store error info and retrieve from parent.
+                            customHandler.ForceDisableRethrowOnError();
+                            yield return current;
+                            customHandler.ForceEnableRethrowOnError();
+
+                            if (customHandler.HasError)
+                            {
+                                try
+                                {
+                                    raisedError = true;
+                                    observer.OnError(customHandler.Error);
+                                }
+                                finally
+                                {
+                                    var d = enumerator as IDisposable;
+                                    if (d != null)
+                                    {
+                                        d.Dispose();
+                                    }
+                                }
+                                yield break;
+                            }
+                        }
+                        else
+                        {
+                            yield return current;
+                        }
                     }
 #endif
                     else if (current == null && nullAsNextUpdate)
@@ -329,12 +554,61 @@ namespace UniRx
 
         public static IObservable<T> FromCoroutine<T>(Func<IObserver<T>, IEnumerator> coroutine)
         {
-            return FromCoroutine<T>((observer, _) => coroutine(observer));
+            return FromCoroutine<T>((observer, cancellationToken) => WrapToCancellableEnumerator(coroutine(observer), cancellationToken));
         }
 
+        /// <summary>
+        /// MicroCoroutine is lightweight, fast coroutine dispatcher.
+        /// IEnumerator supports only yield return null.
+        /// </summary>
+        public static IObservable<T> FromMicroCoroutine<T>(Func<IObserver<T>, IEnumerator> coroutine, FrameCountType frameCountType = FrameCountType.Update)
+        {
+            return FromMicroCoroutine<T>((observer, cancellationToken) => WrapToCancellableEnumerator(coroutine(observer), cancellationToken), frameCountType);
+        }
+
+        static IEnumerator WrapToCancellableEnumerator(IEnumerator enumerator, CancellationToken cancellationToken)
+        {
+            var hasNext = default(bool);
+            do
+            {
+                try
+                {
+                    hasNext = enumerator.MoveNext();
+                }
+                catch
+                {
+                    var d = enumerator as IDisposable;
+                    if (d != null)
+                    {
+                        d.Dispose();
+                    }
+                    yield break;
+                }
+
+                yield return enumerator.Current; // yield inner YieldInstruction
+            } while (hasNext && !cancellationToken.IsCancellationRequested);
+
+            {
+                var d = enumerator as IDisposable;
+                if (d != null)
+                {
+                    d.Dispose();
+                }
+            }
+        }
+   
         public static IObservable<T> FromCoroutine<T>(Func<IObserver<T>, CancellationToken, IEnumerator> coroutine)
         {
-            return new UniRx.Operators.FromCoroutine<T>(coroutine);
+            return new UniRx.Operators.FromCoroutineObservable<T>(coroutine);
+        }
+
+        /// <summary>
+        /// MicroCoroutine is lightweight, fast coroutine dispatcher.
+        /// IEnumerator supports only yield return null.
+        /// </summary>
+        public static IObservable<T> FromMicroCoroutine<T>(Func<IObserver<T>, CancellationToken, IEnumerator> coroutine, FrameCountType frameCountType = FrameCountType.Update)
+        {
+            return new UniRx.Operators.FromMicroCoroutineObservable<T>(coroutine, frameCountType);
         }
 
         public static IObservable<Unit> SelectMany<T>(this IObservable<T> source, IEnumerator coroutine, bool publishEveryYield = false)
@@ -360,14 +634,51 @@ namespace UniRx
             return FromCoroutine<Unit>((observer, cancellationToken) => WrapEnumerator(coroutine, observer, cancellationToken, publishEveryYield));
         }
 
-        // variation of FromCoroutine
+#if SupportCustomYieldInstruction
 
-        public static IObservable<long> EveryUpdate()
+        public static ObservableYieldInstruction<Unit> ToYieldInstruction(this IEnumerator coroutine)
         {
-            return FromCoroutine<long>((observer, cancellationToken) => EveryUpdateCore(observer, cancellationToken));
+            return ToObservable(coroutine, false).ToYieldInstruction();
         }
 
-        static IEnumerator EveryUpdateCore(IObserver<long> observer, CancellationToken cancellationToken)
+        public static ObservableYieldInstruction<Unit> ToYieldInstruction(this IEnumerator coroutine, bool throwOnError)
+        {
+            return ToObservable(coroutine, false).ToYieldInstruction(throwOnError);
+        }
+
+        public static ObservableYieldInstruction<Unit> ToYieldInstruction(this IEnumerator coroutine, CancellationToken cancellationToken)
+        {
+            return ToObservable(coroutine, false).ToYieldInstruction(cancellationToken);
+        }
+
+        public static ObservableYieldInstruction<Unit> ToYieldInstruction(this IEnumerator coroutine, bool throwOnError, CancellationToken cancellationToken)
+        {
+            return ToObservable(coroutine, false).ToYieldInstruction(throwOnError, cancellationToken);
+        }
+
+#endif
+
+        // variation of FromCoroutine
+
+        /// <summary>
+        /// EveryUpdate calls coroutine's yield return null timing. It is after all Update and before LateUpdate.
+        /// </summary>
+        public static IObservable<long> EveryUpdate()
+        {
+            return FromMicroCoroutine<long>((observer, cancellationToken) => EveryCycleCore(observer, cancellationToken), FrameCountType.Update);
+        }
+
+        public static IObservable<long> EveryFixedUpdate()
+        {
+            return FromMicroCoroutine<long>((observer, cancellationToken) => EveryCycleCore(observer, cancellationToken), FrameCountType.FixedUpdate);
+        }
+
+        public static IObservable<long> EveryEndOfFrame()
+        {
+            return FromMicroCoroutine<long>((observer, cancellationToken) => EveryCycleCore(observer, cancellationToken), FrameCountType.EndOfFrame);
+        }
+
+        static IEnumerator EveryCycleCore(IObserver<long> observer, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested) yield break;
             var count = 0L;
@@ -380,43 +691,34 @@ namespace UniRx
             }
         }
 
-        public static IObservable<long> EveryFixedUpdate()
+        /// <summary>
+        /// EveryGameObjectUpdate calls from MainThreadDispatcher's Update.
+        /// </summary>
+        public static IObservable<long> EveryGameObjectUpdate()
         {
-            return FromCoroutine<long>((observer, cancellationToken) => EveryFixedUpdateCore(observer, cancellationToken));
+            return MainThreadDispatcher.UpdateAsObservable().Scan(-1L, (x, y) => x + 1);
         }
 
-        static IEnumerator EveryFixedUpdateCore(IObserver<long> observer, CancellationToken cancellationToken)
+        /// <summary>
+        /// EveryLateUpdate calls from MainThreadDispatcher's OnLateUpdate.
+        /// </summary>
+        public static IObservable<long> EveryLateUpdate()
         {
-            if (cancellationToken.IsCancellationRequested) yield break;
-            var count = 0L;
-            var yieldInstruction = YieldInstructionCache.WaitForFixedUpdate;
-            while (true)
-            {
-                yield return yieldInstruction;
-                if (cancellationToken.IsCancellationRequested) yield break;
-
-                observer.OnNext(count++);
-            }
+            return MainThreadDispatcher.LateUpdateAsObservable().Scan(-1L, (x, y) => x + 1);
         }
 
-        public static IObservable<long> EveryEndOfFrame()
+#if SupportCustomYieldInstruction
+
+        /// <summary>
+        /// [Obsolete]Same as EveryUpdate.
+        /// </summary>
+        [Obsolete]
+        public static IObservable<long> EveryAfterUpdate()
         {
-            return FromCoroutine<long>((observer, cancellationToken) => EveryEndOfFrameCore(observer, cancellationToken));
+            return FromCoroutine<long>((observer, cancellationToken) => new EveryAfterUpdateInvoker(observer, cancellationToken));
         }
 
-        static IEnumerator EveryEndOfFrameCore(IObserver<long> observer, CancellationToken cancellationToken)
-        {
-            if (cancellationToken.IsCancellationRequested) yield break;
-            var count = 0L;
-            var yieldInstruction = YieldInstructionCache.WaitForEndOfFrame;
-            while (true)
-            {
-                yield return yieldInstruction;
-                if (cancellationToken.IsCancellationRequested) yield break;
-
-                observer.OnNext(count++);
-            }
-        }
+#endif
 
         #region Observable.Time Frame Extensions
 
@@ -424,12 +726,12 @@ namespace UniRx
 
         public static IObservable<Unit> NextFrame(FrameCountType frameCountType = FrameCountType.Update)
         {
-            return FromCoroutine<Unit>((observer, cancellation) => NextFrameCore(observer, frameCountType, cancellation));
+            return FromMicroCoroutine<Unit>((observer, cancellation) => NextFrameCore(observer, cancellation), frameCountType);
         }
 
-        static IEnumerator NextFrameCore(IObserver<Unit> observer, FrameCountType frameCountType, CancellationToken cancellation)
+        static IEnumerator NextFrameCore(IObserver<Unit> observer, CancellationToken cancellation)
         {
-            yield return frameCountType.GetYieldInstruction();
+            yield return null;
 
             if (!cancellation.IsCancellationRequested)
             {
@@ -445,21 +747,21 @@ namespace UniRx
 
         public static IObservable<long> TimerFrame(int dueTimeFrameCount, FrameCountType frameCountType = FrameCountType.Update)
         {
-            return FromCoroutine<long>((observer, cancellation) => TimerFrameCore(observer, dueTimeFrameCount, frameCountType, cancellation));
+            return FromMicroCoroutine<long>((observer, cancellation) => TimerFrameCore(observer, dueTimeFrameCount, cancellation), frameCountType);
         }
 
         public static IObservable<long> TimerFrame(int dueTimeFrameCount, int periodFrameCount, FrameCountType frameCountType = FrameCountType.Update)
         {
-            return FromCoroutine<long>((observer, cancellation) => TimerFrameCore(observer, dueTimeFrameCount, periodFrameCount, frameCountType, cancellation));
+            return FromMicroCoroutine<long>((observer, cancellation) => TimerFrameCore(observer, dueTimeFrameCount, periodFrameCount, cancellation), frameCountType);
         }
 
-        static IEnumerator TimerFrameCore(IObserver<long> observer, int dueTimeFrameCount, FrameCountType frameCountType, CancellationToken cancel)
+        static IEnumerator TimerFrameCore(IObserver<long> observer, int dueTimeFrameCount, CancellationToken cancel)
         {
             // normalize
             if (dueTimeFrameCount <= 0) dueTimeFrameCount = 0;
 
             var currentFrame = 0;
-            var yieldInstruction = frameCountType.GetYieldInstruction();
+
             // initial phase
             while (!cancel.IsCancellationRequested)
             {
@@ -469,11 +771,11 @@ namespace UniRx
                     observer.OnCompleted();
                     break;
                 }
-                yield return yieldInstruction;
+                yield return null;
             }
         }
 
-        static IEnumerator TimerFrameCore(IObserver<long> observer, int dueTimeFrameCount, int periodFrameCount, FrameCountType frameCountType, CancellationToken cancel)
+        static IEnumerator TimerFrameCore(IObserver<long> observer, int dueTimeFrameCount, int periodFrameCount, CancellationToken cancel)
         {
             // normalize
             if (dueTimeFrameCount <= 0) dueTimeFrameCount = 0;
@@ -481,7 +783,6 @@ namespace UniRx
 
             var sendCount = 0L;
             var currentFrame = 0;
-            var yieldInstruction = frameCountType.GetYieldInstruction();
 
             // initial phase
             while (!cancel.IsCancellationRequested)
@@ -492,7 +793,7 @@ namespace UniRx
                     currentFrame = -1;
                     break;
                 }
-                yield return yieldInstruction;
+                yield return null;
             }
 
             // period phase
@@ -503,7 +804,7 @@ namespace UniRx
                     observer.OnNext(sendCount++);
                     currentFrame = 0;
                 }
-                yield return yieldInstruction;
+                yield return null;
             }
         }
 
@@ -554,7 +855,17 @@ namespace UniRx
         /// </summary>
         public static ObservableYieldInstruction<T> ToYieldInstruction<T>(this IObservable<T> source)
         {
-            return new ObservableYieldInstruction<T>(source, true);
+            return new ObservableYieldInstruction<T>(source, true, CancellationToken.Empty);
+        }
+
+        /// <summary>
+        /// Convert to yieldable IEnumerator. e.g. yield return source.ToYieldInstruction();.
+        /// If needs last result, you can take ObservableYieldInstruction.HasResult/Result property.
+        /// This overload throws exception if received OnError events(same as coroutine).
+        /// </summary>
+        public static ObservableYieldInstruction<T> ToYieldInstruction<T>(this IObservable<T> source, CancellationToken cancel)
+        {
+            return new ObservableYieldInstruction<T>(source, true, cancel);
         }
 
         /// <summary>
@@ -564,7 +875,17 @@ namespace UniRx
         /// </summary>
         public static ObservableYieldInstruction<T> ToYieldInstruction<T>(this IObservable<T> source, bool throwOnError)
         {
-            return new ObservableYieldInstruction<T>(source, throwOnError);
+            return new ObservableYieldInstruction<T>(source, throwOnError, CancellationToken.Empty);
+        }
+
+        /// <summary>
+        /// Convert to yieldable IEnumerator. e.g. yield return source.ToYieldInstruction();.
+        /// If needs last result, you can take ObservableYieldInstruction.HasResult/Result property.
+        /// If throwOnError = false, you can take ObservableYieldInstruction.HasError/Error property.
+        /// </summary>
+        public static ObservableYieldInstruction<T> ToYieldInstruction<T>(this IObservable<T> source, bool throwOnError, CancellationToken cancel)
+        {
+            return new ObservableYieldInstruction<T>(source, throwOnError, cancel);
         }
 
 #endif
@@ -572,7 +893,7 @@ namespace UniRx
         /// <summary>Convert to awaitable IEnumerator.</summary>
         public static IEnumerator ToAwaitableEnumerator<T>(this IObservable<T> source, CancellationToken cancel = default(CancellationToken))
         {
-            return ToAwaitableEnumerator<T>(source, Stubs.Ignore<T>, Stubs.Throw, cancel);
+            return ToAwaitableEnumerator<T>(source, Stubs<T>.Ignore, Stubs.Throw, cancel);
         }
 
         /// <summary>Convert to awaitable IEnumerator.</summary>
@@ -584,13 +905,13 @@ namespace UniRx
         /// <summary>Convert to awaitable IEnumerator.</summary>
         public static IEnumerator ToAwaitableEnumerator<T>(this IObservable<T> source, Action<Exception> onError, CancellationToken cancel = default(CancellationToken))
         {
-            return ToAwaitableEnumerator<T>(source, Stubs.Ignore<T>, onError, cancel);
+            return ToAwaitableEnumerator<T>(source, Stubs<T>.Ignore, onError, cancel);
         }
 
         /// <summary>Convert to awaitable IEnumerator.</summary>
         public static IEnumerator ToAwaitableEnumerator<T>(this IObservable<T> source, Action<T> onResult, Action<Exception> onError, CancellationToken cancel = default(CancellationToken))
         {
-            var enumerator = new ObservableYieldInstruction<T>(source, false);
+            var enumerator = new ObservableYieldInstruction<T>(source, false, cancel);
             var e = (IEnumerator<T>)enumerator;
             while (e.MoveNext() && !cancel.IsCancellationRequested)
             {
@@ -600,6 +921,7 @@ namespace UniRx
             if (cancel.IsCancellationRequested)
             {
                 enumerator.Dispose();
+                yield break;
             }
 
             if (enumerator.HasResult)
@@ -615,7 +937,7 @@ namespace UniRx
         /// <summary>AutoStart observable as coroutine.</summary>
         public static Coroutine StartAsCoroutine<T>(this IObservable<T> source, CancellationToken cancel = default(CancellationToken))
         {
-            return StartAsCoroutine<T>(source, Stubs.Ignore<T>, Stubs.Throw, cancel);
+            return StartAsCoroutine<T>(source, Stubs<T>.Ignore, Stubs.Throw, cancel);
         }
 
         /// <summary>AutoStart observable as coroutine.</summary>
@@ -627,7 +949,7 @@ namespace UniRx
         /// <summary>AutoStart observable as coroutine.</summary>
         public static Coroutine StartAsCoroutine<T>(this IObservable<T> source, Action<Exception> onError, CancellationToken cancel = default(CancellationToken))
         {
-            return StartAsCoroutine<T>(source, Stubs.Ignore<T>, onError, cancel);
+            return StartAsCoroutine<T>(source, Stubs<T>.Ignore, onError, cancel);
         }
 
         /// <summary>AutoStart observable as coroutine.</summary>
@@ -641,10 +963,64 @@ namespace UniRx
             return source.ObserveOn(SchedulerUnity.MainThread);
         }
 
+        public static IObservable<T> ObserveOnMainThread<T>(this IObservable<T> source, MainThreadDispatchType dispatchType)
+        {
+            switch (dispatchType)
+            {
+                case MainThreadDispatchType.Update:
+                    return source.ObserveOnMainThread(); // faster path
+
+                // others, bit slower
+
+                case MainThreadDispatchType.FixedUpdate:
+                    return source.SelectMany(_ => EveryFixedUpdate().Take(1), (x, _) => x);
+                case MainThreadDispatchType.EndOfFrame:
+                    return source.SelectMany(_ => EveryEndOfFrame().Take(1), (x, _) => x);
+                case MainThreadDispatchType.GameObjectUpdate:
+                    return source.SelectMany(_ => MainThreadDispatcher.UpdateAsObservable().Take(1), (x, _) => x);
+                case MainThreadDispatchType.LateUpdate:
+                    return source.SelectMany(_ => MainThreadDispatcher.LateUpdateAsObservable().Take(1), (x, _) => x);
+#if SupportCustomYieldInstruction
+#pragma warning disable 612 // Type or member is obsolete
+                case MainThreadDispatchType.AfterUpdate:
+                    return source.SelectMany(_ => EveryAfterUpdate().Take(1), (x, _) => x);
+#pragma warning restore 612 // Type or member is obsolete
+#endif
+                default:
+                    throw new ArgumentException("type is invalid");
+            }
+        }
+
         public static IObservable<T> SubscribeOnMainThread<T>(this IObservable<T> source)
         {
             return source.SubscribeOn(SchedulerUnity.MainThread);
         }
+
+        // I can't avoid Unity 5.3's uNET weaver bug, pending...
+
+        //public static IObservable<T> SubscribeOnMainThread<T>(this IObservable<T> source, MainThreadDispatchType dispatchType)
+        //{
+        //    switch (dispatchType)
+        //    {
+        //        case MainThreadDispatchType.Update:
+        //            return source.SubscribeOnMainThread(); // faster path
+
+        //        // others, bit slower
+
+        //        case MainThreadDispatchType.FixedUpdate:
+        //            return new UniRx.Operators.SubscribeOnMainThreadObservable<T>(source, EveryFixedUpdate().Take(1));
+        //        case MainThreadDispatchType.EndOfFrame:
+        //            return new UniRx.Operators.SubscribeOnMainThreadObservable<T>(source, EveryEndOfFrame().Take(1));
+        //        case MainThreadDispatchType.GameObjectUpdate:
+        //            return new UniRx.Operators.SubscribeOnMainThreadObservable<T>(source, MainThreadDispatcher.UpdateAsObservable().Select(_ => 0L).Take(1));
+        //        case MainThreadDispatchType.LateUpdate:
+        //            return new UniRx.Operators.SubscribeOnMainThreadObservable<T>(source, MainThreadDispatcher.LateUpdateAsObservable().Select(_ => 0L).Take(1));
+        //        case MainThreadDispatchType.AfterUpdate:
+        //            return new UniRx.Operators.SubscribeOnMainThreadObservable<T>(source, EveryAfterUpdate().Take(1));
+        //        default:
+        //            throw new ArgumentException("type is invalid");
+        //    }
+        //}
 
         public static IObservable<bool> EveryApplicationPause()
         {
@@ -707,6 +1083,50 @@ namespace UniRx
             return new UniRx.Operators.RepeatUntilObservable<T>(sources, trigger, lifeTimeChecker);
         }
 
+        public static IObservable<UniRx.FrameInterval<T>> FrameInterval<T>(this IObservable<T> source)
+        {
+            return new UniRx.Operators.FrameIntervalObservable<T>(source);
+        }
+
+        public static IObservable<UniRx.TimeInterval<T>> FrameTimeInterval<T>(this IObservable<T> source, bool ignoreTimeScale = false)
+        {
+            return new UniRx.Operators.FrameTimeIntervalObservable<T>(source, ignoreTimeScale);
+        }
+
+        /// <summary>
+        /// Buffer elements in during target frame counts. Default raise same frame of end(frameCount = 0, frameCountType = EndOfFrame).
+        /// </summary>
+        public static IObservable<IList<T>> BatchFrame<T>(this IObservable<T> source)
+        {
+            // if use default argument, comiler errors ambiguous(Unity's limitation)
+            return BatchFrame<T>(source, 0, FrameCountType.EndOfFrame);
+        }
+
+        /// <summary>
+        /// Buffer elements in during target frame counts.
+        /// </summary>
+        public static IObservable<IList<T>> BatchFrame<T>(this IObservable<T> source, int frameCount, FrameCountType frameCountType)
+        {
+            if (frameCount < 0) throw new ArgumentException("frameCount must be >= 0, frameCount:" + frameCount);
+            return new UniRx.Operators.BatchFrameObservable<T>(source, frameCount, frameCountType);
+        }
+
+        /// <summary>
+        /// Wait command in during target frame counts. Default raise same frame of end(frameCount = 0, frameCountType = EndOfFrame).
+        /// </summary>
+        public static IObservable<Unit> BatchFrame(this IObservable<Unit> source)
+        {
+            return BatchFrame(source, 0, FrameCountType.EndOfFrame);
+        }
+
+        /// <summary>
+        /// Wait command in during target frame counts.
+        /// </summary>
+        public static IObservable<Unit> BatchFrame(this IObservable<Unit> source, int frameCount, FrameCountType frameCountType)
+        {
+            if (frameCount < 0) throw new ArgumentException("frameCount must be >= 0, frameCount:" + frameCount);
+            return new UniRx.Operators.BatchFrameObservable(source, frameCount, frameCountType);
+        }
 
 #if UniRxLibrary
 

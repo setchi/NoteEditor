@@ -9,6 +9,7 @@ namespace UniRx
     public interface IReadOnlyReactiveProperty<T> : IObservable<T>
     {
         T Value { get; }
+        bool HasValue { get; }
     }
 
     public interface IReactiveProperty<T> : IReadOnlyReactiveProperty<T>
@@ -22,6 +23,12 @@ namespace UniRx
     [Serializable]
     public class ReactiveProperty<T> : IReactiveProperty<T>, IDisposable, IOptimizedObservable<T>
     {
+#if !UniRxLibrary
+        static readonly IEqualityComparer<T> defaultEqualityComparer = UnityEqualityComparer.GetDefault<T>();
+#else
+        static readonly IEqualityComparer<T> defaultEqualityComparer = EqualityComparer<T>.Default;
+#endif
+
         [NonSerialized]
         bool canPublishValueOnSubscribe = false;
 
@@ -38,6 +45,14 @@ namespace UniRx
 
         [NonSerialized]
         IDisposable sourceConnection = null;
+
+        protected virtual IEqualityComparer<T> EqualityComparer
+        {
+            get
+            {
+                return defaultEqualityComparer;
+            }
+        }
 
         public T Value
         {
@@ -61,34 +76,25 @@ namespace UniRx
                     return;
                 }
 
-                if (value == null)
+                if (!EqualityComparer.Equals(this.value, value))
                 {
-                    if (this.value != null)
-                    {
-                        SetValue(value);
+                    SetValue(value);
 
-                        if (isDisposed) return; // don't notify but set value 
-                        var p = publisher;
-                        if (p != null)
-                        {
-                            p.OnNext(this.value);
-                        }
+                    if (isDisposed) return;
+                    var p = publisher;
+                    if (p != null)
+                    {
+                        p.OnNext(this.value);
                     }
                 }
-                else
-                {
-                    if (this.value == null || !this.value.Equals(value)) // don't use EqualityComparer<T>.Default
-                    {
-                        SetValue(value);
+            }
+        }
 
-                        if (isDisposed) return;
-                        var p = publisher;
-                        if (p != null)
-                        {
-                            p.OnNext(this.value);
-                        }
-                    }
-                }
+        public bool HasValue
+        {
+            get
+            {
+                return canPublishValueOnSubscribe;
             }
         }
 
@@ -101,7 +107,7 @@ namespace UniRx
 
         public ReactiveProperty(T initialValue)
         {
-            value = initialValue;
+            SetValue(initialValue);
             canPublishValueOnSubscribe = true;
         }
 
@@ -118,7 +124,7 @@ namespace UniRx
         public ReactiveProperty(IObservable<T> source, T initialValue)
         {
             canPublishValueOnSubscribe = false;
-            Value = initialValue;
+            Value = initialValue; // Value set canPublishValueOnSubcribe = true
             publisher = new Subject<T>();
             sourceConnection = source.Subscribe(new ReactivePropertyObserver(this));
         }
@@ -274,6 +280,14 @@ namespace UniRx
             }
         }
 
+        public bool HasValue
+        {
+            get
+            {
+                return canPublishValueOnSubscribe;
+            }
+        }
+
         public ReadOnlyReactiveProperty(IObservable<T> source)
         {
             publisher = new Subject<T>();
@@ -283,6 +297,7 @@ namespace UniRx
         public ReadOnlyReactiveProperty(IObservable<T> source, T initialValue)
         {
             value = initialValue;
+            canPublishValueOnSubscribe = true;
             publisher = new Subject<T>();
             sourceConnection = source.Subscribe(new ReadOnlyReactivePropertyObserver(this));
         }
@@ -422,6 +437,11 @@ namespace UniRx
         public static ReadOnlyReactiveProperty<T> ToReadOnlyReactiveProperty<T>(this IObservable<T> source, T initialValue)
         {
             return new ReadOnlyReactiveProperty<T>(source, initialValue);
+        }
+
+        public static IObservable<T> SkipLatestValueOnSubscribe<T>(this IReadOnlyReactiveProperty<T> source)
+        {
+            return source.HasValue ? source.Skip(1) : source;
         }
 
         // for multiple toggle or etc..

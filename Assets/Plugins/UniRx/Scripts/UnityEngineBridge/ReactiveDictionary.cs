@@ -5,66 +5,109 @@ using System.Runtime.Serialization;
 
 namespace UniRx
 {
-    public class DictionaryAddEvent<TKey, TValue>
+    public struct DictionaryAddEvent<TKey, TValue> : IEquatable<DictionaryAddEvent<TKey, TValue>>
     {
         public TKey Key { get; private set; }
         public TValue Value { get; private set; }
 
-        public DictionaryAddEvent(TKey Key, TValue value)
+        public DictionaryAddEvent(TKey key, TValue value)
+            : this()
         {
-            this.Key = Key;
-            this.Value = value;
+            Key = key;
+            Value = value;
         }
 
         public override string ToString()
         {
             return string.Format("Key:{0} Value:{1}", Key, Value);
         }
+
+        public override int GetHashCode()
+        {
+            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^ EqualityComparer<TValue>.Default.GetHashCode(Value) << 2;
+        }
+
+        public bool Equals(DictionaryAddEvent<TKey, TValue> other)
+        {
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) && EqualityComparer<TValue>.Default.Equals(Value, other.Value);
+        }
     }
 
-    public class DictionaryRemoveEvent<TKey, TValue>
+    public struct DictionaryRemoveEvent<TKey, TValue> : IEquatable<DictionaryRemoveEvent<TKey, TValue>>
     {
         public TKey Key { get; private set; }
         public TValue Value { get; private set; }
 
         public DictionaryRemoveEvent(TKey key, TValue value)
+            : this()
         {
-            this.Key = key;
-            this.Value = value;
+            Key = key;
+            Value = value;
         }
 
         public override string ToString()
         {
             return string.Format("Key:{0} Value:{1}", Key, Value);
         }
+
+        public override int GetHashCode()
+        {
+            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^ EqualityComparer<TValue>.Default.GetHashCode(Value) << 2;
+        }
+
+        public bool Equals(DictionaryRemoveEvent<TKey, TValue> other)
+        {
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) && EqualityComparer<TValue>.Default.Equals(Value, other.Value);
+        }
     }
 
-    public class DictionaryReplaceEvent<TKey, TValue>
+    public struct DictionaryReplaceEvent<TKey, TValue> : IEquatable<DictionaryReplaceEvent<TKey, TValue>>
     {
         public TKey Key { get; private set; }
         public TValue OldValue { get; private set; }
         public TValue NewValue { get; private set; }
 
         public DictionaryReplaceEvent(TKey key, TValue oldValue, TValue newValue)
+            : this()
         {
-            this.Key = key;
-            this.OldValue = oldValue;
-            this.NewValue = newValue;
+            Key = key;
+            OldValue = oldValue;
+            NewValue = newValue;
         }
 
         public override string ToString()
         {
             return string.Format("Key:{0} OldValue:{1} NewValue:{2}", Key, OldValue, NewValue);
         }
+
+        public override int GetHashCode()
+        {
+            return EqualityComparer<TKey>.Default.GetHashCode(Key) ^ EqualityComparer<TValue>.Default.GetHashCode(OldValue) << 2 ^ EqualityComparer<TValue>.Default.GetHashCode(NewValue) >> 2;
+        }
+
+        public bool Equals(DictionaryReplaceEvent<TKey, TValue> other)
+        {
+            return EqualityComparer<TKey>.Default.Equals(Key, other.Key) && EqualityComparer<TValue>.Default.Equals(OldValue, other.OldValue) && EqualityComparer<TValue>.Default.Equals(NewValue, other.NewValue);
+        }
     }
 
-    public interface IReactiveDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    // IReadOnlyDictionary is from .NET 4.5
+    public interface IReadOnlyReactiveDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
+        int Count { get; }
+        TValue this[TKey index] { get; }
+        bool ContainsKey(TKey key);
+        bool TryGetValue(TKey key, out TValue value);
+
         IObservable<DictionaryAddEvent<TKey, TValue>> ObserveAdd();
         IObservable<int> ObserveCountChanged();
         IObservable<DictionaryRemoveEvent<TKey, TValue>> ObserveRemove();
         IObservable<DictionaryReplaceEvent<TKey, TValue>> ObserveReplace();
         IObservable<Unit> ObserveReset();
+    }
+
+    public interface IReactiveDictionary<TKey, TValue> : IReadOnlyReactiveDictionary<TKey, TValue>, IDictionary<TKey, TValue>
+    {
     }
 
     [Serializable]
@@ -214,18 +257,34 @@ namespace UniRx
             }
         }
 
+        #region IDisposable Support
+
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    DisposeSubject(ref countChanged);
+                    DisposeSubject(ref collectionReset);
+                    DisposeSubject(ref dictionaryAdd);
+                    DisposeSubject(ref dictionaryRemove);
+                    DisposeSubject(ref dictionaryReplace);
+                }
+
+                disposedValue = true;
+            }
+        }
 
         public void Dispose()
         {
-            if (isDisposed) return;
-            isDisposed = true;
-
-            DisposeSubject(ref countChanged);
-            DisposeSubject(ref collectionReset);
-            DisposeSubject(ref dictionaryAdd);
-            DisposeSubject(ref dictionaryRemove);
-            DisposeSubject(ref dictionaryReplace);
+            Dispose(true);
         }
+
+        #endregion
+
 
         #region Observe
 

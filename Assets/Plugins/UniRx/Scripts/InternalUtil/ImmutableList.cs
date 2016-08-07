@@ -2,6 +2,7 @@
 
 namespace UniRx.InternalUtil
 {
+    // ImmutableList is sometimes useful, use for public.
     public class ImmutableList<T>
     {
         public static readonly ImmutableList<T> Empty = new ImmutableList<T>();
@@ -51,6 +52,7 @@ namespace UniRx.InternalUtil
         {
             for (var i = 0; i < data.Length; ++i)
             {
+                // ImmutableList only use for IObserver(no worry for boxed)
                 if (object.Equals(data[i], value)) return i;
             }
             return -1;
