@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/setchi/NoteEditor.svg?style=flat-square)](LICENSE)
 
 音楽ゲーム用の譜面エディタです。
-現在wav形式の音楽ファイルのみ対応しています。[English](https://translate.google.com/translate?sl=ja&tl=en&u=https://github.com/setchi/NoteEditor) (by Google Translate)
+現在wav形式の音楽ファイルのみ対応しています。
 
 ![screenshot](screenshot.png)
 
