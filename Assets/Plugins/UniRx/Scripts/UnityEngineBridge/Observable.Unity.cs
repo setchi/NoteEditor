@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UniRx.Triggers;
 using UnityEngine;
+using System.Threading;
 
 #if !UniRxLibrary
 using SchedulerUnity = UniRx.Scheduler;
@@ -596,7 +597,7 @@ namespace UniRx
                 }
             }
         }
-   
+
         public static IObservable<T> FromCoroutine<T>(Func<IObserver<T>, CancellationToken, IEnumerator> coroutine)
         {
             return new UniRx.Operators.FromCoroutineObservable<T>(coroutine);
@@ -814,6 +815,11 @@ namespace UniRx
             return new UniRx.Operators.DelayFrameObservable<T>(source, frameCount, frameCountType);
         }
 
+        public static IObservable<T> Sample<T, T2>(this IObservable<T> source, IObservable<T2> sampler)
+        {
+            return new UniRx.Operators.SampleObservable<T, T2>(source, sampler);
+        }
+
         public static IObservable<T> SampleFrame<T>(this IObservable<T> source, int frameCount, FrameCountType frameCountType = FrameCountType.Update)
         {
             if (frameCount < 0) throw new ArgumentOutOfRangeException("frameCount");
@@ -855,7 +861,7 @@ namespace UniRx
         /// </summary>
         public static ObservableYieldInstruction<T> ToYieldInstruction<T>(this IObservable<T> source)
         {
-            return new ObservableYieldInstruction<T>(source, true, CancellationToken.Empty);
+            return new ObservableYieldInstruction<T>(source, true, CancellationToken.None);
         }
 
         /// <summary>
@@ -875,7 +881,7 @@ namespace UniRx
         /// </summary>
         public static ObservableYieldInstruction<T> ToYieldInstruction<T>(this IObservable<T> source, bool throwOnError)
         {
-            return new ObservableYieldInstruction<T>(source, throwOnError, CancellationToken.Empty);
+            return new ObservableYieldInstruction<T>(source, throwOnError, CancellationToken.None);
         }
 
         /// <summary>
