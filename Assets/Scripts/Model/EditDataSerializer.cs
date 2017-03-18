@@ -1,8 +1,6 @@
-﻿using LitJson;
-using NoteEditor.DTO;
+﻿using NoteEditor.DTO;
 using NoteEditor.Notes;
 using NoteEditor.Presenter;
-using NoteEditor.Utility;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,16 +45,12 @@ namespace NoteEditor.Model
                 }
             }
 
-            var jsonWriter = new JsonWriter();
-            jsonWriter.PrettyPrint = true;
-            jsonWriter.IndentValue = 4;
-            JsonMapper.ToJson(dto, jsonWriter);
-            return jsonWriter.ToString();
+            return UnityEngine.JsonUtility.ToJson(dto);
         }
 
         public static void Deserialize(string json)
         {
-            var editData = JsonMapper.ToObject<MusicDTO.EditData>(json);
+            var editData = UnityEngine.JsonUtility.FromJson<MusicDTO.EditData>(json);
             var notePresenter = EditNotesPresenter.Instance;
 
             EditData.BPM.Value = editData.BPM;

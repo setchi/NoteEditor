@@ -27,7 +27,7 @@ namespace NoteEditor.Presenter
 
             if (!File.Exists(filePath))
             {
-                File.WriteAllText(filePath, LitJson.JsonMapper.ToJson(SettingsDTO.GetDefaultSettings()), System.Text.Encoding.UTF8);
+                File.WriteAllText(filePath, JsonUtility.ToJson(SettingsDTO.GetDefaultSettings()), System.Text.Encoding.UTF8);
             }
 
             return File.ReadAllText(filePath, System.Text.Encoding.UTF8);

@@ -2,6 +2,7 @@
 
 namespace NoteEditor.DTO
 {
+    [System.Serializable]
     public class SettingsDTO
     {
         public string workSpacePath;

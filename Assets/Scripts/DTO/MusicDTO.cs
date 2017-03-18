@@ -4,6 +4,7 @@ namespace NoteEditor.DTO
 {
     public class MusicDTO
     {
+        [System.Serializable]
         public class EditData
         {
             public string name;
@@ -13,6 +14,7 @@ namespace NoteEditor.DTO
             public List<Note> notes;
         }
 
+        [System.Serializable]
         public class Note
         {
             public int LPB;

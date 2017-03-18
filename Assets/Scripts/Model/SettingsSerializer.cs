@@ -1,5 +1,4 @@
-﻿using LitJson;
-using NoteEditor.DTO;
+﻿using NoteEditor.DTO;
 using System.Linq;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace NoteEditor.Model
     {
         public static void Deserialize(string json)
         {
-            var dto = JsonMapper.ToObject<SettingsDTO>(json);
+            var dto = JsonUtility.FromJson<SettingsDTO>(json);
             Settings.NoteInputKeyCodes.Value = dto.noteInputKeyCodes
                 .Select(keyCodeNum => (KeyCode)keyCodeNum)
                 .ToList();
@@ -32,7 +31,7 @@ namespace NoteEditor.Model
                 .Select(keyCode => (int)keyCode)
                 .ToList();
 
-            return JsonMapper.ToJson(data);
+            return JsonUtility.ToJson(data);
         }
     }
 }
