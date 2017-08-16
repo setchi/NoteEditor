@@ -27,7 +27,7 @@ namespace NoteEditor.Presenter
 
                 EditCommandManager.Clear();
                 ResetEditor();
-                Audio.Source.clip = www.audioClip;
+                Audio.Source.clip = www.GetAudioClip();
 
                 if (Audio.Source.clip == null)
                 {
