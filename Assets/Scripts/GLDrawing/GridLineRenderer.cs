@@ -14,11 +14,27 @@ namespace NoteEditor.GLDrawing
         [SerializeField]
         Color highlightColor;
         [SerializeField]
-        Color mainBeatLineColor;
-        [SerializeField]
-        Color subBeatLineColor;
-        [SerializeField]
         Color blockLineColor;
+        [SerializeField]
+        Color beatLineColor1;
+        [SerializeField]
+        Color beatLineColor2;
+        [SerializeField]
+        Color beatLineColor3;
+
+        Color BeatLineColor(int beat) =>
+            beat % (EditData.LPB.Value * 4) == 0 ?
+                beatLineColor3 :
+            beat % EditData.LPB.Value == 0 ?
+                beatLineColor2 :
+                beatLineColor1;
+
+        float BeatLineLengthFactor(int beat) =>
+            beat % (EditData.LPB.Value * 4) == 0 ?
+                1.0f :
+            beat % EditData.LPB.Value == 0 ?
+                1.05f :
+                1.0f;
 
         void Awake()
         {
@@ -35,7 +51,6 @@ namespace NoteEditor.GLDrawing
                     var unitBeatSamples = Mathf.FloorToInt(Audio.Source.clip.frequency * 60f / EditData.BPM.Value);
                     var beatNum = EditData.LPB.Value * Mathf.CeilToInt(Audio.Source.clip.samples / (float)unitBeatSamples);
 
-
                     if (beatSamples.Length != beatNum || cachedCanvasWidth != NoteCanvas.Width.Value)
                     {
                         beatSamples = Enumerable.Range(0, beatNum)
@@ -45,9 +60,9 @@ namespace NoteEditor.GLDrawing
                         beatLines = beatSamples
                             .Select(x => ConvertUtils.SamplesToCanvasPositionX(x))
                             .Select((x, i) => new Line(
-                                ConvertUtils.CanvasToScreenPosition(new Vector3(x, 140, 0)),
-                                ConvertUtils.CanvasToScreenPosition(new Vector3(x, -140, 0)),
-                                i % EditData.LPB.Value == 0 ? mainBeatLineColor : subBeatLineColor))
+                                ConvertUtils.CanvasToScreenPosition(new Vector3(x,  140 * BeatLineLengthFactor(i), 0)),
+                                ConvertUtils.CanvasToScreenPosition(new Vector3(x, -140 * BeatLineLengthFactor(i), 0)),
+                                BeatLineColor(i)))
                             .ToArray();
 
                         cachedZeroSamplePosX = beatLines[0].start.x;
@@ -61,12 +76,11 @@ namespace NoteEditor.GLDrawing
                         for (int i = 0; i < beatNum; i++)
                         {
                             beatLines[i].end.x = (beatLines[i].start.x += diffX);
-                            beatLines[i].color = i % EditData.LPB.Value == 0 ? mainBeatLineColor : subBeatLineColor;
+                            beatLines[i].color = BeatLineColor(i);
                         }
 
                         cachedZeroSamplePosX = currentX;
                     }
-
 
                     if (blockLines.Length != EditData.MaxBlock.Value)
                     {
@@ -114,7 +128,7 @@ namespace NoteEditor.GLDrawing
                         }
                     }
 
-                    var beatGridInteral = beatLines[EditData.LPB.Value].start.x - beatLines[0].start.x;
+                    var beatGridInteral = beatLines[EditData.LPB.Value * 4].start.x - beatLines[0].start.x;
                     var beatGridMinInterval = 100;
                     var intervalFactor = beatGridInteral < beatGridMinInterval
                         ? Mathf.RoundToInt(beatGridMinInterval / beatGridInteral)
@@ -128,11 +142,11 @@ namespace NoteEditor.GLDrawing
                         {
                             GLLineDrawer.Draw(beatLines[i]);
 
-                            if (i % (EditData.LPB.Value * intervalFactor) == 0)
+                            if (i % (EditData.LPB.Value * 4 * intervalFactor) == 0)
                             {
                                 BeatNumberRenderer.Render(
                                     new Vector3(beatLines[i].start.x, Screen.height / 2f + 154 / NoteCanvas.ScaleFactor.Value, 0),
-                                    i / EditData.LPB.Value);
+                                    i / (EditData.LPB.Value * 4));
                             }
                         }
                     }

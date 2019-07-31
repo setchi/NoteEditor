@@ -34,6 +34,7 @@ namespace NoteEditor.GLDrawing
             {
                 var obj = Instantiate(Instance.beatNumberPrefab, pos, Quaternion.identity) as GameObject;
                 obj.transform.SetParent(Instance.transform);
+                obj.transform.localScale = Vector3.one;
                 Instance.rectTransformPool.Add(obj.GetComponent<RectTransform>());
                 Instance.textPool.Add(obj.GetComponent<Text>());
                 size++;
@@ -62,7 +63,7 @@ namespace NoteEditor.GLDrawing
             {
                 foreach (var text in Instance.textPool.Skip(countCurrentActive + 1))
                 {
-                    DestroyObject(text.gameObject);
+                    Destroy(text.gameObject);
                 }
 
                 Instance.rectTransformPool.RemoveRange(countCurrentActive, size - countCurrentActive);
