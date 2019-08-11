@@ -8,7 +8,7 @@ namespace NoteEditor.Presenter
     public class ToggleClapSoundEffectEnablePresenter : MonoBehaviour
     {
         [SerializeField]
-        Toggle toggle;
+        Toggle toggle = default;
 
         void Awake()
         {

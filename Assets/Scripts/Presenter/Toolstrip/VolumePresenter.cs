@@ -8,15 +8,15 @@ namespace NoteEditor.Presenter
     public class VolumePresenter : MonoBehaviour
     {
         [SerializeField]
-        Slider volumeController;
+        Slider volumeController = default;
         [SerializeField]
-        Image image;
+        Image image = default;
         [SerializeField]
-        Sprite iconSound2;
+        Sprite iconSound2 = default;
         [SerializeField]
-        Sprite iconSound;
+        Sprite iconSound = default;
         [SerializeField]
-        Sprite iconMute;
+        Sprite iconMute = default;
 
         void Awake()
         {

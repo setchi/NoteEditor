@@ -9,21 +9,21 @@ namespace NoteEditor.Presenter
     public class FileListItem : MonoBehaviour
     {
         [SerializeField]
-        Color selectedStateBackgroundColor;
+        Color selectedStateBackgroundColor = default;
         [SerializeField]
-        Color defaultBackgroundColor;
+        Color defaultBackgroundColor = default;
         [SerializeField]
-        Color selectedTextColor;
+        Color selectedTextColor = default;
         [SerializeField]
-        Color defaultTextColor;
+        Color defaultTextColor = default;
         [SerializeField]
-        Image itemTypeIcon;
+        Image itemTypeIcon = default;
         [SerializeField]
-        Sprite directoryIcon;
+        Sprite directoryIcon = default;
         [SerializeField]
-        Sprite musicFileIcon;
+        Sprite musicFileIcon = default;
         [SerializeField]
-        Sprite otherFileIcon;
+        Sprite otherFileIcon = default;
 
         string itemName;
         FileItemInfo fileItemInfo;

@@ -10,11 +10,11 @@ namespace NoteEditor.Presenter
     public class CanvasOffsetXPresenter : MonoBehaviour
     {
         [SerializeField]
-        CanvasEvents canvasEvents;
+        CanvasEvents canvasEvents = default;
         [SerializeField]
-        RectTransform verticalLineRect;
+        RectTransform verticalLineRect = default;
         [SerializeField]
-        RectTransform waveformRenderImage;
+        RectTransform waveformRenderImage = default;
 
         void Awake()
         {

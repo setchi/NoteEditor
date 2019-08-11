@@ -11,15 +11,15 @@ namespace NoteEditor.Presenter
     public class ToggleEditTypePresenter : MonoBehaviour
     {
         [SerializeField]
-        Button editTypeToggleButton;
+        Button editTypeToggleButton = default;
         [SerializeField]
-        Sprite iconLongNotes;
+        Sprite iconLongNotes = default;
         [SerializeField]
-        Sprite iconSingleNotes;
+        Sprite iconSingleNotes = default;
         [SerializeField]
-        Color longTypeStateButtonColor;
+        Color longTypeStateButtonColor = default;
         [SerializeField]
-        Color singleTypeStateButtonColor;
+        Color singleTypeStateButtonColor = default;
 
         void Awake()
         {

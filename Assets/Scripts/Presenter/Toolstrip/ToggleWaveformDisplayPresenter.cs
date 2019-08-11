@@ -8,7 +8,7 @@ namespace NoteEditor.Presenter
     public class ToggleWaveformDisplayPresenter : MonoBehaviour
     {
         [SerializeField]
-        Toggle toggle;
+        Toggle toggle = default;
 
         void Awake()
         {

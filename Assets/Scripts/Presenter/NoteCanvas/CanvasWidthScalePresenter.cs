@@ -12,9 +12,9 @@ namespace NoteEditor.Presenter
     public class CanvasWidthScalePresenter : MonoBehaviour
     {
         [SerializeField]
-        CanvasEvents canvasEvents;
+        CanvasEvents canvasEvents = default;
         [SerializeField]
-        Slider canvasWidthScaleController;
+        Slider canvasWidthScaleController = default;
 
         void Awake()
         {

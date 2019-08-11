@@ -9,13 +9,13 @@ namespace NoteEditor.Presenter
     public class SettingWorkSpacePathPresenter : MonoBehaviour
     {
         [SerializeField]
-        InputField workSpacePathInputField;
+        InputField workSpacePathInputField = default;
         [SerializeField]
-        Text workSpacePathInputFieldText;
+        Text workSpacePathInputFieldText = default;
         [SerializeField]
-        Color defaultTextColor;
+        Color defaultTextColor = default;
         [SerializeField]
-        Color invalidStateTextColor;
+        Color invalidStateTextColor = default;
 
         void Awake()
         {

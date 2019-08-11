@@ -10,17 +10,17 @@ namespace NoteEditor.Presenter
     public class EditSectionPresenter : MonoBehaviour
     {
         [SerializeField]
-        RectTransform markerRect;
+        RectTransform markerRect = default;
         [SerializeField]
-        EditSectionHandlePresenter point1;
+        EditSectionHandlePresenter point1 = default;
         [SerializeField]
-        EditSectionHandlePresenter point2;
+        EditSectionHandlePresenter point2 = default;
         [SerializeField]
-        RectTransform playbackPositionSliderRectTransform;
+        RectTransform playbackPositionSliderRectTransform = default;
         [SerializeField]
-        RectTransform sliderMarker;
+        RectTransform sliderMarker = default;
         [SerializeField]
-        Color markerColor;
+        Color markerColor = default;
 
         Geometry drawData = new Geometry(Enumerable.Range(0, 4).Select(_ => Vector3.zero).ToArray(), Color.clear);
 

@@ -9,9 +9,9 @@ namespace NoteEditor.Presenter
     public class ToggleDisplaySettingsPresenter : MonoBehaviour
     {
         [SerializeField]
-        Button toggleDisplaySettingsButton;
+        Button toggleDisplaySettingsButton = default;
         [SerializeField]
-        GameObject settingsWindow;
+        GameObject settingsWindow = default;
 
         bool isMouseOverSettingsWindow = false;
 

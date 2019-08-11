@@ -12,15 +12,15 @@ namespace NoteEditor.GLDrawing
     public class GridLineRenderer : MonoBehaviour
     {
         [SerializeField]
-        Color highlightColor;
+        Color highlightColor = default;
         [SerializeField]
-        Color blockLineColor;
+        Color blockLineColor = default;
         [SerializeField]
-        Color beatLineColor1;
+        Color beatLineColor1 = default;
         [SerializeField]
-        Color beatLineColor2;
+        Color beatLineColor2 = default;
         [SerializeField]
-        Color beatLineColor3;
+        Color beatLineColor3 = default;
 
         Color BeatLineColor(int beat) =>
             beat % (EditData.LPB.Value * 4) == 0 ?

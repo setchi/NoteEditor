@@ -14,9 +14,7 @@ namespace NoteEditor.Presenter
     public class RangeSelectionPresenter : MonoBehaviour
     {
         [SerializeField]
-        CanvasEvents canvasEvents;
-        [SerializeField]
-        Color selectionRectColor;
+        Color selectionRectColor = default;
 
         Dictionary<NotePosition, NoteObject> selectedNoteObjects = new Dictionary<NotePosition, NoteObject>();
         List<Note> copiedNotes = new List<Note>();

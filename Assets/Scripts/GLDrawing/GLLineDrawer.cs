@@ -7,7 +7,7 @@ namespace NoteEditor.GLDrawing
     public class GLLineDrawer : SingletonMonoBehaviour<GLLineDrawer>
     {
         [SerializeField]
-        Material mat;
+        Material mat = default;
         List<Line> drawData = new List<Line>();
 
         static int size = 0;

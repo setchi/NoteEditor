@@ -13,24 +13,24 @@ namespace NoteEditor.Presenter
     public class SavePresenter : MonoBehaviour
     {
         [SerializeField]
-        Button saveButton;
+        Button saveButton = default;
         [SerializeField]
-        Text messageText;
+        Text messageText = default;
         [SerializeField]
-        Color unsavedStateButtonColor;
+        Color unsavedStateButtonColor = default;
         [SerializeField]
         Color savedStateButtonColor = Color.white;
 
         [SerializeField]
-        GameObject saveDialog;
+        GameObject saveDialog = default;
         [SerializeField]
-        Button dialogSaveButton;
+        Button dialogSaveButton = default;
         [SerializeField]
-        Button dialogDoNotSaveButton;
+        Button dialogDoNotSaveButton = default;
         [SerializeField]
-        Button dialogCancelButton;
+        Button dialogCancelButton = default;
         [SerializeField]
-        Text dialogMessageText;
+        Text dialogMessageText = default;
 
         ReactiveProperty<bool> mustBeSaved = new ReactiveProperty<bool>();
 
@@ -90,9 +90,10 @@ namespace NoteEditor.Presenter
                     saveDialog.SetActive(false);
                 });
 
+            Application.wantsToQuit += ApplicationQuit;
         }
 
-        void OnApplicationQuit()
+        bool ApplicationQuit()
         {
             if (mustBeSaved.Value)
             {
@@ -100,8 +101,10 @@ namespace NoteEditor.Presenter
                     + EditData.Name.Value + "' ?" + System.Environment.NewLine
                     + "Your changes will be lost if you don't save them.";
                 saveDialog.SetActive(true);
-                Application.CancelQuit();
+                return false;
             }
+
+            return true;
         }
 
         public void Save()

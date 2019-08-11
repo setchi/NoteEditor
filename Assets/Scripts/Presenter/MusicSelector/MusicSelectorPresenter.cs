@@ -12,21 +12,21 @@ namespace NoteEditor.Presenter
     public class MusicSelectorPresenter : MonoBehaviour
     {
         [SerializeField]
-        InputField directoryPathInputField;
+        InputField directoryPathInputField = default;
         [SerializeField]
-        GameObject fileItemPrefab;
+        GameObject fileItemPrefab = default;
         [SerializeField]
-        GameObject fileItemContainer;
+        GameObject fileItemContainer = default;
         [SerializeField]
-        Transform fileItemContainerTransform;
+        Transform fileItemContainerTransform = default;
         [SerializeField]
-        Button redoButton;
+        Button redoButton = default;
         [SerializeField]
-        Button undoButton;
+        Button undoButton = default;
         [SerializeField]
-        Button loadButton;
+        Button loadButton = default;
         [SerializeField]
-        MusicLoader musicLoader;
+        MusicLoader musicLoader = default;
 
         void Start()
         {
@@ -71,7 +71,7 @@ namespace NoteEditor.Presenter
                 .Do(_ => Enumerable.Range(0, fileItemContainerTransform.childCount)
                     .Select(i => fileItemContainerTransform.GetChild(i))
                     .ToList()
-                    .ForEach(child => DestroyObject(child.gameObject)))
+                    .ForEach(child => Destroy(child.gameObject)))
                 .SelectMany(fileItemList => fileItemList)
                 .Select(fileItemInfo => new { fileItemInfo, obj = Instantiate(fileItemPrefab) as GameObject })
                 .Do(elm => elm.obj.transform.SetParent(fileItemContainer.transform))

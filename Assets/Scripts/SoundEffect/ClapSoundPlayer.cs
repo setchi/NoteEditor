@@ -11,7 +11,7 @@ namespace NoteEditor.SoundEffect
     public class ClapSoundPlayer : MonoBehaviour
     {
         [SerializeField]
-        AudioSource clapAudioSource;
+        AudioSource clapAudioSource = default;
 
         void Awake()
         {

@@ -10,13 +10,13 @@ namespace NoteEditor.Presenter
     public class InputNoteKeyCodeSettingsItem : MonoBehaviour
     {
         [SerializeField]
-        Color selectedStateBackgroundColor;
+        Color selectedStateBackgroundColor = default;
         [SerializeField]
-        Color defaultBackgroundColor;
+        Color defaultBackgroundColor = default;
         [SerializeField]
-        Color selectedTextColor;
+        Color selectedTextColor = default;
         [SerializeField]
-        Color defaultTextColor;
+        Color defaultTextColor = default;
 
         ReactiveProperty<KeyCode> keyCode = new ReactiveProperty<KeyCode>();
         int block;

@@ -9,7 +9,7 @@ namespace NoteEditor.GLDrawing
     public class WaveformRenderer : MonoBehaviour
     {
         [SerializeField]
-        RawImage image;
+        RawImage image = default;
 
         Texture2D texture;
 

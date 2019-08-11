@@ -12,7 +12,7 @@ namespace NoteEditor.Presenter
     public class EditNotesPresenter : SingletonMonoBehaviour<EditNotesPresenter>
     {
         [SerializeField]
-        CanvasEvents canvasEvents;
+        CanvasEvents canvasEvents = default;
 
         public readonly Subject<Note> RequestForEditNote = new Subject<Note>();
         public readonly Subject<Note> RequestForRemoveNote = new Subject<Note>();

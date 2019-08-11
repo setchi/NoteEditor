@@ -13,11 +13,11 @@ namespace NoteEditor.Presenter
     public class PlaybackPositionPresenter : MonoBehaviour
     {
         [SerializeField]
-        CanvasEvents canvasEvents;
+        CanvasEvents canvasEvents = default;
         [SerializeField]
-        Slider playbackPositionController;
+        Slider playbackPositionController = default;
         [SerializeField]
-        Text playbackTimeDisplayText;
+        Text playbackTimeDisplayText = default;
 
         void Awake()
         {

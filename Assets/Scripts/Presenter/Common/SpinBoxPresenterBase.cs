@@ -12,21 +12,21 @@ namespace NoteEditor.Presenter
     public abstract class SpinBoxPresenterBase : MonoBehaviour
     {
         [SerializeField]
-        InputField inputField;
+        InputField inputField = default;
         [SerializeField]
-        Button increaseButton;
+        Button increaseButton = default;
         [SerializeField]
-        Button decreaseButton;
+        Button decreaseButton = default;
         [SerializeField]
-        int valueStep;
+        int valueStep = default;
         [SerializeField]
-        int minValue;
+        int minValue = default;
         [SerializeField]
-        int maxValue;
+        int maxValue = default;
         [SerializeField]
-        int longPressTriggerMilliseconds;
+        int longPressTriggerMilliseconds = default;
         [SerializeField]
-        int continuousPressIntervalMilliseconds;
+        int continuousPressIntervalMilliseconds = default;
 
         Subject<int> _operateSpinButtonObservable = new Subject<int>();
 

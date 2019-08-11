@@ -10,9 +10,9 @@ namespace NoteEditor.Presenter
     public class SettingsWindowPresenter : MonoBehaviour
     {
         [SerializeField]
-        GameObject itemPrefab;
+        GameObject itemPrefab = default;
         [SerializeField]
-        Transform itemContentTransform;
+        Transform itemContentTransform = default;
 
         static string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Settings");
         static string fileName = "settings.json";
@@ -45,7 +45,7 @@ namespace NoteEditor.Presenter
             EditData.MaxBlock.Do(_ => Enumerable.Range(0, itemContentTransform.childCount)
                     .Select(i => itemContentTransform.GetChild(i))
                     .ToList()
-                    .ForEach(child => DestroyObject(child.gameObject)))
+                    .ForEach(child => Destroy(child.gameObject)))
                 .Do(maxNum =>
                 {
                     if (Settings.NoteInputKeyCodes.Value.Count < maxNum)

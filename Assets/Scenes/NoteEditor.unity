@@ -6477,7 +6477,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25ac1a284e585ba4f810b4b15ec2705b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvasEvents: {fileID: 798471448}
   selectionRectColor: {r: 1, g: 0, b: 1, a: 1}
 --- !u!1 &804642297
 GameObject:

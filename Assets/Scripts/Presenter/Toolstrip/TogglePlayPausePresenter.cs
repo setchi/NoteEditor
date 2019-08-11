@@ -9,11 +9,11 @@ namespace NoteEditor.Presenter
     public class TogglePlayPausePresenter : MonoBehaviour
     {
         [SerializeField]
-        Button togglePlayPauseButton;
+        Button togglePlayPauseButton = default;
         [SerializeField]
-        Sprite iconPlay;
+        Sprite iconPlay = default;
         [SerializeField]
-        Sprite iconPause;
+        Sprite iconPause = default;
 
         void Awake()
         {

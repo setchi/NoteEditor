@@ -7,7 +7,7 @@ namespace NoteEditor.GLDrawing
     public class GLQuadDrawer : SingletonMonoBehaviour<GLQuadDrawer>
     {
         [SerializeField]
-        Material mat;
+        Material mat = default;
         List<Geometry> drawData = new List<Geometry>();
 
         static int size = 0;
