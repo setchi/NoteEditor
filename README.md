@@ -1,4 +1,4 @@
-# Note Editor [![Release](https://img.shields.io/github/release/setchi/NoteEditor.svg)](https://github.com/setchi/NoteEditor/releases/latest) [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](http://mit-license.org)
+# Note Editor [![Release](https://img.shields.io/github/release/setchi/NoteEditor.svg?style=flat-square)](https://github.com/setchi/NoteEditor/releases/latest) [![license](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](https://github.com/setchi/NoteEditor/blob/master/LICENSE)
 音楽ゲーム用の譜面エディタです。
 現在wav形式の音楽ファイルのみ対応しています。[English](https://translate.google.com/translate?sl=ja&tl=en&u=https://github.com/setchi/NoteEditor) (by Google Translate)
 
@@ -37,4 +37,4 @@
 Unity 2019.1.5f1
 
 ## LICENSE
-MIT
+[MIT](https://github.com/setchi/NoteEditor/blob/master/LICENSE)
